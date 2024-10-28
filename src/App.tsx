@@ -6,7 +6,7 @@ import Header from "../src/components/Header/Header";
 // import Products from "../src/components/Products/Products";
 // import Info from "../src/components/Info/Info";
 // import Offer from "../src/components/Offer/Offer";
-// import Footer from "./components/Footer/Footer";
+import Footer from "./components/Footer/Footer";
 function App() {
   return (
     <Router>
@@ -21,12 +21,12 @@ function App() {
               {/* <Products />
               <Info />
               <CardDelivery />
-              <Offer />
-              <Footer /> */}
+              <Offer />*/}
             </>
           }
         />
       </Routes>
+      <Footer />
     </Router>
   );
 }
