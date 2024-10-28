@@ -1,0 +1,8 @@
+.swiper-container {
+    height: 705px;
+    z-index: 1;
+}
+.swiper-img {
+    position: absolute;
+    bottom: 0px;
+}
