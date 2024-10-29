@@ -1,0 +1,58 @@
+.products {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.product-grid {
+    display: flex;
+    flex-wrap: wrap; /* Permite que las tarjetas se ajusten a la línea siguiente */
+    gap: 20px; /* Espacio entre tarjetas */
+    justify-content: center; /* Centra las tarjetas en la pantalla */
+    margin-top: 20px;
+    width: 1107px;
+}
+
+.card {
+    background-color: #d8938d;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    color: #fff;
+    width: 150px; /* Ancho fijo de cada tarjeta */
+    transition: transform 0.3s ease;
+    box-shadow: 2px 4px 10px 0px rgba(123, 123, 123, 0.15);
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Eleva la tarjeta al hacer hover */
+}
+
+.card-icon img {
+    width: 60px; /* Ajusta el tamaño de las imágenes */
+    height: 60px;
+    margin-bottom: 10px;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.more-products {
+    margin-top: 20px;
+    background-color: #fff;
+    border: none;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.more-products:hover {
+    background-color: #f0f0f0;
+}

@@ -17,10 +17,15 @@
 .navbar-links-cont {
     display: flex;
 }
+.navbar-links-cont > a {
+    text-decoration: none;
+}
 .navbar-links {
     list-style-type: none;
     margin-left: 23px;
+    cursor: pointer;
 }
+
 .navbar-links h2 {
     text-decoration: none;
     color: var(--black, #000);
