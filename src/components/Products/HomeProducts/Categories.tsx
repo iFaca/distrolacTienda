@@ -1,7 +1,7 @@
 import React from "react";
-import ProductCard from "./ProductCard";
-import "./Products.css";
-
+import CategoryCard from "./CategoryCard";
+import "./Category.css";
+import { Link } from "react-router-dom";
 // Importing images
 import aceites from "../../../assets/aceites.png";
 import lacteos from "../../../assets/lacteos.png";
@@ -33,17 +33,19 @@ const productCategories: Product[] = [
   { title: "Fiambres", icon: fiambres },
 ];
 
-const Products: React.FC = () => (
+const Categories: React.FC = () => (
   <div className="products">
     <h2>Productos</h2>
     <p>Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum</p>
     <div className="product-grid">
       {productCategories.map((product, index) => (
-        <ProductCard key={index} icon={product.icon} title={product.title} />
+        <CategoryCard key={index} icon={product.icon} title={product.title} />
       ))}
     </div>
-    <button className="more-products">Ver más productos</button>
+    <Link className="more-products" to="/productos">
+      Ver más productos
+    </Link>
   </div>
 );
 
-export default Products;
+export default Categories;

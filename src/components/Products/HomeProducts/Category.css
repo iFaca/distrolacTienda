@@ -24,6 +24,7 @@
     width: 150px; /* Ancho fijo de cada tarjeta */
     transition: transform 0.3s ease;
     box-shadow: 2px 4px 10px 0px rgba(123, 123, 123, 0.15);
+    cursor: pointer;
 }
 
 .card:hover {
@@ -51,6 +52,7 @@
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.3s ease;
+    text-decoration: none;
 }
 
 .more-products:hover {

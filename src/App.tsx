@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import NavBar from "../src/components/NavBar/NavBar";
 import Header from "../src/components/Header/Header";
 // import CardDelivery from "./components/CardDerlivery/CardDelivery";
-import Products from "./components/Products/HomeProducts/Products";
+import Categories from "./components/Products/HomeProducts/Categories";
 import ProductsList from "./components/Products/ProductsList/ProductList";
 import About from "./components/About/About";
 import HowToBuy from "./components/HowToBuy/HowToBuy";
@@ -24,7 +24,7 @@ function App() {
           element={
             <>
               <Header />
-              <Products />
+              <Categories />
               {/*<Info />
               <CardDelivery />
               <Offer />*/}

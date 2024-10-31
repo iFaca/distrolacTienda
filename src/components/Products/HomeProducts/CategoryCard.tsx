@@ -1,9 +1,9 @@
-interface ProductCardProps {
+interface CategoryCardProps {
   icon: string;
   title: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ icon, title }) => (
+const CategoryCard: React.FC<CategoryCardProps> = ({ icon, title }) => (
   <div className="card">
     <div className="card-icon">
       <img src={icon} alt={title} />
@@ -12,4 +12,4 @@ const ProductCard: React.FC<ProductCardProps> = ({ icon, title }) => (
   </div>
 );
 
-export default ProductCard;
+export default CategoryCard;
