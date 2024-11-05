@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
 import "./ProductList.css";
 import ProductCard from "./ProductCard";
+import { useNavigate } from "react-router-dom";
 
 const BACKEND_URI = import.meta.env.VITE_BACK_APP_URI;
 
@@ -26,10 +27,12 @@ interface Item {
 interface Product {
   _id: string;
   name: string;
-  description: string;
   images: string[];
   category: { _id: string; name: string }; // Categoría del producto
-  // Otros campos del producto según tu modelo
+  details: string;
+  description: string;
+  currentStock: number;
+  purchasePrice: number;
 }
 
 const ProductList: React.FC = () => {
@@ -68,6 +71,8 @@ const ProductList: React.FC = () => {
     setSubCategories(item.categories); // Obtener subcategorías del item seleccionado
     setSubCategoryItems([]); // Reiniciar items de subcategoría
   };
+
+  const navigate = useNavigate();
 
   const handleSubCategoryClick = async (subCategory: SubCategoryItem) => {
     console.log("Subcategoría seleccionada:", subCategory);
@@ -136,11 +141,22 @@ const ProductList: React.FC = () => {
                 {subCategoryItems.map((product) => (
                   <ProductCard
                     key={product._id}
+                    id={product._id}
                     title={product.name}
+                    purchasePrice={product.purchasePrice}
                     image={product.images[0]} // Mostrar la primera imagen del producto
+                    description={product.description} // Asegúrate de pasar la descripción
                     onClick={() => {
                       console.log(`Producto seleccionado: ${product.name}`);
-                      // Aquí puedes agregar la lógica que desees al hacer clic en el producto
+                      navigate(`/productos/${product._id}`, {
+                        state: {
+                          id: product._id,
+                          title: product.name,
+                          image: product.images[0],
+                          description: product.description,
+                          purchasePrice: product.purchasePrice,
+                        },
+                      });
                     }}
                   />
                 ))}

@@ -10,6 +10,7 @@ import HowToBuy from "./components/HowToBuy/HowToBuy";
 import Work from "./components/Work/Work";
 import Cart from "./components/Cart/Cart";
 import Profile from "./components/Profile/Profile";
+import ProductDetail from "./components/Products/ProductsList/ProductDetail/ProductDetail";
 // import Info from "../src/components/Info/Info";
 // import Offer from "../src/components/Offer/Offer";
 import Footer from "./components/Footer/Footer";
@@ -32,6 +33,7 @@ function App() {
           }
         />
         <Route path="/productos" element={<ProductsList />} />
+        <Route path="/productos/:id" element={<ProductDetail />} />
         <Route path="/sobrenosotros" element={<About />} />
         <Route path="/comocomprar" element={<HowToBuy />} />
         <Route path="/trabaja" element={<Work />} />
