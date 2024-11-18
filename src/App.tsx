@@ -11,6 +11,8 @@ import Work from "./components/Work/Work";
 import Cart from "./components/Cart/Cart";
 import Profile from "./components/Profile/Profile";
 import ProductDetail from "./components/Products/ProductsList/ProductDetail/ProductDetail";
+import CartDetail from "./components/Cart/CartDetail/CartDetail";
+import ShippingDetail from "./components/Cart/ShippingDetail/ShippingDetail";
 // import Info from "../src/components/Info/Info";
 // import Offer from "../src/components/Offer/Offer";
 import Footer from "./components/Footer/Footer";
@@ -39,6 +41,8 @@ function App() {
         <Route path="/trabaja" element={<Work />} />
         <Route path="/perfil" element={<Profile />} />
         <Route path="/carrito" element={<Cart />} />
+        <Route path="/detalledepedido" element={<CartDetail />} />
+        <Route path="/editarpedido" element={<ShippingDetail />} />
       </Routes>
       <Footer />
     </Router>

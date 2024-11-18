@@ -33,6 +33,7 @@ interface Product {
   description: string;
   currentStock: number;
   purchasePrice: number;
+  priceLists: PriceList[];
 }
 
 const ProductList: React.FC = () => {
@@ -143,7 +144,11 @@ const ProductList: React.FC = () => {
                     key={product._id}
                     id={product._id}
                     title={product.name}
-                    purchasePrice={product.purchasePrice}
+                    price={
+                      product.priceLists && product.priceLists.length >= 5
+                        ? product.priceLists[4].salePrice
+                        : "N/A"
+                    }
                     image={product.images[0]} // Mostrar la primera imagen del producto
                     description={product.description} // Asegúrate de pasar la descripción
                     onClick={() => {

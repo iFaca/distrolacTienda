@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Cart.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface CartItem {
   id: string;
@@ -12,18 +12,33 @@ interface CartItem {
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const cartData = localStorage.getItem("cart");
-    if (cartData) {
-      setCartItems(JSON.parse(cartData));
+    try {
+      const cartData = localStorage.getItem("cart");
+      if (cartData) {
+        const parsedCart = JSON.parse(cartData);
+        if (Array.isArray(parsedCart)) {
+          setCartItems(parsedCart);
+        } else {
+          console.warn("Datos inválidos en el carrito.");
+          localStorage.removeItem("cart");
+        }
+      }
+    } catch (error) {
+      console.error("Error al cargar el carrito:", error);
+      localStorage.removeItem("cart");
     }
   }, []);
 
   const calculateTotal = () => {
-    return cartItems
-      .reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 1), 0)
-      .toFixed(2);
+    const total = cartItems.reduce(
+      (acc, item) => acc + item.price * (item.quantity || 1),
+      0
+    );
+    localStorage.setItem("total", total.toString()); // Guardar sin redondeo
+    return total.toFixed(2);
   };
 
   const removeItem = (id: string) => {
@@ -35,11 +50,19 @@ export default function Cart() {
   const updateQuantity = (id: string, amount: number) => {
     const updatedCart = cartItems.map((item) =>
       item.id === id
-        ? { ...item, quantity: Math.max(1, item.quantity + amount) }
+        ? { ...item, quantity: Math.max(1, (item.quantity || 1) + amount) }
         : item
     );
     setCartItems(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
+  };
+
+  const handleViewDetails = () => {
+    try {
+      navigate("/detalledepedido");
+    } catch (error) {
+      console.error("Error al navegar a los detalles del pedido:", error);
+    }
   };
 
   return (
@@ -54,8 +77,10 @@ export default function Cart() {
         <>
           <div className="cart-header-table">
             <p>Producto</p>
-            <p>Precio</p>
-            <p>Cantidad</p>
+            <div className="cart-column-center">
+              <p>Precio</p>
+              <p>Cantidad</p>
+            </div>
             <p>Total</p>
           </div>
           <div className="cart-line"></div>
@@ -65,19 +90,20 @@ export default function Cart() {
               {cartItems.map((item) => (
                 <li
                   key={item.id}
-                  style={{ display: "flex", marginBottom: "10px" }}
+                  style={{
+                    display: "flex",
+                    marginBottom: "10px",
+                    justifyContent: "space-between",
+                  }}
                 >
                   <div className="cart-product-container">
                     <div className="cart-image-container">
                       <img
                         src={item.image}
                         alt={item.title}
-                        style={{
-                          width: "100%",
-                        }}
+                        style={{ width: "100%" }}
                       />
                     </div>
-
                     <div className="cart-product-details">
                       <h3>{item.title}</h3>
                       <button
@@ -88,20 +114,25 @@ export default function Cart() {
                       </button>
                     </div>
                   </div>
-                  <p className="price">${(item.price || 0).toFixed(2)}</p>
-
-                  <div className="quantity-container">
-                    <button onClick={() => updateQuantity(item.id, -1)}>
-                      -
-                    </button>
-                    <span>{item.quantity || 1}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)}>
-                      +
-                    </button>
+                  <div className="cart-column-center">
+                    <p className="price">
+                      ${!isNaN(item.price) ? item.price.toFixed(2) : "0.00"}
+                    </p>
+                    <div className="quantity-container">
+                      <button onClick={() => updateQuantity(item.id, -1)}>
+                        -
+                      </button>
+                      <span>{item.quantity || 1}</span>
+                      <button onClick={() => updateQuantity(item.id, 1)}>
+                        +
+                      </button>
+                    </div>
                   </div>
-
                   <p className="total">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    $
+                    {!isNaN(item.price * item.quantity)
+                      ? (item.price * item.quantity).toFixed(2)
+                      : "0.00"}
                   </p>
                 </li>
               ))}
@@ -114,7 +145,9 @@ export default function Cart() {
               </p>
               <p className="cart-summary-cost">No incluye costo de envío</p>
             </div>
-            <button className="detail-button">Ver detalle</button>
+            <button className="detail-button" onClick={handleViewDetails}>
+              Ver detalle
+            </button>
           </div>
         </>
       )}

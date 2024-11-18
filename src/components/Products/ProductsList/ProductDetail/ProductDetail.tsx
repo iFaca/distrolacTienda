@@ -5,12 +5,22 @@ import "./ProductDetail.css";
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const location = useLocation();
+
   const product = location.state as {
     id: string;
     title: string;
     image: string;
     description: string;
+    priceLists?: Array<{
+      marginInPercentage?: number;
+    }>;
   };
+
+  // Obtén el precio dinámicamente desde priceLists[4]
+  const price =
+    product.priceLists && product.priceLists[4]?.marginInPercentage
+      ? product.priceLists[4].marginInPercentage
+      : "No disponible";
 
   const [quantity, setQuantity] = useState(0);
 
@@ -39,6 +49,7 @@ const ProductDetail: React.FC = () => {
         title: product.title,
         image: product.image,
         quantity: quantity,
+        price: price, // Usa el precio dinámico extraído
       });
     }
 
@@ -55,7 +66,7 @@ const ProductDetail: React.FC = () => {
     <div className="productdetail-container">
       <div className="productdetail-details">
         <h2>{product.title}</h2>
-        <h3>Precio:</h3>
+        <h3>Precio: ${price}</h3>
         <div className="productdetail-line"></div>
         <div className="productdetail-buttons-container">
           <div className="productdetail-quantityline">
