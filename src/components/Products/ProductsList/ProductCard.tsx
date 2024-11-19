@@ -6,6 +6,9 @@ interface ProductCardProps {
   image: string;
   description?: string;
   price?: number;
+  priceLists?: Array<{
+    marginInPercentage?: number;
+  }>;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -14,6 +17,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   image,
   description,
   price,
+  priceLists,
 }) => {
   const navigate = useNavigate();
 

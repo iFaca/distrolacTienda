@@ -22,6 +22,7 @@ export default function ShippingDetail() {
   });
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [showConfirmation, setShowConfirmation] = useState(false); // Estado para mostrar el pop-up
 
   const navigate = useNavigate();
 
@@ -36,8 +37,43 @@ export default function ShippingDetail() {
     if (storedTotal) setTotal(parseFloat(storedTotal));
   }, []);
 
-  const handleEditContact = () => {
-    navigate("/cart-detail");
+  const handleConfirmOrder = () => {
+    // Mostrar el pop-up de confirmación
+    setShowConfirmation(true);
+
+    // Limpiar el carrito
+    localStorage.removeItem("cart");
+    localStorage.removeItem("total");
+    localStorage.removeItem("userData");
+
+    // Simulamos la creación del pedido (en lugar de enviar a una API real de WhatsApp)
+    const orderDetails = {
+      user: userData,
+      items: cartItems,
+      totalAmount: total,
+    };
+
+    // Log de los datos que enviarías a la API de WhatsApp
+    console.log("Pedido confirmado:", orderDetails);
+
+    // Ejemplo:
+    // fetch("https://tu-api-whatsapp.com", {
+    //   method: "POST",
+    //   body: JSON.stringify(orderDetails),
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    // }).then(response => response.json())
+    //   .then(data => console.log(data))
+    //   .catch(error => console.error("Error al enviar el pedido:", error));
+
+    setTimeout(() => {
+      navigate("/");
+    }, 2000);
+  };
+
+  const handleCloseConfirmation = () => {
+    setShowConfirmation(false);
   };
 
   return (
@@ -53,12 +89,12 @@ export default function ShippingDetail() {
           <div className="shipping-info-row">
             <span>Contacto</span>
             <span>{userData.email}</span>
-            <button onClick={handleEditContact}>Editar</button>
+            <button onClick={() => navigate("/detalledepedido")}>Editar</button>
           </div>
           <div className="shipping-info-row">
             <span>Dirección</span>
             <span>{userData.address}</span>
-            <button onClick={handleEditContact}>Editar</button>
+            <button onClick={() => navigate("/detalledepedido")}>Editar</button>
           </div>
         </div>
         <fieldset className="shipping-method">
@@ -76,7 +112,9 @@ export default function ShippingDetail() {
           >
             Volver a detalles
           </button>
-          <button className="shipping-confirm">Confirmar pedido</button>
+          <button className="shipping-confirm" onClick={handleConfirmOrder}>
+            Confirmar pedido
+          </button>
         </div>
       </div>
 
@@ -117,6 +155,17 @@ export default function ShippingDetail() {
           </div>
         </div>
       </div>
+
+      {/* Pop-up de confirmación */}
+      {showConfirmation && (
+        <div className="confirmation-popup">
+          <div className="confirmation-content">
+            <h3>¡Pedido Confirmado!</h3>
+            <p>Tu pedido ha sido procesado. Serás redirigido al inicio.</p>
+            <button onClick={handleCloseConfirmation}>Cerrar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
