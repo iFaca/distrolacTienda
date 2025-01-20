@@ -70,8 +70,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
           style={{ width: "100%", height: "auto", borderRadius: "8px" }}
         />
         <div className="card-title">{title}</div>
-        {price !== undefined && (
-          <div className="card-price">Precio: ${price.toFixed(2)}</div>
+        {price !== undefined && typeof price === "number" && (
+          <div className="card-price">Precio: ${price}</div>
         )}
       </div>
       <button onClick={handleAddToCart}>Agregar al carro</button>

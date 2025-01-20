@@ -151,7 +151,7 @@ export default function CartDetail() {
             </div>
             <div>
               <span>Envío</span>
-              <span>Lo calcularemos en el próximo paso</span>
+              <span>Gratis</span>
             </div>
             <div className="cartdetail-total-row">
               <span>Total</span>
