@@ -14,12 +14,32 @@ export const usersApiSlice = apiSlice.injectEndpoints({
         },
       }),
     }),
-    // Añadir la mutación de registro
     register: builder.mutation({
       query: (userData) => ({
-        url: `${BASE_URL}/auth/register`, // Ajusta la URL según tu API
+        url: `${BASE_URL}/auth/register`,
         method: "POST",
         body: userData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
+    changePassword: builder.mutation({
+      query: (data) => ({
+        url: `${BASE_URL}/auth/change-password`,
+        method: "POST",
+        body: data,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
+    // Asegúrate de que la mutación updateUserInfo esté aquí
+    updateUserInfo: builder.mutation({
+      query: (data) => ({
+        url: `${BASE_URL}/auth/profile`,
+        method: "PUT",
+        body: data,
         headers: {
           "Content-Type": "application/json",
         },
@@ -34,9 +54,11 @@ export const usersApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
-// Exportar ambos hooks
+// Exporta todos los hooks correctamente
 export const {
   useLoginMutation,
   useLogoutMutation,
-  useRegisterMutation, // Añadir esta exportación
+  useRegisterMutation,
+  useChangePasswordMutation,
+  useUpdateUserInfoMutation, // Asegúrate de que esté exportado correctamente
 } = usersApiSlice;

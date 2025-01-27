@@ -13,7 +13,7 @@ import ProductDetail from "./components/Products/ProductsList/ProductDetail/Prod
 import CartDetail from "./components/Cart/CartDetail/CartDetail";
 import ShippingDetail from "./components/Cart/ShippingDetail/ShippingDetail";
 import Footer from "./components/Footer/Footer";
-
+import Profile from "./components/Profile/Profile";
 function App() {
   return (
     <div className="app-container">
@@ -42,6 +42,7 @@ function App() {
           <Route path="/carrito" element={<Cart />} />
           <Route path="/detalledepedido" element={<CartDetail />} />
           <Route path="/editarpedido" element={<ShippingDetail />} />
+          <Route path="/perfil" element={<Profile />} />
         </Routes>
       </main>
 
