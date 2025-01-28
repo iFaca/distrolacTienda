@@ -27,14 +27,13 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     changePassword: builder.mutation({
       query: (data) => ({
         url: `${BASE_URL}/auth/change-password`,
-        method: "POST",
+        method: "PUT",
         body: data,
         headers: {
           "Content-Type": "application/json",
         },
       }),
     }),
-    // Asegúrate de que la mutación updateUserInfo esté aquí
     updateUserInfo: builder.mutation({
       query: (data) => ({
         url: `${BASE_URL}/auth/profile`,

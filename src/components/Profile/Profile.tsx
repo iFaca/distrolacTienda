@@ -16,6 +16,7 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { BASE_URL } from "../../constants";
+
 export default function Profile() {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state: RootState) => state.auth);
@@ -78,7 +79,7 @@ export default function Profile() {
     setSuccess("");
   };
 
-  const handleProfileSubmit = async (e) => {
+  const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const token = userInfo?.token;
@@ -94,19 +95,18 @@ export default function Profile() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData), // Asegúrate de que formData contiene los datos correctos
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // Manejo mejorado de errores, mostrando mensaje o detalles de la API
         throw new Error(data.message || "Error al actualizar el perfil.");
       }
 
       setSuccess("Perfil actualizado con éxito.");
+      dispatch(setCredentials({ ...userInfo, ...formData }));
     } catch (err) {
-      // Mostrar el mensaje de error recibido
       setError(err.message || "Hubo un problema al procesar tu solicitud.");
     }
   };
@@ -121,15 +121,26 @@ export default function Profile() {
       return;
     }
 
+    if (
+      !passwordData.currentPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmNewPassword
+    ) {
+      setError("Por favor, complete todos los campos.");
+      return;
+    }
+
     try {
-      // Usamos el hook de Redux para hacer la solicitud
-      await changePassword(passwordData).unwrap();
-      setSuccess("Contraseña cambiada con éxito.");
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmNewPassword: "",
-      });
+      const response = await changePassword(passwordData).unwrap();
+
+      if (response && response.message) {
+        setSuccess("Contraseña cambiada con éxito.");
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmNewPassword: "",
+        });
+      }
     } catch (err: any) {
       setError(err?.data?.message || "Error al cambiar la contraseña.");
     }
@@ -175,7 +186,11 @@ export default function Profile() {
                 </Button>
               ) : (
                 <>
-                  <Button variant="primary" type="submit" disabled={isUpdating}>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    disabled={isUpdating || !validateEmail(formData.email)}
+                  >
                     {isUpdating ? (
                       <>
                         <Spinner size="sm" className="me-2" />

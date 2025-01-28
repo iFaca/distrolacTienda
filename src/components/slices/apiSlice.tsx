@@ -2,16 +2,6 @@ import { fetchBaseQuery, createApi } from "@reduxjs/toolkit/query/react";
 import { BASE_URL } from "../../constants";
 import { RootState } from "../../types";
 
-// Tipo para la configuración de baseQuery
-interface BaseQueryConfig {
-  baseUrl: string;
-  prepareHeaders: (
-    headers: Headers,
-    api: { getState: () => RootState }
-  ) => Headers;
-  credentials: RequestCredentials;
-}
-
 // Configuración de baseQuery con fetchBaseQuery
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -25,20 +15,19 @@ const baseQuery = fetchBaseQuery({
     headers.set("Content-Type", "application/json");
     return headers;
   },
-  credentials: "include" as const,
-} as BaseQueryConfig);
-
-// Definir tipos para las etiquetas
-type TagTypes = "User";
+  credentials: "include", // Asegúrate de que el backend esté preparado para manejar cookies si es necesario
+});
 
 // Crear un slice de API usando createApi y baseQuery configurado
 export const apiSlice = createApi({
   baseQuery,
-  tagTypes: ["User"] as TagTypes[],
-  endpoints: (builder) => ({}),
+  tagTypes: ["User"], // Definimos las etiquetas si necesitamos gestionarlas en caché
+  endpoints: (builder) => ({
+    // Aquí puedes agregar los endpoints específicos para esta API
+  }),
 });
 
-// Tipos para endpoints (si necesitas agregar algunos)
+// Tipos para endpoints (si los necesitas)
 export interface ApiEndpoints {
   // Definir tipos para endpoints específicos si los necesitas
 }
