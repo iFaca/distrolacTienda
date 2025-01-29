@@ -15,42 +15,55 @@ import {
   Col,
   Spinner,
 } from "react-bootstrap";
-import { BASE_URL } from "../../constants";
 
 export default function Profile() {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state: RootState) => state.auth);
 
+  // Estado para los datos del formulario
   const [formData, setFormData] = useState({
-    username: userInfo?.username || "",
-    email: userInfo?.email || "",
+    username: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    street: "",
+    streetNumber: "",
+    phone: "",
   });
 
+  // Estado para el formulario de contraseña
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmNewPassword: "",
   });
 
+  // Estados para mensajes y carga
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
 
-  const [updateUserInfo, { isLoading: isUpdating }] =
-    useUpdateUserInfoMutation();
+  // Mutations
+  const [updateUserInfo, { isLoading }] = useUpdateUserInfoMutation();
   const [changePassword, { isLoading: isChangingPassword }] =
     useChangePasswordMutation();
 
+  // Cargar datos del usuario cuando el componente se monta
   useEffect(() => {
     if (userInfo) {
       setFormData({
-        username: userInfo.username,
-        email: userInfo.email,
+        username: userInfo.username || "",
+        firstName: userInfo.firstName || "",
+        lastName: userInfo.lastName || "",
+        email: userInfo.email || "",
+        street: userInfo.street || "",
+        streetNumber: userInfo.streetNumber || "",
+        phone: userInfo.phone || "",
       });
     }
   }, [userInfo]);
 
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Manejar cambios en los inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -58,91 +71,44 @@ export default function Profile() {
     }));
   };
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-    setError("");
-    setSuccess("");
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setFormData({
-      username: userInfo?.username || "",
-      email: userInfo?.email || "",
-    });
-    setError("");
-    setSuccess("");
-  };
-
-  const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Manejar el envío del formulario
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
-    const token = userInfo?.token;
-    if (!token) {
-      setError("No se encontró el token de autenticación.");
-      return;
-    }
+    // Log para debug
+    console.log("Enviando datos:", formData);
 
     try {
-      const response = await fetch(`${BASE_URL}/auth/profile`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const result = await updateUserInfo(formData).unwrap();
+      console.log("Respuesta del servidor:", result); // Para debug
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Error al actualizar el perfil.");
-      }
-
-      setSuccess("Perfil actualizado con éxito.");
-      dispatch(setCredentials({ ...userInfo, ...formData }));
-    } catch (err) {
-      setError(err.message || "Hubo un problema al procesar tu solicitud.");
+      dispatch(setCredentials({ ...userInfo, ...result }));
+      setSuccess("Perfil actualizado con éxito");
+    } catch (err: any) {
+      console.error("Error al actualizar:", err); // Para debug
+      setError(err?.data?.message || "Error al actualizar el perfil");
     }
   };
 
+  // Manejar cambio de contraseña
   const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-
     if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-      setError("Las contraseñas no coinciden.");
+      setError("Las contraseñas no coinciden");
       return;
     }
-
-    if (
-      !passwordData.currentPassword ||
-      !passwordData.newPassword ||
-      !passwordData.confirmNewPassword
-    ) {
-      setError("Por favor, complete todos los campos.");
-      return;
-    }
-
     try {
-      const response = await changePassword(passwordData).unwrap();
-
-      if (response && response.message) {
-        setSuccess("Contraseña cambiada con éxito.");
-        setPasswordData({
-          currentPassword: "",
-          newPassword: "",
-          confirmNewPassword: "",
-        });
-      }
+      await changePassword(passwordData).unwrap();
+      setSuccess("Contraseña actualizada con éxito");
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
     } catch (err: any) {
-      setError(err?.data?.message || "Error al cambiar la contraseña.");
+      setError(err?.data?.message || "Error al cambiar la contraseña");
     }
   };
 
@@ -150,75 +116,109 @@ export default function Profile() {
     <Container className="mt-5">
       <Row className="justify-content-md-center">
         <Col xs={12} md={8} lg={6}>
-          <h2 className="mb-4">Mi Perfil</h2>
+          <h2>Mi Perfil</h2>
           {error && <Alert variant="danger">{error}</Alert>}
           {success && <Alert variant="success">{success}</Alert>}
 
-          <Form onSubmit={handleProfileSubmit} className="mb-4">
-            <Form.Group controlId="username" className="mb-3">
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
               <Form.Label>Nombre de Usuario</Form.Label>
               <Form.Control
                 type="text"
                 name="username"
                 value={formData.username}
-                onChange={handleProfileChange}
-                disabled={!isEditing}
-                required
+                onChange={handleChange}
               />
             </Form.Group>
 
-            <Form.Group controlId="email" className="mb-3">
+            <Form.Group className="mb-3">
+              <Form.Label>Nombre</Form.Label>
+              <Form.Control
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Apellido</Form.Label>
+              <Form.Control
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
                 name="email"
                 value={formData.email}
-                onChange={handleProfileChange}
-                disabled={!isEditing}
-                required
+                onChange={handleChange}
               />
             </Form.Group>
 
-            <div className="d-grid gap-2">
-              {!isEditing ? (
-                <Button variant="primary" onClick={handleEditClick}>
-                  Editar Perfil
-                </Button>
-              ) : (
+            <Row>
+              <Col md={8}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Calle</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="street"
+                    value={formData.street}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Número</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="streetNumber"
+                    value={formData.streetNumber}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Teléfono</Form.Label>
+              <Form.Control
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Button
+              variant="primary"
+              type="submit"
+              className="w-100"
+              disabled={isLoading}
+            >
+              {isLoading ? (
                 <>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    disabled={isUpdating || !validateEmail(formData.email)}
-                  >
-                    {isUpdating ? (
-                      <>
-                        <Spinner size="sm" className="me-2" />
-                        Guardando...
-                      </>
-                    ) : (
-                      "Guardar Cambios"
-                    )}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={handleCancelEdit}
-                    disabled={isUpdating}
-                  >
-                    Cancelar
-                  </Button>
+                  <Spinner size="sm" className="me-2" />
+                  Guardando...
                 </>
+              ) : (
+                "Guardar Cambios"
               )}
-            </div>
+            </Button>
           </Form>
 
-          <h3 className="mb-4">Cambiar Contraseña</h3>
+          <h3 className="mt-4">Cambiar Contraseña</h3>
           <Form onSubmit={handlePasswordSubmit}>
-            <Form.Group controlId="currentPassword" className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Contraseña Actual</Form.Label>
               <Form.Control
                 type="password"
-                name="currentPassword"
                 value={passwordData.currentPassword}
                 onChange={(e) =>
                   setPasswordData((prev) => ({
@@ -226,15 +226,13 @@ export default function Profile() {
                     currentPassword: e.target.value,
                   }))
                 }
-                required
               />
             </Form.Group>
 
-            <Form.Group controlId="newPassword" className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Nueva Contraseña</Form.Label>
               <Form.Control
                 type="password"
-                name="newPassword"
                 value={passwordData.newPassword}
                 onChange={(e) =>
                   setPasswordData((prev) => ({
@@ -242,15 +240,13 @@ export default function Profile() {
                     newPassword: e.target.value,
                   }))
                 }
-                required
               />
             </Form.Group>
 
-            <Form.Group controlId="confirmNewPassword" className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Confirmar Nueva Contraseña</Form.Label>
               <Form.Control
                 type="password"
-                name="confirmNewPassword"
                 value={passwordData.confirmNewPassword}
                 onChange={(e) =>
                   setPasswordData((prev) => ({
@@ -258,7 +254,6 @@ export default function Profile() {
                     confirmNewPassword: e.target.value,
                   }))
                 }
-                required
               />
             </Form.Group>
 

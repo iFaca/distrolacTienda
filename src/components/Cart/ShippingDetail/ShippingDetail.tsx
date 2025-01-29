@@ -1,10 +1,26 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import emailjs from "@emailjs/browser";
+import { RootState } from "../../types";
 import "./ShippingDetail.css";
 
-interface UserData {
+// Constantes de EmailJS
+const EMAIL_SERVICE_ID = "service_szd7tra";
+const EMAIL_TEMPLATE_CLIENT_ID = "template_qnvxrh8";
+const EMAIL_TEMPLATE_ADMIN_ID = "template_9afqj0i";
+const EMAIL_PUBLIC_KEY = "ouk745ASI3P1s6qZj";
+const ADMIN_EMAIL = "distrolacpedidos@gmail.com";
+
+interface ShippingData {
+  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  address: string;
+  street: string;
+  streetNumber: string;
+  phone: string;
+  comments?: string;
 }
 
 interface CartItem {
@@ -16,87 +32,143 @@ interface CartItem {
 }
 
 export default function ShippingDetail() {
-  const [userData, setUserData] = useState<UserData>({
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state: RootState) => state.auth);
+
+  const [shippingData, setShippingData] = useState<ShippingData>({
+    username: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    address: "Seleccionar ubicación",
+    street: "",
+    streetNumber: "",
+    phone: "",
+    comments: "",
   });
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [showConfirmation, setShowConfirmation] = useState(false); // Estado para mostrar el pop-up
-
-  const navigate = useNavigate();
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Recuperar datos del usuario y del carrito
-    const storedUserData = localStorage.getItem("userData");
+    const storedShippingData = localStorage.getItem("shippingData");
     const storedCartItems = localStorage.getItem("cart");
     const storedTotal = localStorage.getItem("total");
 
-    if (storedUserData) setUserData(JSON.parse(storedUserData));
+    if (storedShippingData) {
+      setShippingData(JSON.parse(storedShippingData));
+    } else if (userInfo) {
+      setShippingData({
+        username: userInfo.username || "",
+        firstName: userInfo.firstName || "",
+        lastName: userInfo.lastName || "",
+        email: userInfo.email || "",
+        street: userInfo.street || "",
+        streetNumber: userInfo.streetNumber || "",
+        phone: userInfo.phone || "",
+        comments: "",
+      });
+    }
+
     if (storedCartItems) setCartItems(JSON.parse(storedCartItems));
     if (storedTotal) setTotal(parseFloat(storedTotal));
-  }, []);
+  }, [userInfo]);
 
-  const handleConfirmOrder = () => {
-    // Mostrar el pop-up de confirmación
-    setShowConfirmation(true);
-
-    // Limpiar el carrito
-    localStorage.removeItem("cart");
-    localStorage.removeItem("total");
-    localStorage.removeItem("userData");
-
-    // Simulamos la creación del pedido (en lugar de enviar a una API real de WhatsApp)
-    const orderDetails = {
-      user: userData,
-      items: cartItems,
-      totalAmount: total,
-    };
-
-    // Log de los datos que enviarías a la API de WhatsApp
-    console.log("Pedido confirmado:", orderDetails);
-
-    // Ejemplo:
-    // fetch("https://tu-api-whatsapp.com", {
-    //   method: "POST",
-    //   body: JSON.stringify(orderDetails),
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    // }).then(response => response.json())
-    //   .then(data => console.log(data))
-    //   .catch(error => console.error("Error al enviar el pedido:", error));
-
-    setTimeout(() => {
-      navigate("/");
-    }, 2000);
+  const formatOrderDetails = (items: CartItem[]) => {
+    return items
+      .map(
+        (item) => `
+      Producto: ${item.title}
+      Cantidad: ${item.quantity}
+      Precio unitario: $${Number(item.price).toFixed(2)}
+      Subtotal: $${(item.quantity * item.price).toFixed(2)}
+      ------------------------
+    `
+      )
+      .join("\n");
   };
 
-  const handleCloseConfirmation = () => {
-    setShowConfirmation(false);
-  };
+  const handleConfirmOrder = async () => {
+    try {
+      const commonTemplateParams = {
+        to_name: `${shippingData.firstName} ${shippingData.lastName}`,
+        customer_phone: shippingData.phone,
+        customer_address: `${shippingData.street} ${shippingData.streetNumber}`,
+        order_details: formatOrderDetails(cartItems),
+        order_subtotal: `$${total.toFixed(2)}`,
+        order_shipping: "Gratis",
+        order_total: `$${total.toFixed(2)}`,
+        order_date: new Date().toLocaleDateString(),
+        comments: shippingData.comments || "Sin comentarios",
+      };
 
+      // Email para el cliente
+      await emailjs.send(
+        EMAIL_SERVICE_ID,
+        EMAIL_TEMPLATE_CLIENT_ID,
+        {
+          ...commonTemplateParams,
+          to_email: shippingData.email, // Email del cliente
+        },
+        EMAIL_PUBLIC_KEY
+      );
+
+      // Email para el administrador
+      await emailjs.send(
+        EMAIL_SERVICE_ID,
+        EMAIL_TEMPLATE_ADMIN_ID,
+        {
+          ...commonTemplateParams,
+          to_email: "distrolacpedidos@gmail.com",
+          customer_email: shippingData.email,
+        },
+        EMAIL_PUBLIC_KEY
+      );
+
+      setShowConfirmation(true);
+      // ... resto del código
+    } catch (error) {
+      console.error("Error:", error);
+      setError("Error al procesar el pedido");
+    }
+  };
   return (
     <div className="shipping-container">
-      {/* Columna izquierda */}
       <div className="shipping-leftcolumn">
         <img src="/logo.png" alt="Logo Distrolac" className="shipping-logo" />
-        <nav className="shipping-steps">
-          <span>Carrito</span> &gt; <span>Detalles</span> &gt;{" "}
-          <span>Envío</span> &gt; <span>Pago</span>
-        </nav>
+
         <div className="shipping-info">
           <div className="shipping-info-row">
-            <span>Contacto</span>
-            <span>{userData.email}</span>
+            <span>Email</span>
+            <span>{shippingData.email || "No especificado"}</span>
+            <button onClick={() => navigate("/detalledepedido")}>Editar</button>
+          </div>
+          <div className="shipping-info-row">
+            <span>Teléfono</span>
+            <span>{shippingData.phone || "No especificado"}</span>
+            <button onClick={() => navigate("/detalledepedido")}>Editar</button>
+          </div>
+          <div className="shipping-info-row">
+            <span>Nombre completo</span>
+            <span>
+              {shippingData.firstName && shippingData.lastName
+                ? `${shippingData.firstName} ${shippingData.lastName}`
+                : "No especificado"}
+            </span>
             <button onClick={() => navigate("/detalledepedido")}>Editar</button>
           </div>
           <div className="shipping-info-row">
             <span>Dirección</span>
-            <span>{userData.address}</span>
+            <span>
+              {shippingData.street && shippingData.streetNumber
+                ? `${shippingData.street} ${shippingData.streetNumber}`
+                : "No especificado"}
+            </span>
             <button onClick={() => navigate("/detalledepedido")}>Editar</button>
           </div>
         </div>
+
         <fieldset className="shipping-method">
           <legend>Método de envío</legend>
           <div className="shipping-method-option">
@@ -105,6 +177,7 @@ export default function ShippingDetail() {
             <span>Gratis</span>
           </div>
         </fieldset>
+
         <div className="shipping-buttons">
           <button
             className="shipping-back"
@@ -112,13 +185,16 @@ export default function ShippingDetail() {
           >
             Volver a detalles
           </button>
-          <button className="shipping-confirm" onClick={handleConfirmOrder}>
-            Confirmar pedido
+          <button
+            className="shipping-confirm"
+            onClick={handleConfirmOrder}
+            disabled={showConfirmation}
+          >
+            {showConfirmation ? "Procesando..." : "Confirmar pedido"}
           </button>
         </div>
       </div>
 
-      {/* Columna derecha */}
       <div className="shipping-rightcolumn">
         <ul className="shipping-cartitems">
           {cartItems.map((item) => (
@@ -126,7 +202,7 @@ export default function ShippingDetail() {
               <img src={item.image} alt={item.title} />
               <div>
                 <h3>{item.title}</h3>
-                <p>${item.price.toFixed(2)}</p>
+                <p>${Number(item.price).toFixed(2)}</p>
               </div>
               <span>x{item.quantity}</span>
             </li>
@@ -156,13 +232,24 @@ export default function ShippingDetail() {
         </div>
       </div>
 
-      {/* Pop-up de confirmación */}
       {showConfirmation && (
         <div className="confirmation-popup">
           <div className="confirmation-content">
             <h3>¡Pedido Confirmado!</h3>
-            <p>Tu pedido ha sido procesado. Serás redirigido al inicio.</p>
-            <button onClick={handleCloseConfirmation}>Cerrar</button>
+            <p>
+              Tu pedido ha sido procesado. Recibirás un email con los detalles.
+            </p>
+            <button onClick={() => setShowConfirmation(false)}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-popup">
+          <div className="error-content">
+            <h3>Error</h3>
+            <p>{error}</p>
+            <button onClick={() => setError("")}>Cerrar</button>
           </div>
         </div>
       )}

@@ -159,3 +159,9 @@
     z-index: 1000;
     text-align: center;
 }
+.shipping-info-row span:nth-child(2) {
+    color: #333;
+    font-weight: 500;
+    flex: 1;
+    margin: 0 10px;
+}

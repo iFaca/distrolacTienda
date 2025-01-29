@@ -2,13 +2,19 @@
 
 // Tipos para Usuario y Autenticación
 export interface UserInfo {
-  id: number;
+  _id: string;
   username: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  token?: string;
+  street: string;
+  streetNumber: string;
+  phone: string;
+  role: string;
+  token: string;
   refreshToken?: string;
-  role?: string;
 }
+
 
 export interface LoginCredentials {
   usernameOrEmail: string;  // Ajustado según tu componente Login
@@ -29,6 +35,7 @@ export interface AuthState {
 
 export interface RootState {
   auth: AuthState;
+  [key: string]: any;
 }
 
 export interface LoginFormError {

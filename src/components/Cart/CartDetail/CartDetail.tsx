@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../../types";
+import { Alert } from "react-bootstrap";
 import "./CartDetail.css";
 
 interface CartItem {
@@ -10,117 +13,188 @@ interface CartItem {
   price: number;
 }
 
+interface ShippingData {
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  street: string;
+  streetNumber: string;
+  phone: string;
+  comments?: string;
+}
+
 export default function CartDetail() {
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state: RootState) => state.auth);
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState("0");
-  const [email, setEmail] = useState(""); // Estado para el email
-  const [address, setAddress] = useState(""); // Estado para la dirección
-  const [name, setName] = useState(""); // Estado para el nombre
-  const [lastName, setLastName] = useState(""); // Estado para el apellido
-  const [comments, setComments] = useState(""); // Estado para los comentarios
+  const [error, setError] = useState("");
 
-  const navigate = useNavigate();
+  const [shippingData, setShippingData] = useState<ShippingData>({
+    username: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    street: "",
+    streetNumber: "",
+    phone: "",
+    comments: "",
+  });
 
   useEffect(() => {
-    // Cargar carrito y total desde localStorage
     const cartData = localStorage.getItem("cart");
     const totalData = localStorage.getItem("total");
 
     if (cartData) setCartItems(JSON.parse(cartData));
     if (totalData) setTotal(totalData);
 
-    // Cargar datos de usuario desde localStorage
-    const userData = localStorage.getItem("userData");
-    if (userData) {
-      const { email, address, name, lastName, comments } = JSON.parse(userData);
-      setEmail(email || "");
-      setAddress(address || "");
-      setName(name || "");
-      setLastName(lastName || "");
-      setComments(comments || "");
+    if (userInfo) {
+      setShippingData({
+        username: userInfo.username || "",
+        firstName: userInfo.firstName || "",
+        lastName: userInfo.lastName || "",
+        email: userInfo.email || "",
+        street: userInfo.street || "",
+        streetNumber: userInfo.streetNumber || "",
+        phone: userInfo.phone || "",
+        comments: "",
+      });
     }
-  }, []);
+  }, [userInfo]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setShippingData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const validateForm = () => {
+    if (
+      !shippingData.email ||
+      !shippingData.street ||
+      !shippingData.streetNumber ||
+      !shippingData.firstName ||
+      !shippingData.lastName ||
+      !shippingData.phone
+    ) {
+      setError("Por favor, complete todos los campos obligatorios");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(shippingData.email)) {
+      setError("Por favor, ingrese un email válido");
+      return false;
+    }
+
+    const phoneRegex = /^\d{10,15}$/;
+    if (!phoneRegex.test(shippingData.phone.replace(/\D/g, ""))) {
+      setError("Por favor, ingrese un número de teléfono válido");
+      return false;
+    }
+
+    return true;
+  };
 
   const handleGoToShipping = () => {
-    // Validación
-    if (!email || !address) {
-      alert("Por favor, completa todos los campos obligatorios.");
+    if (!validateForm()) {
       return;
     }
 
-    // Guardar datos de contacto y envío en localStorage
-    const userData = {
-      email,
-      address,
-      name,
-      lastName,
-      comments,
-    };
-    localStorage.setItem("userData", JSON.stringify(userData));
-
-    // Navegar a la vista de envío
+    localStorage.setItem("shippingData", JSON.stringify(shippingData));
     navigate("/editarpedido");
   };
 
   return (
     <div className="cartdetail-container">
-      {/* Columna izquierda */}
       <div className="cartdetail-leftcolumn">
-        <div className="cartdetail-explorer">
-          <p>Carrito</p>
-          <p>Detalle</p>
-          <p>Envio</p>
-          <p>Pago</p>
-        </div>
+        {error && <Alert variant="danger">{error}</Alert>}
+
         <fieldset className="cartdetail-form">
           <legend>Contacto</legend>
           <input
             type="email"
-            placeholder="Ingresa un email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)} // Actualiza el estado
+            name="email"
+            placeholder="Email"
+            value={shippingData.email}
+            onChange={handleInputChange}
+            required
           />
           <label className="cartdetail-checkbox">
             <input type="checkbox" />
             <span>Quiero recibir ofertas por email</span>
           </label>
         </fieldset>
+
         <fieldset className="cartdetail-form">
           <legend>Datos de envío</legend>
           <div className="cartdetail-row">
             <input
               type="text"
+              name="firstName"
               placeholder="Nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)} // Actualiza el estado
+              value={shippingData.firstName}
+              onChange={handleInputChange}
+              required
             />
             <input
               type="text"
+              name="lastName"
               placeholder="Apellido"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)} // Actualiza el estado
+              value={shippingData.lastName}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div className="cartdetail-row">
+            <input
+              type="text"
+              name="street"
+              placeholder="Calle"
+              value={shippingData.street}
+              onChange={handleInputChange}
+              required
+            />
+            <input
+              type="text"
+              name="streetNumber"
+              placeholder="Número"
+              value={shippingData.streetNumber}
+              onChange={handleInputChange}
+              required
             />
           </div>
           <input
-            type="text"
-            placeholder="Dirección"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)} // Actualiza el estado
+            type="tel"
+            name="phone"
+            placeholder="Teléfono"
+            value={shippingData.phone}
+            onChange={handleInputChange}
+            required
           />
           <input
             type="text"
+            name="comments"
             placeholder="Comentarios (Opcional)"
-            value={comments}
-            onChange={(e) => setComments(e.target.value)} // Actualiza el estado
+            value={shippingData.comments}
+            onChange={handleInputChange}
           />
         </fieldset>
+
         <div className="cartdetail-buttons">
-          <a href="#">Volver al carrito</a>
-          <button onClick={handleGoToShipping}>Ir a Envío</button>
+          <a href="#" onClick={() => navigate("/cart")}>
+            Volver al carrito
+          </a>
+          <button onClick={handleGoToShipping}>Continuar con el envío</button>
         </div>
       </div>
 
-      {/* Columna derecha */}
       <div className="cartdetail-rightcolumn">
         <h2>Detalle del Pedido</h2>
         <ul className="cartdetail-items">
