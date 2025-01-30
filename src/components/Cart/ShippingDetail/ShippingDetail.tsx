@@ -7,8 +7,8 @@ import "./ShippingDetail.css";
 
 // Constantes de EmailJS
 const EMAIL_SERVICE_ID = "service_szd7tra";
-const EMAIL_TEMPLATE_CLIENT_ID = "template_qnvxrh8";
-const EMAIL_TEMPLATE_ADMIN_ID = "template_9afqj0i";
+const EMAIL_TEMPLATE_CLIENT_ID = "template_9afqj0i";
+const EMAIL_TEMPLATE_ADMIN_ID = "template_qnvxrh8";
 const EMAIL_PUBLIC_KEY = "ouk745ASI3P1s6qZj";
 const ADMIN_EMAIL = "distrolacpedidos@gmail.com";
 
@@ -103,6 +103,9 @@ export default function ShippingDetail() {
         comments: shippingData.comments || "Sin comentarios",
       };
 
+      // Verifica el correo del cliente
+      console.log("Email del cliente:", shippingData.email);
+
       // Email para el cliente
       await emailjs.send(
         EMAIL_SERVICE_ID,
@@ -126,8 +129,23 @@ export default function ShippingDetail() {
         EMAIL_PUBLIC_KEY
       );
 
+      // Limpiar el carrito y los datos
+      localStorage.removeItem("cart");
+      localStorage.removeItem("total");
+      localStorage.removeItem("shippingData");
+
+      // Actualizar estados locales
+      setCartItems([]);
+      setTotal(0);
+
       setShowConfirmation(true);
-      // ... resto del código
+
+      // Redirigir después de un breve delay
+      setTimeout(() => {
+        navigate("/");
+        // Opcional: recargar la página para asegurar que todo se resetee
+        window.location.reload();
+      }, 2000);
     } catch (error) {
       console.error("Error:", error);
       setError("Error al procesar el pedido");
@@ -239,7 +257,7 @@ export default function ShippingDetail() {
             <p>
               Tu pedido ha sido procesado. Recibirás un email con los detalles.
             </p>
-            <button onClick={() => setShowConfirmation(false)}>Cerrar</button>
+            <p>Serás redirigido al inicio en unos segundos...</p>
           </div>
         </div>
       )}
