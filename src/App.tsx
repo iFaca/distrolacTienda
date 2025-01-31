@@ -14,6 +14,7 @@ import CartDetail from "./components/Cart/CartDetail/CartDetail";
 import ShippingDetail from "./components/Cart/ShippingDetail/ShippingDetail";
 import Footer from "./components/Footer/Footer";
 import Profile from "./components/Profile/Profile";
+import Orders from "./components/Profile/MyOrders/MyOrders";
 function App() {
   return (
     <div className="app-container">
@@ -43,6 +44,7 @@ function App() {
           <Route path="/detalledepedido" element={<CartDetail />} />
           <Route path="/editarpedido" element={<ShippingDetail />} />
           <Route path="/perfil" element={<Profile />} />
+          <Route path="/mispedidos" element={<Orders />} />
         </Routes>
       </main>
 

@@ -91,6 +91,50 @@ export default function ShippingDetail() {
 
   const handleConfirmOrder = async () => {
     try {
+      // Primero, crear el pedido en la base de datos
+      const orderData = {
+        customerInfo: {
+          firstName: shippingData.firstName,
+          lastName: shippingData.lastName,
+          email: shippingData.email,
+          phone: shippingData.phone,
+          street: shippingData.street,
+          streetNumber: shippingData.streetNumber,
+          comments: shippingData.comments || "",
+        },
+        orderItems: cartItems.map((item) => ({
+          title: item.title,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+        })),
+        subtotal: total,
+        shippingCost: 0, // Envío gratis
+        total: total,
+        status: "pendiente",
+      };
+
+      // Guardar en la base de datos
+      const response = await fetch(
+        `${import.meta.env.VITE_BACK_APP_URI}/store/orders`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userInfo?.token}`,
+          },
+          body: JSON.stringify(orderData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al guardar el pedido");
+      }
+
+      const savedOrder = await response.json();
+      console.log("Pedido guardado:", savedOrder);
+
+      // Luego enviar los emails
       const commonTemplateParams = {
         to_name: `${shippingData.firstName} ${shippingData.lastName}`,
         customer_phone: shippingData.phone,
@@ -103,16 +147,13 @@ export default function ShippingDetail() {
         comments: shippingData.comments || "Sin comentarios",
       };
 
-      // Verifica el correo del cliente
-      console.log("Email del cliente:", shippingData.email);
-
       // Email para el cliente
       await emailjs.send(
         EMAIL_SERVICE_ID,
         EMAIL_TEMPLATE_CLIENT_ID,
         {
           ...commonTemplateParams,
-          to_email: shippingData.email, // Email del cliente
+          to_email: shippingData.email,
         },
         EMAIL_PUBLIC_KEY
       );
@@ -123,7 +164,7 @@ export default function ShippingDetail() {
         EMAIL_TEMPLATE_ADMIN_ID,
         {
           ...commonTemplateParams,
-          to_email: "distrolacpedidos@gmail.com",
+          to_email: ADMIN_EMAIL,
           customer_email: shippingData.email,
         },
         EMAIL_PUBLIC_KEY
@@ -140,11 +181,9 @@ export default function ShippingDetail() {
 
       setShowConfirmation(true);
 
-      // Redirigir después de un breve delay
+      // Redirigir al usuario a la página de sus pedidos después de un breve delay
       setTimeout(() => {
-        navigate("/");
-        // Opcional: recargar la página para asegurar que todo se resetee
-        window.location.reload();
+        navigate("/myorders"); // Redirigir a la página de pedidos en lugar de inicio
       }, 2000);
     } catch (error) {
       console.error("Error:", error);

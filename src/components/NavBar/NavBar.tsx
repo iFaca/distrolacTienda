@@ -66,7 +66,7 @@ export default function NavBar() {
                   <a href="/perfil">Mi Perfil</a>
                 </li>
                 <li>
-                  <a href="/mis-pedidos">Mis Pedidos</a>
+                  <a href="/mispedidos">Mis Pedidos</a>
                 </li>
                 <li>
                   <button onClick={handleLogout}>Cerrar Sesión</button>

@@ -1,0 +1,178 @@
+/* src/components/MyOrders/MyOrders.css */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-pendiente {
+    background-color: #ffd700;
+    color: #000;
+}
+
+.status-confirmado {
+    background-color: #87ceeb;
+    color: #000;
+}
+
+.status-en_proceso {
+    background-color: #ffa500;
+    color: #fff;
+}
+
+.status-enviado {
+    background-color: #32cd32;
+    color: #fff;
+}
+
+.status-entregado {
+    background-color: #008000;
+    color: #fff;
+}
+
+.status-cancelado {
+    background-color: #ff0000;
+    color: #fff;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-info {
+    background-color: #c04030;
+    border-color: #c04030;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #a03528;
+    border-color: #a03528;
+    color: white;
+}
+/* MyOrders.css */
+.orders-table {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.orders-table th {
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: 600;
+}
+
+.orders-table td {
+    vertical-align: middle;
+}
+
+.detail-button {
+    background-color: #c04030;
+    border-color: #c04030;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.detail-button:hover {
+    background-color: #a03528;
+    border-color: #a03528;
+    transform: translateY(-1px);
+}
+
+.order-detail-modal .modal-content {
+    border-radius: 10px;
+}
+
+.order-detail-section {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-detail-section:last-child {
+    border-bottom: none;
+}
+
+.order-detail-section h5 {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.product-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.product-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.products-table th {
+    background-color: #f8f9fa;
+}
+
+.order-summary {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.summary-row.total {
+    border-bottom: none;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #c04030;
+}
+
+.main-button {
+    background-color: #c04030;
+    border-color: #c04030;
+    padding: 10px 20px;
+}
+
+.main-button:hover {
+    background-color: #a03528;
+    border-color: #a03528;
+}
+
+.spinner-border {
+    color: #c04030;
+}
+
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .product-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+
+    .order-detail-section {
+        padding: 10px;
+    }
+
+    .product-image {
+        width: 40px;
+        height: 40px;
+    }
+}
