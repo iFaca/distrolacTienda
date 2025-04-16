@@ -5,7 +5,6 @@ import emailjs from "@emailjs/browser";
 import { RootState } from "../../types";
 import "./ShippingDetail.css";
 
-// Constantes de EmailJS
 const EMAIL_SERVICE_ID = "service_szd7tra";
 const EMAIL_TEMPLATE_CLIENT_ID = "template_9afqj0i";
 const EMAIL_TEMPLATE_ADMIN_ID = "template_qnvxrh8";
@@ -25,16 +24,28 @@ interface ShippingData {
 
 interface CartItem {
   id: string;
+  sku?: string;
   title: string;
   price: number;
   image: string;
   quantity: number;
+  priceListId?: string;
+}
+
+interface PriceList {
+  _id: string;
+  name: string;
+  marginInPercentage: number;
+  sellerComissionInPercentage: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function ShippingDetail() {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.auth);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [shippingData, setShippingData] = useState<ShippingData>({
     username: "",
     firstName: "",
@@ -80,6 +91,7 @@ export default function ShippingDetail() {
       .map(
         (item) => `
       Producto: ${item.title}
+      ${item.sku ? `SKU: ${item.sku}` : ""}
       Cantidad: ${item.quantity}
       Precio unitario: $${Number(item.price).toFixed(2)}
       Subtotal: $${(item.quantity * item.price).toFixed(2)}
@@ -89,32 +101,112 @@ export default function ShippingDetail() {
       .join("\n");
   };
 
-  const handleConfirmOrder = async () => {
+  const getStorePriceList = async (): Promise<PriceList> => {
     try {
-      // Primero, crear el pedido en la base de datos
+      const response = await fetch(
+        `${import.meta.env.VITE_BACK_APP_URI}/price-lists`,
+        {
+          headers: {
+            Authorization: `Bearer ${userInfo?.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Error al obtener las listas de precios: ${response.status}`
+        );
+      }
+
+      const priceLists = await response.json();
+      const storePriceList = priceLists.find(
+        (list: PriceList) => list.name === "lista tienda"
+      );
+
+      if (!storePriceList) {
+        throw new Error("No se encontró la lista de precios de la tienda");
+      }
+
+      return storePriceList;
+    } catch (error) {
+      console.error("Error al obtener la lista de precios:", error);
+      throw error;
+    }
+  };
+
+  const validateCartItem = (item: CartItem) => {
+    if (!item.title) console.error("Falta title en item:", item);
+    if (!item.quantity) console.error("Falta quantity en item:", item);
+    if (!item.price) console.error("Falta price en item:", item);
+    if (!item.image) console.error("Falta image en item:", item);
+    if (!item.id) console.error("Falta id en item:", item);
+
+    return item.title && item.quantity && item.price && item.image && item.id;
+  };
+
+  const handleConfirmOrder = async () => {
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      if (!cartItems.every(validateCartItem)) {
+        throw new Error(
+          "Algunos productos no tienen todos los campos requeridos"
+        );
+      }
+
+      const priceList = await getStorePriceList();
+
       const orderData = {
-        customerInfo: {
-          firstName: shippingData.firstName,
-          lastName: shippingData.lastName,
-          email: shippingData.email,
-          phone: shippingData.phone,
-          street: shippingData.street,
-          streetNumber: shippingData.streetNumber,
-          comments: shippingData.comments || "",
+        storeOrder: {
+          user: userInfo._id,
+          customerInfo: {
+            firstName: shippingData.firstName,
+            lastName: shippingData.lastName,
+            email: shippingData.email,
+            phone: shippingData.phone,
+            street: shippingData.street,
+            streetNumber: shippingData.streetNumber,
+            comments: shippingData.comments || "",
+          },
+          orderItems: cartItems.map((item) => ({
+            title: item.title,
+            quantity: item.quantity,
+            price: item.price,
+            image: item.image,
+            systemProductId: item.id,
+          })),
+          subtotal: total,
+          shippingCost: 0,
+          total: total,
+          status: "pendiente",
         },
-        orderItems: cartItems.map((item) => ({
-          title: item.title,
-          quantity: item.quantity,
-          price: item.price,
-          image: item.image,
-        })),
-        subtotal: total,
-        shippingCost: 0, // Envío gratis
-        total: total,
-        status: "pendiente",
+        systemOrder: {
+          orderType: "store",
+          orderNumber: `ST-${Date.now()}`,
+          client: userInfo._id,
+          seller: localStorage.getItem("storeSellerId"),
+          products: cartItems.map((item) => ({
+            product: item.id,
+            quantity: item.quantity,
+            price: item.price,
+            selectedPriceList: priceList._id,
+            totalPrice: item.price * item.quantity,
+          })),
+          totalAmount: total,
+          orderStatus: "pending",
+          orderDate: new Date().toISOString(),
+          delivery: {
+            status: "NO ENTREGADO",
+          },
+          notes: shippingData.comments || "",
+        },
       };
 
-      // Guardar en la base de datos
+      console.log("Datos a enviar:", orderData); // Para debug
+
       const response = await fetch(
         `${import.meta.env.VITE_BACK_APP_URI}/store/orders`,
         {
@@ -128,13 +220,16 @@ export default function ShippingDetail() {
       );
 
       if (!response.ok) {
-        throw new Error("Error al guardar el pedido");
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+        throw new Error(
+          `Error al crear la orden: ${errorData.message || response.statusText}`
+        );
       }
 
       const savedOrder = await response.json();
-      console.log("Pedido guardado:", savedOrder);
+      console.log("Orden creada exitosamente:", savedOrder);
 
-      // Luego enviar los emails
       const commonTemplateParams = {
         to_name: `${shippingData.firstName} ${shippingData.lastName}`,
         customer_phone: shippingData.phone,
@@ -147,7 +242,6 @@ export default function ShippingDetail() {
         comments: shippingData.comments || "Sin comentarios",
       };
 
-      // Email para el cliente
       await emailjs.send(
         EMAIL_SERVICE_ID,
         EMAIL_TEMPLATE_CLIENT_ID,
@@ -158,7 +252,6 @@ export default function ShippingDetail() {
         EMAIL_PUBLIC_KEY
       );
 
-      // Email para el administrador
       await emailjs.send(
         EMAIL_SERVICE_ID,
         EMAIL_TEMPLATE_ADMIN_ID,
@@ -170,26 +263,29 @@ export default function ShippingDetail() {
         EMAIL_PUBLIC_KEY
       );
 
-      // Limpiar el carrito y los datos
       localStorage.removeItem("cart");
       localStorage.removeItem("total");
       localStorage.removeItem("shippingData");
 
-      // Actualizar estados locales
       setCartItems([]);
       setTotal(0);
-
       setShowConfirmation(true);
 
-      // Redirigir al usuario a la página de sus pedidos después de un breve delay
       setTimeout(() => {
-        navigate("/myorders"); // Redirigir a la página de pedidos en lugar de inicio
+        navigate("/myorders");
       }, 2000);
     } catch (error) {
-      console.error("Error:", error);
-      setError("Error al procesar el pedido");
+      console.error("Error detallado:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Error al procesar el pedido. Por favor, inténtalo de nuevo más tarde."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
   return (
     <div className="shipping-container">
       <div className="shipping-leftcolumn">
@@ -245,9 +341,13 @@ export default function ShippingDetail() {
           <button
             className="shipping-confirm"
             onClick={handleConfirmOrder}
-            disabled={showConfirmation}
+            disabled={isSubmitting || showConfirmation}
           >
-            {showConfirmation ? "Procesando..." : "Confirmar pedido"}
+            {isSubmitting
+              ? "Procesando..."
+              : showConfirmation
+              ? "Procesado"
+              : "Confirmar pedido"}
           </button>
         </div>
       </div>
