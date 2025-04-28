@@ -101,6 +101,37 @@ export default function ShippingDetail() {
       .join("\n");
   };
 
+  const getStoreVendor = async () => {
+    try {
+      // Asegúrate de que la URL base sea correcta
+      const baseUrl = import.meta.env.VITE_BACK_APP_URI;
+      const url = `${baseUrl}/users/store-vendor`;
+
+      console.log("Calling URL:", url); // Para debugging
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${userInfo?.token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Error al obtener el vendedor de tienda"
+        );
+      }
+
+      const storeVendor = await response.json();
+      return storeVendor._id;
+    } catch (error) {
+      console.error("Error obteniendo vendedor de tienda:", error);
+      throw error;
+    }
+  };
+
   const getStorePriceList = async (): Promise<PriceList> => {
     try {
       const response = await fetch(
@@ -121,7 +152,7 @@ export default function ShippingDetail() {
 
       const priceLists = await response.json();
       const storePriceList = priceLists.find(
-        (list: PriceList) => list.name === "lista tienda"
+        (list: PriceList) => list.name === "Lista Tienda Online"
       );
 
       if (!storePriceList) {
@@ -158,6 +189,7 @@ export default function ShippingDetail() {
       }
 
       const priceList = await getStorePriceList();
+      const storeVendorId = await getStoreVendor();
 
       const orderData = {
         storeOrder: {
@@ -170,6 +202,7 @@ export default function ShippingDetail() {
             street: shippingData.street,
             streetNumber: shippingData.streetNumber,
             comments: shippingData.comments || "",
+            fullName: `${shippingData.firstName} ${shippingData.lastName}`,
           },
           orderItems: cartItems.map((item) => ({
             title: item.title,
@@ -186,8 +219,15 @@ export default function ShippingDetail() {
         systemOrder: {
           orderType: "store",
           orderNumber: `ST-${Date.now()}`,
-          client: userInfo._id,
-          seller: localStorage.getItem("storeSellerId"),
+          storeClient: {
+            firstName: shippingData.firstName,
+            lastName: shippingData.lastName,
+            email: shippingData.email,
+            phone: shippingData.phone,
+            fullName: `${shippingData.firstName} ${shippingData.lastName}`,
+            isStoreClient: true,
+          },
+          seller: storeVendorId,
           products: cartItems.map((item) => ({
             product: item.id,
             quantity: item.quantity,
@@ -205,8 +245,6 @@ export default function ShippingDetail() {
         },
       };
 
-      console.log("Datos a enviar:", orderData); // Para debug
-
       const response = await fetch(
         `${import.meta.env.VITE_BACK_APP_URI}/store/orders`,
         {
@@ -222,6 +260,16 @@ export default function ShippingDetail() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error response:", errorData);
+
+        // Manejar errores específicos
+        if (errorData.duplicateFields) {
+          throw new Error(
+            `Ya existe un registro similar: ${errorData.duplicateFields.join(
+              ", "
+            )}`
+          );
+        }
+
         throw new Error(
           `Error al crear la orden: ${errorData.message || response.statusText}`
         );
