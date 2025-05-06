@@ -12,6 +12,7 @@ export interface UserInfo {
   phone: string;
   role: string;
   token: string;
+  address?: string;
   refreshToken?: string;
 }
 

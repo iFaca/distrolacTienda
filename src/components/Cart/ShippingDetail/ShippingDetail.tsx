@@ -16,8 +16,7 @@ interface ShippingData {
   firstName: string;
   lastName: string;
   email: string;
-  street: string;
-  streetNumber: string;
+  address: string; // Campo unificado de dirección
   phone: string;
   comments?: string;
 }
@@ -51,8 +50,7 @@ export default function ShippingDetail() {
     firstName: "",
     lastName: "",
     email: "",
-    street: "",
-    streetNumber: "",
+    address: "", // Campo unificado de dirección
     phone: "",
     comments: "",
   });
@@ -61,23 +59,64 @@ export default function ShippingDetail() {
   const [total, setTotal] = useState(0);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState("");
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
+  // Función para obtener directamente el perfil del usuario
+  const fetchUserProfile = async (token: string) => {
+    try {
+      const response = await fetch("/api/store/auth/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("No se pudo obtener el perfil");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error al obtener perfil completo:", error);
+      return null;
+    }
+  };
+  // Cargar datos del localStorage y userInfo al iniciar
   useEffect(() => {
     const storedShippingData = localStorage.getItem("shippingData");
     const storedCartItems = localStorage.getItem("cart");
     const storedTotal = localStorage.getItem("total");
 
     if (storedShippingData) {
-      setShippingData(JSON.parse(storedShippingData));
+      const parsedData = JSON.parse(storedShippingData);
+      console.log("Datos de envío almacenados:", parsedData);
+      setShippingData(parsedData);
     } else if (userInfo) {
+      console.log("UserInfo para shipping:", userInfo);
+
+      // Intentar obtener datos de respaldo
+      let savedAddress = "";
+      let savedPhone = "";
+
+      try {
+        const savedData = localStorage.getItem("userProfileData");
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          savedAddress = parsedData.address || "";
+          savedPhone = parsedData.phone || "";
+          console.log("Datos recuperados de perfil guardado:", parsedData);
+        }
+      } catch (err) {
+        console.error("Error al recuperar datos guardados:", err);
+      }
+
       setShippingData({
         username: userInfo.username || "",
         firstName: userInfo.firstName || "",
         lastName: userInfo.lastName || "",
         email: userInfo.email || "",
-        street: userInfo.street || "",
-        streetNumber: userInfo.streetNumber || "",
-        phone: userInfo.phone || "",
+        address: userInfo.address || savedAddress || "", // Campo unificado
+        phone: userInfo.phone || savedPhone || "",
         comments: "",
       });
     }
@@ -85,6 +124,55 @@ export default function ShippingDetail() {
     if (storedCartItems) setCartItems(JSON.parse(storedCartItems));
     if (storedTotal) setTotal(parseFloat(storedTotal));
   }, [userInfo]);
+
+  // Obtener el perfil directamente del backend si no tenemos address
+  useEffect(() => {
+    const getProfileData = async () => {
+      // Solo intentamos obtener el perfil si:
+      // 1. Hay un usuario logueado con token
+      // 2. No tenemos dirección o la dirección está vacía
+      if (
+        userInfo?.token &&
+        (!shippingData.address || shippingData.address.trim() === "")
+      ) {
+        setIsLoadingProfile(true);
+
+        try {
+          const profileData = await fetchUserProfile(userInfo.token);
+
+          if (profileData) {
+            console.log(
+              "Perfil obtenido directamente del backend:",
+              profileData
+            );
+
+            // Actualizar con los datos obtenidos
+            setShippingData((prev) => ({
+              ...prev,
+              address: profileData.address || prev.address,
+              phone: profileData.phone || prev.phone,
+              // Mantener otros datos si es necesario
+            }));
+
+            // Guardar en localStorage para futuros accesos
+            localStorage.setItem(
+              "userProfileData",
+              JSON.stringify({
+                address: profileData.address || "",
+                phone: profileData.phone || "",
+              })
+            );
+          }
+        } catch (error) {
+          console.error("Error al obtener perfil del usuario:", error);
+        } finally {
+          setIsLoadingProfile(false);
+        }
+      }
+    };
+
+    getProfileData();
+  }, [userInfo, shippingData.address]);
 
   const formatOrderDetails = (items: CartItem[]) => {
     return items
@@ -175,7 +263,6 @@ export default function ShippingDetail() {
 
     return item.title && item.quantity && item.price && item.image && item.id;
   };
-
   const handleConfirmOrder = async () => {
     if (isSubmitting) return;
 
@@ -191,6 +278,24 @@ export default function ShippingDetail() {
       const priceList = await getStorePriceList();
       const storeVendorId = await getStoreVendor();
 
+      // Extraer información de la dirección completa para compatibilidad
+      // En caso de que el backend aún espere street y streetNumber
+      let street = "";
+      let streetNumber = "";
+
+      if (shippingData.address) {
+        // Intento básico de extraer calle y número
+        const addressParts = shippingData.address.split(" ");
+        if (addressParts.length >= 2) {
+          // Asumimos que el último elemento es el número
+          streetNumber = addressParts.pop() || "";
+          // El resto es la calle
+          street = addressParts.join(" ");
+        } else {
+          street = shippingData.address;
+        }
+      }
+
       const orderData = {
         storeOrder: {
           user: userInfo._id,
@@ -199,9 +304,9 @@ export default function ShippingDetail() {
             lastName: shippingData.lastName,
             email: shippingData.email,
             phone: shippingData.phone,
-            street: shippingData.street,
-            streetNumber: shippingData.streetNumber,
-            comments: shippingData.comments || "",
+            address: shippingData.address, // Dirección completa
+            street: street, // Para compatibilidad
+            streetNumber: streetNumber, // Para compatibilidad
             fullName: `${shippingData.firstName} ${shippingData.lastName}`,
           },
           orderItems: cartItems.map((item) => ({
@@ -240,10 +345,13 @@ export default function ShippingDetail() {
           orderDate: new Date().toISOString(),
           delivery: {
             status: "NO ENTREGADO",
+            address: shippingData.address, // Añadir dirección completa aquí
           },
           notes: shippingData.comments || "",
         },
       };
+
+      console.log("Enviando datos de orden:", JSON.stringify(orderData));
 
       const response = await fetch(
         `${import.meta.env.VITE_BACK_APP_URI}/store/orders`,
@@ -281,7 +389,7 @@ export default function ShippingDetail() {
       const commonTemplateParams = {
         to_name: `${shippingData.firstName} ${shippingData.lastName}`,
         customer_phone: shippingData.phone,
-        customer_address: `${shippingData.street} ${shippingData.streetNumber}`,
+        customer_address: shippingData.address, // Usar dirección completa
         order_details: formatOrderDetails(cartItems),
         order_subtotal: `$${total.toFixed(2)}`,
         order_shipping: "Gratis",
@@ -362,9 +470,7 @@ export default function ShippingDetail() {
           <div className="shipping-info-row">
             <span>Dirección</span>
             <span>
-              {shippingData.street && shippingData.streetNumber
-                ? `${shippingData.street} ${shippingData.streetNumber}`
-                : "No especificado"}
+              {shippingData.address ? shippingData.address : "No especificado"}
             </span>
             <button onClick={() => navigate("/detalledepedido")}>Editar</button>
           </div>
@@ -389,10 +495,12 @@ export default function ShippingDetail() {
           <button
             className="shipping-confirm"
             onClick={handleConfirmOrder}
-            disabled={isSubmitting || showConfirmation}
+            disabled={isSubmitting || showConfirmation || isLoadingProfile}
           >
             {isSubmitting
               ? "Procesando..."
+              : isLoadingProfile
+              ? "Cargando datos..."
               : showConfirmation
               ? "Procesado"
               : "Confirmar pedido"}

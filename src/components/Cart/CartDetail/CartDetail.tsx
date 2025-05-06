@@ -18,8 +18,7 @@ interface ShippingData {
   firstName: string;
   lastName: string;
   email: string;
-  street: string;
-  streetNumber: string;
+  address: string; // Usando solo address
   phone: string;
   comments?: string;
 }
@@ -37,8 +36,7 @@ export default function CartDetail() {
     firstName: "",
     lastName: "",
     email: "",
-    street: "",
-    streetNumber: "",
+    address: "",
     phone: "",
     comments: "",
   });
@@ -51,13 +49,43 @@ export default function CartDetail() {
     if (totalData) setTotal(totalData);
 
     if (userInfo) {
+      console.log("UserInfo:", userInfo);
+
+      // Intenta obtener la dirección de diferentes maneras
+      let addressValue = "";
+
+      if (userInfo.address) {
+        // Si existe directamente en userInfo
+        addressValue = userInfo.address;
+      } else if (userInfo._id) {
+        // Si tenemos un ID de usuario, podríamos intentar obtener los datos actualizados
+        // desde el backend (esto requeriría una API adicional)
+        console.log("El campo address no está disponible en userInfo");
+
+        // Alternativa: intentar recuperarlo del localStorage si se guardó previamente
+        const savedShippingData = localStorage.getItem("shippingData");
+        if (savedShippingData) {
+          try {
+            const parsedData = JSON.parse(savedShippingData);
+            if (parsedData.address) {
+              addressValue = parsedData.address;
+              console.log(
+                "Usando dirección guardada previamente:",
+                addressValue
+              );
+            }
+          } catch (err) {
+            console.error("Error al parsear shippingData guardado:", err);
+          }
+        }
+      }
+
       setShippingData({
         username: userInfo.username || "",
         firstName: userInfo.firstName || "",
         lastName: userInfo.lastName || "",
         email: userInfo.email || "",
-        street: userInfo.street || "",
-        streetNumber: userInfo.streetNumber || "",
+        address: addressValue,
         phone: userInfo.phone || "",
         comments: "",
       });
@@ -77,8 +105,7 @@ export default function CartDetail() {
   const validateForm = () => {
     if (
       !shippingData.email ||
-      !shippingData.street ||
-      !shippingData.streetNumber ||
+      !shippingData.address ||
       !shippingData.firstName ||
       !shippingData.lastName ||
       !shippingData.phone
@@ -110,7 +137,7 @@ export default function CartDetail() {
     localStorage.setItem("shippingData", JSON.stringify(shippingData));
     navigate("/editarpedido");
   };
-
+  console.log("ShippingData:", shippingData);
   return (
     <div className="cartdetail-container">
       <div className="cartdetail-leftcolumn">
@@ -152,24 +179,17 @@ export default function CartDetail() {
               required
             />
           </div>
-          <div className="cartdetail-row">
-            <input
-              type="text"
-              name="street"
-              placeholder="Calle"
-              value={shippingData.street}
-              onChange={handleInputChange}
-              required
-            />
-            <input
-              type="text"
-              name="streetNumber"
-              placeholder="Número"
-              value={shippingData.streetNumber}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+
+          {/* Único campo de dirección */}
+          <input
+            type="text"
+            name="address"
+            placeholder="Dirección completa"
+            value={shippingData.address}
+            onChange={handleInputChange}
+            required
+          />
+
           <input
             type="tel"
             name="phone"

@@ -16,6 +16,29 @@ import {
   Spinner,
 } from "react-bootstrap";
 
+// Función auxiliar para obtener el perfil completo
+const fetchUserProfile = async (token: string) => {
+  try {
+    const response = await fetch("/api/store/auth/profile", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo obtener el perfil");
+    }
+
+    const data = await response.json();
+    console.log("Datos completos del perfil recibidos:", data);
+    return data;
+  } catch (error) {
+    console.error("Error al obtener perfil completo:", error);
+    return null;
+  }
+};
+
 export default function Profile() {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state: RootState) => state.auth);
@@ -26,8 +49,7 @@ export default function Profile() {
     firstName: "",
     lastName: "",
     email: "",
-    street: "",
-    streetNumber: "",
+    address: "",
     phone: "",
   });
 
@@ -41,24 +63,102 @@ export default function Profile() {
   // Estados para mensajes y carga
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   // Mutations
   const [updateUserInfo, { isLoading }] = useUpdateUserInfoMutation();
   const [changePassword, { isLoading: isChangingPassword }] =
     useChangePasswordMutation();
 
+  // Función para cargar el perfil completo
+  const loadFullProfile = async () => {
+    if (!userInfo || !userInfo.token) return;
+
+    setIsLoadingProfile(true);
+
+    try {
+      // 1. Intentar obtener del backend
+      const profileData = await fetchUserProfile(userInfo.token);
+
+      if (profileData) {
+        // Actualizar el estado del formulario con los datos completos
+        const updatedFormData = {
+          username: profileData.username || userInfo.username || "",
+          firstName: profileData.firstName || userInfo.firstName || "",
+          lastName: profileData.lastName || userInfo.lastName || "",
+          email: profileData.email || userInfo.email || "",
+          address: profileData.address || userInfo.address || "",
+          phone: profileData.phone || userInfo.phone || "",
+        };
+
+        setFormData(updatedFormData);
+
+        // Actualizar Redux con los datos completos
+        dispatch(
+          setCredentials({
+            ...userInfo,
+            ...profileData,
+            address: profileData.address || userInfo.address,
+          })
+        );
+
+        // Actualizar localStorage para respaldo
+        localStorage.setItem(
+          "userProfileData",
+          JSON.stringify({
+            phone: updatedFormData.phone,
+            address: updatedFormData.address,
+          })
+        );
+
+        return;
+      }
+    } catch (error) {
+      console.error("Error al cargar perfil completo:", error);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+
+    // 2. Si falla la API, usar datos de localStorage como respaldo
+    try {
+      const savedProfile = localStorage.getItem("userProfileData");
+      if (savedProfile) {
+        const parsedProfile = JSON.parse(savedProfile);
+        console.log("Usando datos de respaldo:", parsedProfile);
+
+        setFormData((prev) => ({
+          ...prev,
+          address: parsedProfile.address || prev.address,
+          phone: parsedProfile.phone || prev.phone,
+        }));
+      }
+    } catch (err) {
+      console.error("Error al cargar datos de respaldo:", err);
+    }
+  };
+
   // Cargar datos del usuario cuando el componente se monta
   useEffect(() => {
     if (userInfo) {
-      setFormData({
+      console.log("UserInfo en Profile:", userInfo);
+
+      // Configurar datos iniciales desde Redux
+      const initialFormData = {
         username: userInfo.username || "",
         firstName: userInfo.firstName || "",
         lastName: userInfo.lastName || "",
         email: userInfo.email || "",
-        street: userInfo.street || "",
-        streetNumber: userInfo.streetNumber || "",
+        address: userInfo.address || "",
         phone: userInfo.phone || "",
-      });
+      };
+
+      setFormData(initialFormData);
+
+      // Verificar si necesitamos cargar datos adicionales
+      const needsAdditionalData = !userInfo.address || !userInfo.phone;
+      if (needsAdditionalData) {
+        loadFullProfile();
+      }
     }
   }, [userInfo]);
 
@@ -69,6 +169,24 @@ export default function Profile() {
       ...prev,
       [name]: value,
     }));
+
+    // Guardar campos críticos en localStorage
+    if (name === "phone" || name === "address") {
+      try {
+        const savedData = localStorage.getItem("userProfileData") || "{}";
+        const parsedData = JSON.parse(savedData);
+
+        localStorage.setItem(
+          "userProfileData",
+          JSON.stringify({
+            ...parsedData,
+            [name]: value,
+          })
+        );
+      } catch (err) {
+        console.error("Error al guardar datos:", err);
+      }
+    }
   };
 
   // Manejar el envío del formulario
@@ -77,17 +195,37 @@ export default function Profile() {
     setError("");
     setSuccess("");
 
-    // Log para debug
-    console.log("Enviando datos:", formData);
-
     try {
-      const result = await updateUserInfo(formData).unwrap();
-      console.log("Respuesta del servidor:", result); // Para debug
+      console.log("Enviando actualización de perfil:", formData);
 
-      dispatch(setCredentials({ ...userInfo, ...result }));
+      // Actualizar en localStorage antes del envío
+      localStorage.setItem(
+        "userProfileData",
+        JSON.stringify({
+          phone: formData.phone,
+          address: formData.address,
+        })
+      );
+
+      // Enviar al backend
+      const result = await updateUserInfo(formData).unwrap();
+
+      // Actualizar Redux con la respuesta
+      dispatch(
+        setCredentials({
+          ...userInfo,
+          ...result,
+          address: result.address || formData.address,
+          phone: result.phone || formData.phone,
+        })
+      );
+
       setSuccess("Perfil actualizado con éxito");
+
+      // Volver a cargar el perfil completo para sincronizar
+      setTimeout(() => loadFullProfile(), 1000);
     } catch (err: any) {
-      console.error("Error al actualizar:", err); // Para debug
+      console.error("Error al actualizar perfil:", err);
       setError(err?.data?.message || "Error al actualizar el perfil");
     }
   };
@@ -119,6 +257,12 @@ export default function Profile() {
           <h2>Mi Perfil</h2>
           {error && <Alert variant="danger">{error}</Alert>}
           {success && <Alert variant="success">{success}</Alert>}
+          {isLoadingProfile && (
+            <Alert variant="info">
+              <Spinner animation="border" size="sm" className="me-2" />
+              Cargando datos de perfil...
+            </Alert>
+          )}
 
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
@@ -161,30 +305,16 @@ export default function Profile() {
               />
             </Form.Group>
 
-            <Row>
-              <Col md={8}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Calle</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="street"
-                    value={formData.street}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Número</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="streetNumber"
-                    value={formData.streetNumber}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+            <Form.Group className="mb-3">
+              <Form.Label>Dirección</Form.Label>
+              <Form.Control
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Ingresa tu dirección completa"
+              />
+            </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Teléfono</Form.Label>
@@ -193,6 +323,7 @@ export default function Profile() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
+                placeholder="Ingresa tu número de teléfono"
               />
             </Form.Group>
 
@@ -204,7 +335,12 @@ export default function Profile() {
             >
               {isLoading ? (
                 <>
-                  <Spinner size="sm" className="me-2" />
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    className="me-2"
+                  />
                   Guardando...
                 </>
               ) : (
@@ -219,6 +355,7 @@ export default function Profile() {
               <Form.Label>Contraseña Actual</Form.Label>
               <Form.Control
                 type="password"
+                name="currentPassword"
                 value={passwordData.currentPassword}
                 onChange={(e) =>
                   setPasswordData((prev) => ({
@@ -233,6 +370,7 @@ export default function Profile() {
               <Form.Label>Nueva Contraseña</Form.Label>
               <Form.Control
                 type="password"
+                name="newPassword"
                 value={passwordData.newPassword}
                 onChange={(e) =>
                   setPasswordData((prev) => ({
@@ -247,6 +385,7 @@ export default function Profile() {
               <Form.Label>Confirmar Nueva Contraseña</Form.Label>
               <Form.Control
                 type="password"
+                name="confirmNewPassword"
                 value={passwordData.confirmNewPassword}
                 onChange={(e) =>
                   setPasswordData((prev) => ({
@@ -265,7 +404,12 @@ export default function Profile() {
             >
               {isChangingPassword ? (
                 <>
-                  <Spinner size="sm" className="me-2" />
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    className="me-2"
+                  />
                   Cambiando Contraseña...
                 </>
               ) : (
