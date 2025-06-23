@@ -7,9 +7,9 @@
     background: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     height: 75px;
-    position: relative; /* Necesario para posicionar el menú desplegable */
-    z-index: 1001; /* Asegura que el navbar esté por encima de otros contenidos */
-}
+    position: relative;
+    z-index: 1001;
+    margin-right: 15px; 
 
 .navbar-logo {
     height: 37px;
@@ -20,7 +20,7 @@
     list-style: none;
     margin: 0;
     padding: 0;
-    transition: transform 0.3s ease-in-out; /* Transición suave */
+    transition: transform 0.3s ease-in-out; 
 }
 
 .navbar-links {
