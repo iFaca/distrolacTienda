@@ -7,7 +7,8 @@
     background: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     height: 75px;
-    position: relative;
+    position: relative; /* Necesario para posicionar el menú desplegable */
+    z-index: 1001; /* Asegura que el navbar esté por encima de otros contenidos */
 }
 
 .navbar-logo {
@@ -19,6 +20,7 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    transition: transform 0.3s ease-in-out; /* Transición suave */
 }
 
 .navbar-links {
@@ -48,7 +50,49 @@
     cursor: pointer;
 }
 
-/* Nuevo estilo para el menú de usuario */
+/* --- ESTILOS DEL MENÚ DE HAMBURGUESA --- */
+
+/* Contenedor del botón de hamburguesa */
+.hamburger-menu {
+    display: none; /* Oculto por defecto en pantallas grandes */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+}
+
+/* Las 3 líneas del icono */
+.hamburger-menu span {
+    width: 2rem;
+    height: 0.25rem;
+    background: #333;
+    border-radius: 10px;
+    transition: all 0.3s linear;
+    position: relative;
+    transform-origin: 1px;
+}
+
+/* Animación a 'X' cuando el menú está activo */
+.hamburger-menu.active span:nth-child(1) {
+    transform: rotate(45deg);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+.hamburger-menu.active span:nth-child(3) {
+    transform: rotate(-45deg);
+}
+
+
+/* --- ESTILOS DEL MENÚ DEL PERFIL --- */
 .user-menu {
     position: relative;
     display: inline-block;
@@ -116,11 +160,59 @@
     background-color: #f8f9fa;
 }
 
-@media (max-width: 768px) {
-    .navbar-links-cont {
-        display: none;
+
+/* --- ESTILOS RESPONSIVE PARA MÓVILES --- */
+@media (max-width: 850px) { /* Ajustado a 850px para dar más espacio */
+    
+    /* Mostrar el botón de hamburguesa */
+    .hamburger-menu {
+        display: flex;
     }
 
+    /* Ocultar los links de navegación por defecto */
+    .navbar-links-cont {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #fff;
+        position: absolute;
+        top: 75px; /* Altura del navbar */
+        left: 0;
+        width: 100%;
+        height: auto;
+        padding: 20px 0;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+        
+        /* Oculto fuera de la pantalla por defecto */
+        transform: translateX(-100%); 
+    }
+
+    /* Mostrar el menú cuando está activo */
+    .navbar-links-cont.active {
+        transform: translateX(0);
+    }
+    
+    .navbar-links {
+        text-align: center;
+        margin: 0;
+        width: 100%;
+    }
+
+    .navbar-links-cont a {
+        padding: 15px 0;
+        width: 100%;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .navbar-links-cont a:last-child {
+        border-bottom: none;
+    }
+
+    .navbar-links h2 {
+      font-size: 18px;
+    }
+    
+    /* El menú de perfil se sigue manejando por separado */
     .menu-dropdown {
         position: fixed;
         bottom: 0;

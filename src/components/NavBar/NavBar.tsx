@@ -11,6 +11,8 @@ import { RootState } from "../types";
 
 export default function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.auth);
@@ -19,6 +21,11 @@ export default function NavBar() {
     dispatch(logout());
     navigate("/login");
     setIsOpen(false);
+    setIsNavOpen(false);
+  };
+  
+  const handleNavClick = () => {
+    setIsNavOpen(false);
   };
 
   return (
@@ -27,30 +34,24 @@ export default function NavBar() {
         <img src={Logo} alt="Logo" className="navbar-logo" />
       </a>
 
-      <ul className="navbar-links-cont">
-        <a href="/productos">
-          <li className="navbar-links">
-            <h2>Productos</h2>
-          </li>
+      {/* El menú de navegación no cambia */}
+      <ul className={`navbar-links-cont ${isNavOpen ? 'active' : ''}`}>
+        <a href="/productos" onClick={handleNavClick}>
+          <li className="navbar-links"><h2>Productos</h2></li>
         </a>
-        <a href="/sobrenosotros">
-          <li className="navbar-links">
-            <h2>Sobre nosotros</h2>
-          </li>
+        <a href="/sobrenosotros" onClick={handleNavClick}>
+          <li className="navbar-links"><h2>Sobre nosotros</h2></li>
         </a>
-        <a href="/comocomprar">
-          <li className="navbar-links">
-            <h2>Como comprar?</h2>
-          </li>
+        <a href="/comocomprar" onClick={handleNavClick}>
+          <li className="navbar-links"><h2>Como comprar?</h2></li>
         </a>
-        <a href="/trabaja">
-          <li className="navbar-links">
-            <h2>Trabajá con nosotros</h2>
-          </li>
+        <a href="/trabaja" onClick={handleNavClick}>
+          <li className="navbar-links"><h2>Trabajá con nosotros</h2></li>
         </a>
       </ul>
 
       <div className="icons-container">
+        {/* Menú de perfil y login */}
         {userInfo ? (
           <div className="user-menu">
             <img
@@ -62,15 +63,9 @@ export default function NavBar() {
             {isOpen && (
               <ul className="menu-dropdown">
                 <li className="menu-header">Hola, {userInfo.username}</li>
-                <li>
-                  <a href="/perfil">Mi Perfil</a>
-                </li>
-                <li>
-                  <a href="/mispedidos">Mis Pedidos</a>
-                </li>
-                <li>
-                  <button onClick={handleLogout}>Cerrar Sesión</button>
-                </li>
+                <li><a href="/perfil" onClick={() => setIsOpen(false)}>Mi Perfil</a></li>
+                <li><a href="/mispedidos" onClick={() => setIsOpen(false)}>Mis Pedidos</a></li>
+                <li><button onClick={handleLogout}>Cerrar Sesión</button></li>
               </ul>
             )}
           </div>
@@ -79,9 +74,20 @@ export default function NavBar() {
             <img src={ProfileIcon} alt="Login" className="navbar-icon" />
           </a>
         )}
+        
+        {/* Icono del carrito */}
         <a href="/carrito">
           <img src={CartIcon} alt="Cart" className="navbar-icon" />
         </a>
+        <button 
+          className={`hamburger-menu ${isNavOpen ? 'active' : ''}`}
+          onClick={() => setIsNavOpen(!isNavOpen)}
+          aria-label="Toggle navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </div>
   );
