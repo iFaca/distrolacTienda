@@ -1,0 +1,107 @@
+/* Contenedor principal para alinear las tarjetas */
+.card-delivery-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  padding: 50px 20px;
+  font-family: sans-serif;
+  flex-wrap: wrap;
+}
+
+/* Tarjeta base */
+.delivery-card {
+  position: relative;
+  background-color: #d18c83;
+  border-radius: 20px;
+  width: 420px;
+  height: 230px; /* Mantenemos la altura aumentada */
+  display: flex;
+  align-items: center;
+  filter: drop-shadow(0px 4px 15px rgba(123, 123, 123, 0.25));
+  overflow: hidden; /* La clave de todo el efecto */
+}
+
+/* 
+  AJUSTE FINAL: Círculos más grandes y posicionados para que se toquen y fusionen.
+*/
+.delivery-card::before,
+.delivery-card::after {
+  content: "";
+  position: absolute;
+  background-color: white;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+/* --- Curvas para la tarjeta del Teléfono --- */
+.card-phone::before {
+  width: 300px;
+  height: 300px;
+  top: -150px;    /* La mitad de su altura, para centrarlo en el borde superior */
+  left: -180px;   /* Ajusta qué tan "profunda" es la curva */
+}
+.card-phone::after {
+  width: 300px;
+  height: 300px;
+  bottom: -150px; /* La mitad de su altura, para centrarlo en el borde inferior */
+  left: -180px;   /* La misma posición horizontal para una curva uniforme */
+}
+
+/* --- Curvas para la tarjeta del Camión --- */
+.card-van::before {
+  width: 300px;
+  height: 300px;
+  top: -150px;
+  right: -180px; /* Versión espejo de la tarjeta del teléfono */
+}
+.card-van::after {
+  width: 300px;
+  height: 300px;
+  bottom: -150px;
+  right: -180px; /* Versión espejo de la tarjeta del teléfono */
+}
+
+/* --- Contenido (sin cambios) --- */
+.card-content {
+  position: relative;
+  width: 100%;
+  padding: 0 40px;
+  color: white;
+  z-index: 2;
+}
+.card-content h2 {
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 1.3;
+  margin: 0;
+}
+.card-phone .card-content { text-align: right; }
+.card-van .card-content { text-align: left; }
+
+/* --- Imágenes (sin cambios) --- */
+.card-image {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+.image-phone {
+  height: 115%;
+  left: 15px;
+}
+.image-van {
+  height: 85%;
+  right: 10px;
+}
+
+/* --- Responsive (sin cambios) --- */
+@media (max-width: 920px) {
+  .card-delivery-container {
+    flex-direction: column;
+  }
+  .delivery-card {
+    width: 90%;
+    max-width: 420px;
+  }
+}

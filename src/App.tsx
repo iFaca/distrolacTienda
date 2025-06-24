@@ -17,6 +17,7 @@ import Footer from "./components/Footer/Footer";
 import Profile from "./components/Profile/Profile";
 import Orders from "./components/Profile/MyOrders/MyOrders";
 import { LoadScript } from "@react-google-maps/api";
+import CardDelivery from "./components/CardDerlivery/CardDelivery";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               <>
                 <Header />
                 <Categories />
+                <CardDelivery />
                 {/* <Info />
                     <CardDelivery />
                     <Offer /> */}
