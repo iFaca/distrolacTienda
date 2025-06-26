@@ -1,9 +1,18 @@
 .swiper-container {
-    height: 705px;
+  height: 705px;
+  background-color: #f0f0f0;
 }
+
 .swiper-img {
-    position: absolute;
-    bottom: 0px;
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Evita que la imagen se estire */
+  object-position: center; 
+}
+
+
+@media (max-width: 768px) {
+  .swiper-container {
+    height: 350px;
+  }
 }
