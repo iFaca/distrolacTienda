@@ -20,7 +20,7 @@ export const refreshToken = createAsyncThunk(
   "auth/refreshToken",
   async (_, { rejectWithValue }) => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken = localStorage.getItem("refreshTokenstore");
       const response = await axios.post("/auth/refresh-token", {
         refreshToken,
       });
@@ -43,7 +43,7 @@ const authSlice = createSlice({
       const expirationTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 1 día
       localStorage.setItem("expirationTime", expirationTime.toString());
       if (action.payload.refreshToken) {
-        localStorage.setItem("refreshToken", action.payload.refreshToken);
+        localStorage.setItem("refreshTokenstore", action.payload.refreshToken);
       }
     },
     // Reducer para cerrar sesión y eliminar las credenciales del usuario
@@ -66,7 +66,7 @@ const authSlice = createSlice({
         );
         const expirationTime = new Date().getTime() + 24 * 60 * 60 * 1000;
         localStorage.setItem("expirationTime", expirationTime.toString());
-        localStorage.setItem("refreshToken", action.payload.refreshToken);
+        localStorage.setItem("refreshTokenstore", action.payload.refreshToken);
       })
       .addCase(refreshToken.rejected, (state, action) => {
         state.status = "failed";
