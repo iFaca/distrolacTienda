@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 import { Table, Button, Container, Modal } from "react-bootstrap";
 import { RootState } from "../../types";
 import "./MyOrders.css";
+import BackIcon from "@mui/icons-material/ArrowBack";
+import Breadcrums from "../../Breadcrumbs/Breadcrums";
 
 const BASE_URL = import.meta.env.VITE_BACK_APP_URI;
 
@@ -209,59 +211,65 @@ export default function MyOrders() {
   }
 
   return (
-    <Container className="mt-4">
-      <h2>Mis Pedidos</h2>
-      {orders.length === 0 ? (
-        <div className="text-center mt-4">
-          <p>No tienes pedidos realizados aún.</p>
-          <Button
-            variant="primary"
-            onClick={() => navigate("/products")}
-            className="main-button"
-          >
-            Ir a Productos
-          </Button>
+    <div className="my-orders-full-container">
+      <div className="my-orders-container">
+        <div className="breadcrum-container">
+          <Breadcrums items={[{ label: "Mis pedidos" }]} />
         </div>
-      ) : (
-        <>
-          <Table
-            striped
-            bordered
-            hover
-            responsive
-            className="orders-table mt-3"
-          >
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Dirección de Entrega</th>
-                <th>Total</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order._id}>
-                  <td>{new Date(order.orderDate).toLocaleDateString()}</td>
-                  <td>{`${order.customerInfo.street} ${order.customerInfo.streetNumber}`}</td>
-                  <td>${order.total.toFixed(2)}</td>
-                  <td>
-                    <Button
-                      variant="info"
-                      size="sm"
-                      onClick={() => handleShowDetails(order)}
-                      className="detail-button"
-                    >
-                      Ver Detalle
-                    </Button>
-                  </td>
+        <div className="red-underline">
+          <h1 className="cart-title">MIS PEDIDOS</h1>
+        </div>
+        {orders.length === 0 ? (
+          <div className="text-center mt-4">
+            <p>No tienes pedidos realizados aún.</p>
+            <Button
+              variant="primary"
+              onClick={() => navigate("/products")}
+              className="main-button"
+            >
+              Ir a Productos
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="orders-table mt-3"
+            >
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Dirección de Entrega</th>
+                  <th>Total</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
-          <OrderDetailModal />
-        </>
-      )}
-    </Container>
+              </thead>
+              <tbody>
+                {orders.map((order) => (
+                  <tr key={order._id}>
+                    <td>{new Date(order.orderDate).toLocaleDateString()}</td>
+                    <td>{`${order.customerInfo.street} ${order.customerInfo.streetNumber}`}</td>
+                    <td>${order.total.toFixed(2)}</td>
+                    <td>
+                      <Button
+                        size="sm"
+                        onClick={() => handleShowDetails(order)}
+                        className="detail-button"
+                      >
+                        Ver Detalle
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+            <OrderDetailModal />
+          </>
+        )}
+      </div>
+    </div>
   );
 }

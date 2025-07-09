@@ -1,4 +1,21 @@
 /* src/components/MyOrders/MyOrders.css */
+.my-orders-full-container{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.my-orders-container{
+    width: 100%;
+    max-width: 1280px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
 .status-badge {
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
@@ -159,6 +176,21 @@
     max-height: 70vh;
     overflow-y: auto;
 }
+
+.detail-button{
+    background-color: #c04030 !important;
+    border: none !important;
+    height: 40px;
+}
+
+.orders-table > thead > tr th{
+    text-align: center;
+}
+
+.orders-table > tbody > tr td{
+    text-align: center;
+}
+
 
 @media (max-width: 768px) {
     .product-info {

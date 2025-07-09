@@ -6,10 +6,10 @@ import LogoFooter from "../../assets/logo footer.png";
 
 export default function Footer() {
   return (
-    <div className="footer">
+    <footer className="footer">
       <div className="social-icons-container">
         <a
-          href="https://www.instagram.com"
+          href="https://www.instagram.com/distrolac"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -23,7 +23,7 @@ export default function Footer() {
           <img src={Linkedin} alt="LinkedIn icon" className="social-icon" />
         </a>
         <a
-          href="https://www.facebook.com"
+          href="https://www.facebook.com/distrolacmayorista"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -31,6 +31,6 @@ export default function Footer() {
         </a>
       </div>
       <img src={LogoFooter} className="footer-logo" alt="Company logo" />
-    </div>
+    </footer>
   );
 }

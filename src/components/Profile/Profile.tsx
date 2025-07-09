@@ -14,7 +14,16 @@ import {
   Row,
   Col,
   Spinner,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  ModalFooter,
 } from "react-bootstrap";
+import "./Profile.css";
+import BackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
+import Lock from "@mui/icons-material/LockReset";
+import Breadcrums from "../Breadcrumbs/Breadcrums";
 
 // Función auxiliar para obtener el perfil completo
 const fetchUserProfile = async (token: string) => {
@@ -42,6 +51,9 @@ const fetchUserProfile = async (token: string) => {
 export default function Profile() {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
+
+  const [showPassModal, setShowPassModal] = useState(false);
 
   // Estado para los datos del formulario
   const [formData, setFormData] = useState({
@@ -251,12 +263,14 @@ export default function Profile() {
   };
 
   return (
-    <Container className="mt-5">
-      <Row className="justify-content-md-center">
-        <Col xs={12} md={8} lg={6}>
-          <h2>Mi Perfil</h2>
-          {error && <Alert variant="danger">{error}</Alert>}
-          {success && <Alert variant="success">{success}</Alert>}
+    <div className="profile-full-container">
+      <div className="justify-content-md-center profile-container">
+        <div className="breadcrum-container">
+          <Breadcrums items={[{ label: "Mi perfil" }]} />
+        </div>
+        <Col xs={12} md={8} lg={6} className="data-profile">
+          <h2 className="title-profile">Mi Perfil</h2>
+          <hr className="red-line-login" />
           {isLoadingProfile && (
             <Alert variant="info">
               <Spinner animation="border" size="sm" className="me-2" />
@@ -275,24 +289,25 @@ export default function Profile() {
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Nombre</Form.Label>
-              <Form.Control
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Apellido</Form.Label>
-              <Form.Control
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-              />
+            <Form.Group className="mb-3 name-lastname">
+              <div>
+                <Form.Label>Nombre</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <Form.Label>Apellido</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                />
+              </div>
             </Form.Group>
 
             <Form.Group className="mb-3">
@@ -327,98 +342,123 @@ export default function Profile() {
               />
             </Form.Group>
 
-            <Button
-              variant="primary"
-              type="submit"
-              className="w-100"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    className="me-2"
-                  />
-                  Guardando...
-                </>
-              ) : (
-                "Guardar Cambios"
-              )}
-            </Button>
-          </Form>
+            <div className="buttons-profile">
+              <Button
+                onClick={() => setShowPassModal(true)}
+                className="btn-save-profile"
+              >
+                <Lock /> Cambiar contraseña
+              </Button>
 
-          <h3 className="mt-4">Cambiar Contraseña</h3>
-          <Form onSubmit={handlePasswordSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Contraseña Actual</Form.Label>
-              <Form.Control
-                type="password"
-                name="currentPassword"
-                value={passwordData.currentPassword}
-                onChange={(e) =>
-                  setPasswordData((prev) => ({
-                    ...prev,
-                    currentPassword: e.target.value,
-                  }))
-                }
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Nueva Contraseña</Form.Label>
-              <Form.Control
-                type="password"
-                name="newPassword"
-                value={passwordData.newPassword}
-                onChange={(e) =>
-                  setPasswordData((prev) => ({
-                    ...prev,
-                    newPassword: e.target.value,
-                  }))
-                }
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Confirmar Nueva Contraseña</Form.Label>
-              <Form.Control
-                type="password"
-                name="confirmNewPassword"
-                value={passwordData.confirmNewPassword}
-                onChange={(e) =>
-                  setPasswordData((prev) => ({
-                    ...prev,
-                    confirmNewPassword: e.target.value,
-                  }))
-                }
-              />
-            </Form.Group>
-
-            <Button
-              variant="primary"
-              type="submit"
-              className="w-100"
-              disabled={isChangingPassword}
-            >
-              {isChangingPassword ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    className="me-2"
-                  />
-                  Cambiando Contraseña...
-                </>
-              ) : (
-                "Cambiar Contraseña"
-              )}
-            </Button>
+              <Button
+                type="submit"
+                className="btn-save-profile"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      className="me-2"
+                    />
+                    Guardando...
+                  </>
+                ) : (
+                  "Guardar Cambios"
+                )}
+              </Button>
+            </div>
           </Form>
         </Col>
-      </Row>
-    </Container>
+        {error && <Alert variant="danger">{error}</Alert>}
+        {success && <Alert variant="success">{success}</Alert>}
+      </div>
+
+      <Modal
+        show={showPassModal}
+        onHide={() => setShowPassModal(false)}
+        size="lg"
+      >
+        <ModalHeader closeButton>
+          <h2 className="title-profile">Cambiar Contraseña</h2>
+          <hr className="red-line-login" />
+        </ModalHeader>
+        <ModalBody>
+          <div className="data-profile-pass">
+            <Form onSubmit={handlePasswordSubmit}>
+              <Form.Group className="mb-3">
+                <Form.Label>Contraseña Actual</Form.Label>
+                <Form.Control
+                  type="password"
+                  name="currentPassword"
+                  value={passwordData.currentPassword}
+                  onChange={(e) =>
+                    setPasswordData((prev) => ({
+                      ...prev,
+                      currentPassword: e.target.value,
+                    }))
+                  }
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Nueva Contraseña</Form.Label>
+                <Form.Control
+                  type="password"
+                  name="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={(e) =>
+                    setPasswordData((prev) => ({
+                      ...prev,
+                      newPassword: e.target.value,
+                    }))
+                  }
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Confirmar Nueva Contraseña</Form.Label>
+                <Form.Control
+                  type="password"
+                  name="confirmNewPassword"
+                  value={passwordData.confirmNewPassword}
+                  onChange={(e) =>
+                    setPasswordData((prev) => ({
+                      ...prev,
+                      confirmNewPassword: e.target.value,
+                    }))
+                  }
+                />
+              </Form.Group>
+            </Form>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            type="submit"
+            className="btn-save-profile"
+            disabled={isChangingPassword}
+          >
+            {isChangingPassword ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  className="me-2"
+                />
+                Cambiando Contraseña...
+              </>
+            ) : (
+              <>
+                <Lock /> Cambiar Contraseña
+              </>
+            )}
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </div>
   );
 }

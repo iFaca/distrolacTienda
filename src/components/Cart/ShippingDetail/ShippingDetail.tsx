@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import emailjs from "@emailjs/browser";
 import { RootState } from "../../types";
 import "./ShippingDetail.css";
+import Breadcrums from "../../Breadcrumbs/Breadcrums";
 
 const EMAIL_SERVICE_ID = "service_szd7tra";
 const EMAIL_TEMPLATE_CLIENT_ID = "template_9afqj0i";
@@ -428,7 +429,7 @@ export default function ShippingDetail() {
       setShowConfirmation(true);
 
       setTimeout(() => {
-        navigate("/myorders");
+        navigate("/mispedidos", { replace: true });
       }, 2000);
     } catch (error) {
       console.error("Error detallado:", error);
@@ -443,129 +444,152 @@ export default function ShippingDetail() {
   };
 
   return (
-    <div className="shipping-container">
-      <div className="shipping-leftcolumn">
-        <img src="/logo.png" alt="Logo Distrolac" className="shipping-logo" />
-
-        <div className="shipping-info">
-          <div className="shipping-info-row">
-            <span>Email</span>
-            <span>{shippingData.email || "No especificado"}</span>
-            <button onClick={() => navigate("/detalledepedido")}>Editar</button>
-          </div>
-          <div className="shipping-info-row">
-            <span>Teléfono</span>
-            <span>{shippingData.phone || "No especificado"}</span>
-            <button onClick={() => navigate("/detalledepedido")}>Editar</button>
-          </div>
-          <div className="shipping-info-row">
-            <span>Nombre completo</span>
-            <span>
-              {shippingData.firstName && shippingData.lastName
-                ? `${shippingData.firstName} ${shippingData.lastName}`
-                : "No especificado"}
-            </span>
-            <button onClick={() => navigate("/detalledepedido")}>Editar</button>
-          </div>
-          <div className="shipping-info-row">
-            <span>Dirección</span>
-            <span>
-              {shippingData.address ? shippingData.address : "No especificado"}
-            </span>
-            <button onClick={() => navigate("/detalledepedido")}>Editar</button>
-          </div>
-        </div>
-
-        <fieldset className="shipping-method">
-          <legend>Método de envío</legend>
-          <div className="shipping-method-option">
-            <input type="radio" name="shipping-method" defaultChecked />
-            <label>Entrega a domicilio</label>
-            <span>Gratis</span>
-          </div>
-        </fieldset>
-
-        <div className="shipping-buttons">
-          <button
-            className="shipping-back"
-            onClick={() => navigate("/detalledepedido")}
-          >
-            Volver a detalles
-          </button>
-          <button
-            className="shipping-confirm"
-            onClick={handleConfirmOrder}
-            disabled={isSubmitting || showConfirmation || isLoadingProfile}
-          >
-            {isSubmitting
-              ? "Procesando..."
-              : isLoadingProfile
-              ? "Cargando datos..."
-              : showConfirmation
-              ? "Procesado"
-              : "Confirmar pedido"}
-          </button>
-        </div>
-      </div>
-
-      <div className="shipping-rightcolumn">
-        <ul className="shipping-cartitems">
-          {cartItems.map((item) => (
-            <li key={item.id} className="shipping-cartitem">
-              <img src={item.image} alt={item.title} />
-              <div>
-                <h3>{item.title}</h3>
-                <p>${Number(item.price).toFixed(2)}</p>
-              </div>
-              <span>x{item.quantity}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="shipping-summary">
-          <input
-            type="text"
-            placeholder="Cupón de descuento"
-            className="shipping-coupon-input"
+    <div className="shipping-full-container">
+      <div className="shipping-container-1">
+        <div className="breadcrum-container">
+          <Breadcrums
+            items={[
+              { label: "Mi carrito", to: "/carrito" },
+              { label: "Detalles del pedido", to: "/detalledepedido" },
+              { label: "Confirmar pedido" }
+            ]}
           />
-          <button className="shipping-coupon-btn">Agregar código</button>
-          <div className="shipping-totals">
-            <div>
-              <span>Subtotal</span>
-              <span>${total.toFixed(2)}</span>
+        </div>
+        <div className="red-underline">
+          <h1>CONFIRMAR PEDIDO</h1>
+        </div>
+        <div className="shipping-container">
+          <div className="shipping-leftcolumn">
+            <div className="shipping-info">
+              <div className="shipping-info-row">
+                <span>Email</span>
+                <span>{shippingData.email || "No especificado"}</span>
+                <button onClick={() => navigate("/detalledepedido")}>
+                  Editar
+                </button>
+              </div>
+              <div className="shipping-info-row">
+                <span>Teléfono</span>
+                <span>{shippingData.phone || "No especificado"}</span>
+                <button onClick={() => navigate("/detalledepedido")}>
+                  Editar
+                </button>
+              </div>
+              <div className="shipping-info-row">
+                <span>Nombre completo</span>
+                <span>
+                  {shippingData.firstName && shippingData.lastName
+                    ? `${shippingData.firstName} ${shippingData.lastName}`
+                    : "No especificado"}
+                </span>
+                <button onClick={() => navigate("/detalledepedido")}>
+                  Editar
+                </button>
+              </div>
+              <div className="shipping-info-row">
+                <span>Dirección</span>
+                <span>
+                  {shippingData.address
+                    ? shippingData.address
+                    : "No especificado"}
+                </span>
+                <button onClick={() => navigate("/detalledepedido")}>
+                  Editar
+                </button>
+              </div>
             </div>
-            <div>
-              <span>Envío</span>
-              <span>Gratis</span>
-            </div>
-            <div className="shipping-total-row">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+
+            <fieldset className="shipping-method">
+              <legend>Método de envío</legend>
+              <hr className="red-line-login" />
+              <div className="shipping-method-option">
+                <div className="adress-inputs">
+                  <input type="radio" name="shipping-method" defaultChecked />
+                  <label>Entrega a domicilio</label>
+                </div>
+                <span>Gratis</span>
+              </div>
+            </fieldset>
+
+            <div className="shipping-buttons">
+              <a
+                className="shipping-back"
+                onClick={() => navigate("/detalledepedido")}
+              >
+                Volver a detalles
+              </a>
+              <button
+                className="shipping-confirm"
+                onClick={handleConfirmOrder}
+                disabled={isSubmitting || showConfirmation || isLoadingProfile}
+              >
+                {isSubmitting
+                  ? "Procesando..."
+                  : isLoadingProfile
+                  ? "Cargando datos..."
+                  : showConfirmation
+                  ? "Procesado"
+                  : "Confirmar pedido"}
+              </button>
             </div>
           </div>
+
+          <div className="shipping-rightcolumn">
+            <ul className="shipping-cartitems">
+              {cartItems.map((item) => (
+                <li key={item.id} className="shipping-cartitem">
+                  <img src={item.image} alt={item.title} />
+                  <div>
+                    <h3 className="title-item-detail">{item.title}</h3>
+                    <p>${Number(item.price).toFixed(2)}</p>
+                  </div>
+                  <span>x{item.quantity}</span>
+                </li>
+              ))}
+            </ul>
+            <hr className="red-line-login" />
+            <div className="shipping-summary">
+              <div className="shipping-totals">
+                <div>
+                  <span>Subtotal</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
+                <div>
+                  <span>Envío</span>
+                  <span>Gratis</span>
+                </div>
+                <div className="shipping-total-row">
+                  <span>Total</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {showConfirmation && (
+            <div className="confirmation-popup">
+              <div className="confirmation-content">
+                <h3>¡Pedido Confirmado!</h3>
+                <p>
+                  Tu pedido ha sido procesado. Recibirás un email con los
+                  detalles.
+                </p>
+                <p>Serás redirigido al inicio en unos segundos...</p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="error-popup">
+              <div className="error-content">
+                <h3>Error</h3>
+                <p>{error}</p>
+                <button onClick={() => setError("")}>Cerrar</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {showConfirmation && (
-        <div className="confirmation-popup">
-          <div className="confirmation-content">
-            <h3>¡Pedido Confirmado!</h3>
-            <p>
-              Tu pedido ha sido procesado. Recibirás un email con los detalles.
-            </p>
-            <p>Serás redirigido al inicio en unos segundos...</p>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="error-popup">
-          <div className="error-content">
-            <h3>Error</h3>
-            <p>{error}</p>
-            <button onClick={() => setError("")}>Cerrar</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

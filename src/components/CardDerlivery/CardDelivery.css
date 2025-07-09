@@ -14,7 +14,7 @@
   position: relative;
   background-color: #d18c83;
   border-radius: 20px;
-  width: 420px;
+  width: 500px;
   height: 230px; /* Mantenemos la altura aumentada */
   display: flex;
   align-items: center;
@@ -87,8 +87,9 @@
   z-index: 1;
 }
 .image-phone {
-  height: 115%;
-  left: 15px;
+  height: 110%;
+  left: 10px;
+  top: 150px;
 }
 .image-van {
   height: 85%;

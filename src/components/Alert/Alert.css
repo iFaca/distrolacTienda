@@ -1,0 +1,44 @@
+.alert-container {
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 300px;
+  height: 80px;
+  color: #fff;
+  border-radius: 15px;
+  bottom: 20px;
+  right: 20px;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 400ms ease;
+  z-index: 9999;
+}
+
+.alert-container.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.success {
+  background-color: rgb(28, 128, 66);
+}
+
+.alert-text-container {
+  margin: 0px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 15px;
+  width: 100%;
+}
+
+.alert-text-container > p {
+  margin: 0px;
+}
+
+.icon-close {
+  cursor: pointer;
+}

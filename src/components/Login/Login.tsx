@@ -12,12 +12,14 @@ import {
   Tab,
   Tabs,
   Modal,
+  InputGroup,
 } from "react-bootstrap";
 // Asegúrate que Autocomplete esté importado
 import { Autocomplete } from "@react-google-maps/api";
 import { useLoginMutation, useRegisterMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import "./Login.css";
+import BackIcon from "@mui/icons-material/ArrowBack";
 
 interface LoginFormData {
   email: string;
@@ -387,324 +389,255 @@ const Login: React.FC = () => {
   };
 
   return (
-    <Container className="login-page">
-      <Row className="justify-content-md-center align-items-center min-vh-100">
-        <Col xs={12} md={8} lg={6} xl={5}>
-          <div className="login-container p-4 p-md-5 border rounded bg-white shadow-sm">
-            <div className="login-logo text-center mb-4">
-              <img
-                src="/logo.png"
-                alt="Distrolac Logo"
-                style={{ maxWidth: "150px", height: "auto" }}
-              />
-            </div>
-
-            <Tabs
-              defaultActiveKey="login"
-              id="login-register-tabs"
-              className="mb-4"
-              justify
+    <div className="login-page">
+      <div className="left-container">
+        <div>
+          <div className="logo-container">
+            <img
+              src="src/assets/logotienda.png"
+              alt="Distrolac Logo"
+              className="distro-logo-login"
+            />
+          </div>
+          <div className="div-register-container">
+            <h1 className="title-auth">Registrarse</h1>
+            <hr className="red-line-login" />
+            {registerError && <Alert variant="danger">{registerError}</Alert>}
+            <Form
+              noValidate
+              validated={registerValidated}
+              onSubmit={handleRegister}
+              className="register-form "
             >
-              {/* === Tab de Login === */}
-              <Tab eventKey="login" title="Iniciar Sesión">
-                {error && (
-                  <Alert variant="danger" className="mt-3">
-                    {error}
-                  </Alert>
-                )}
-                <Form
-                  noValidate
-                  validated={validated}
-                  onSubmit={handleLogin}
-                  className="login-form mt-3"
-                >
-                  {/* Campos de Login ... (sin cambios) */}
-                  <Form.Group className="mb-3" controlId="loginEmail">
-                    <Form.Label>Email</Form.Label>
-                    <Form.Control
-                      type="email"
-                      placeholder="Ingrese su email"
-                      value={usernameOrEmail}
-                      onChange={(e) => setUsernameOrEmail(e.target.value)}
-                      required
-                      disabled={isLoginLoading}
-                      aria-describedby="loginEmailFeedback"
-                    />
-                    <Form.Control.Feedback
-                      type="invalid"
-                      id="loginEmailFeedback"
-                    >
-                      Ingrese un email válido.
-                    </Form.Control.Feedback>
-                  </Form.Group>
-
-                  <Form.Group className="mb-3" controlId="loginPassword">
-                    <Form.Label>Contraseña</Form.Label>
-                    <Form.Control
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Contraseña"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={isLoginLoading}
-                      aria-describedby="loginPasswordFeedback"
-                    />
-                    <Form.Control.Feedback
-                      type="invalid"
-                      id="loginPasswordFeedback"
-                    >
-                      Ingrese su contraseña.
-                    </Form.Control.Feedback>
-                  </Form.Group>
-
-                  <Form.Group className="mb-4" controlId="loginShowPassword">
-                    <Form.Check
-                      type="checkbox"
-                      label="Mostrar contraseña"
-                      checked={showPassword}
-                      onChange={(e) => setShowPassword(e.target.checked)}
-                      disabled={isLoginLoading}
-                    />
-                  </Form.Group>
-
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    className="w-100"
-                    disabled={isLoginLoading}
+              {/* Campos de Registro ... (mejoras en validación de contraseña) */}
+              <div>
+                <Form.Group controlId="registerEmail">
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={registerData.email}
+                    onChange={handleRegisterChange}
+                    required
+                    disabled={isRegisterLoading}
+                    aria-describedby="registerEmailFeedback"
+                    className="input-form"
+                  />
+                  <Form.Control.Feedback
+                    type="invalid"
+                    id="registerEmailFeedback"
                   >
-                    {isLoginLoading ? (
-                      <>
-                        <Spinner
-                          as="span"
-                          animation="border"
-                          size="sm"
-                          role="status"
-                          aria-hidden="true"
-                          className="me-2"
-                        />
-                        Iniciando sesión...
-                      </>
-                    ) : (
-                      "Iniciar Sesión"
+                    Ingrese un email válido.
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </div>
+              <div>
+                <Form.Group controlId="registerUsername">
+                  <Form.Control
+                    type="text"
+                    name="username"
+                    placeholder="Nombre de usuario"
+                    value={registerData.username}
+                    onChange={handleRegisterChange}
+                    required
+                    disabled={isRegisterLoading}
+                    aria-describedby="registerUsernameFeedback"
+                    className="input-form"
+                  />
+                  <Form.Control.Feedback
+                    type="invalid"
+                    id="registerUsernameFeedback"
+                  >
+                    Elija un nombre de usuario.
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </div>
+              <div>
+                <Form.Group controlId="registerPassword">
+                  <Form.Control
+                    type={showRegisterPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Contraseña"
+                    value={registerData.password}
+                    onChange={handleRegisterChange}
+                    required
+                    disabled={isRegisterLoading}
+                    aria-describedby="registerPasswordFeedback"
+                    minLength={6}
+                    className="input-form"
+                  />
+                  <Form.Control.Feedback
+                    type="invalid"
+                    id="registerPasswordFeedback"
+                  >
+                    Elija una contraseña (mínimo 6 caracteres).
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </div>
+              <div>
+                <Form.Group controlId="registerConfirmPassword">
+                  <Form.Control
+                    type={showRegisterPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="Confirmar contraseña"
+                    value={registerData.confirmPassword}
+                    onChange={handleRegisterChange}
+                    required
+                    disabled={isRegisterLoading}
+                    aria-describedby="registerConfirmPasswordFeedback"
+                    pattern={registerData.password.replace(
+                      /[.*+?^${}()|[\]\\]/g,
+                      "\\$&"
                     )}
-                  </Button>
-                </Form>
-              </Tab>
-
-              {/* === Tab de Registro === */}
-              <Tab eventKey="register" title="Crear Cuenta">
-                {registerError && (
-                  <Alert variant="danger" className="mt-3">
-                    {registerError}
-                  </Alert>
-                )}
-                <Form
-                  noValidate
-                  validated={registerValidated}
-                  onSubmit={handleRegister}
-                  className="register-form mt-3"
-                >
-                  {/* Campos de Registro ... (mejoras en validación de contraseña) */}
-                  <Row>
-                    <Col md={12}>
-                      <Form.Group className="mb-3" controlId="registerUsername">
-                        <Form.Label>Nombre de Usuario</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="username"
-                          placeholder="Elija un nombre de usuario"
-                          value={registerData.username}
-                          onChange={handleRegisterChange}
-                          required
-                          disabled={isRegisterLoading}
-                          aria-describedby="registerUsernameFeedback"
-                        />
-                        <Form.Control.Feedback
-                          type="invalid"
-                          id="registerUsernameFeedback"
-                        >
-                          Elija un nombre de usuario.
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group
-                        className="mb-3"
-                        controlId="registerFirstName"
+                    className="input-form"
+                  />{" "}
+                  {/* Escapar caracteres especiales para pattern */}
+                  <Form.Control.Feedback
+                    type="invalid"
+                    id="registerConfirmPasswordFeedback"
+                  >
+                    Las contraseñas no coinciden.
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </div>
+              <Form.Group controlId="registerShowPassword">
+                <Form.Check
+                  type="checkbox"
+                  label="Mostrar contraseña"
+                  checked={showRegisterPassword}
+                  onChange={(e) => setShowRegisterPassword(e.target.checked)}
+                  disabled={isRegisterLoading}
+                />
+              </Form.Group>
+              <div className="delivery-auth">
+                <h1 className="title-auth">Datos del envío</h1>
+                <div className="name-lastname-auth">
+                  <div>
+                    <Form.Group controlId="registerFirstName">
+                      <Form.Control
+                        type="text"
+                        name="firstName"
+                        placeholder="Nombre"
+                        value={registerData.firstName}
+                        onChange={handleRegisterChange}
+                        required
+                        disabled={isRegisterLoading}
+                        aria-describedby="registerFirstNameFeedback"
+                        className="input-form"
+                      />
+                      <Form.Control.Feedback
+                        type="invalid"
+                        id="registerFirstNameFeedback"
                       >
-                        <Form.Label>Nombre</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="firstName"
-                          placeholder="Ingrese su nombre"
-                          value={registerData.firstName}
-                          onChange={handleRegisterChange}
-                          required
-                          disabled={isRegisterLoading}
-                          aria-describedby="registerFirstNameFeedback"
-                        />
-                        <Form.Control.Feedback
-                          type="invalid"
-                          id="registerFirstNameFeedback"
-                        >
-                          Ingrese su nombre.
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3" controlId="registerLastName">
-                        <Form.Label>Apellido</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="lastName"
-                          placeholder="Ingrese su apellido"
-                          value={registerData.lastName}
-                          onChange={handleRegisterChange}
-                          required
-                          disabled={isRegisterLoading}
-                          aria-describedby="registerLastNameFeedback"
-                        />
-                        <Form.Control.Feedback
-                          type="invalid"
-                          id="registerLastNameFeedback"
-                        >
-                          Ingrese su apellido.
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md={12}>
-                      <Form.Group className="mb-3" controlId="registerEmail">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="email"
-                          name="email"
-                          placeholder="Ingrese su email"
-                          value={registerData.email}
-                          onChange={handleRegisterChange}
-                          required
-                          disabled={isRegisterLoading}
-                          aria-describedby="registerEmailFeedback"
-                        />
-                        <Form.Control.Feedback
-                          type="invalid"
-                          id="registerEmailFeedback"
-                        >
-                          Ingrese un email válido.
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md={12}>
-                      <Form.Group className="mb-3" controlId="registerPhone">
-                        <Form.Label>Teléfono</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="phone"
-                          placeholder="Ingrese su teléfono"
-                          value={registerData.phone}
-                          onChange={handleRegisterChange}
-                          required
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md={12}>
-                      <Form.Group className="mb-3" controlId="registerAddress">
-                        <Form.Label>Dirección</Form.Label>
-                        <div className="input-group">
-                          <Autocomplete
-                            onLoad={(autocompleteInstance) => {
-                              console.log("Autocomplete cargado correctamente");
-                              setAutocomplete(autocompleteInstance);
-                            }}
-                            onPlaceChanged={() => {
-                              if (autocomplete) {
-                                const place = autocomplete.getPlace();
-                                if (place && place.formatted_address) {
-                                  console.log(
-                                    "Dirección seleccionada (autocomplete):",
-                                    place.formatted_address
-                                  );
-
-                                  // Actualizar el estado de manera explícita con un callback
-                                  setRegisterData((prevData) => {
-                                    const newData = {
-                                      ...prevData,
-                                      address: place.formatted_address,
-                                    };
-                                    console.log(
-                                      "Estado actualizado con dirección:",
-                                      newData
-                                    );
-                                    return newData;
-                                  });
-
-                                  // Si el mapa está abierto, actualizar también su posición
-                                  if (
-                                    map &&
-                                    marker &&
-                                    place.geometry &&
-                                    place.geometry.location
-                                  ) {
-                                    const location = place.geometry.location;
-                                    map.panTo(location);
-                                    map.setZoom(17);
-                                    marker.setPosition(location);
-                                  }
+                        Ingrese su nombre.
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </div>
+                  <div>
+                    <Form.Group controlId="registerLastName">
+                      <Form.Control
+                        type="text"
+                        name="lastName"
+                        placeholder="Apellido"
+                        value={registerData.lastName}
+                        onChange={handleRegisterChange}
+                        required
+                        disabled={isRegisterLoading}
+                        aria-describedby="registerLastNameFeedback"
+                        className="input-form"
+                      />
+                      <Form.Control.Feedback
+                        type="invalid"
+                        id="registerLastNameFeedback"
+                      >
+                        Ingrese su apellido.
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </div>
+                </div>
+                <div>
+                  <Form.Group controlId="registerPhone">
+                    <Form.Control
+                      type="text"
+                      name="phone"
+                      placeholder="Ingrese su teléfono"
+                      value={registerData.phone}
+                      onChange={handleRegisterChange}
+                      required
+                      disabled={isRegisterLoading}
+                      className="input-form"
+                    />
+                  </Form.Group>
+                </div>
+                <div>
+                  <div>
+                    <Form.Group controlId="registerAddress">
+                      <InputGroup className="adress-group">
+                        <Autocomplete
+                          onLoad={(autocompleteInstance) => {
+                            setAutocomplete(autocompleteInstance);
+                          }}
+                          onPlaceChanged={() => {
+                            if (autocomplete) {
+                              const place = autocomplete.getPlace();
+                              if (place && place.formatted_address) {
+                                setRegisterData((prevData) => ({
+                                  ...prevData,
+                                  address: place.formatted_address,
+                                }));
+                                if (
+                                  map &&
+                                  marker &&
+                                  place.geometry &&
+                                  place.geometry.location
+                                ) {
+                                  const location = place.geometry.location;
+                                  map.panTo(location);
+                                  map.setZoom(17);
+                                  marker.setPosition(location);
                                 }
                               }
-                            }}
-                          >
-                            <Form.Control
-                              type="text"
-                              name="address"
-                              id="address-input"
-                              placeholder="Ingresa o busca tu dirección"
-                              value={registerData.address}
-                              onChange={(e) => {
-                                const addressValue = e.target.value;
-                                handleRegisterChange(e);
-                                console.log(
-                                  "Dirección actualizada manualmente:",
-                                  addressValue
-                                );
-                              }}
-                              required
-                              disabled={isRegisterLoading}
-                              aria-describedby="registerAddressFeedback"
-                              style={{ marginRight: "8px" }}
-                            />
-                          </Autocomplete>
-                          <Button
-                            variant="outline-secondary"
-                            onClick={() => setShowMapModal(true)}
-                            disabled={isRegisterLoading}
-                            title="Abrir mapa para seleccionar ubicación"
-                          >
-                            Mapa
-                          </Button>
-                        </div>
-                        <Form.Control.Feedback
-                          type="invalid"
-                          id="registerAddressFeedback"
+                            }
+                          }}
                         >
-                          Por favor ingresa tu dirección.
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </Col>
-                  </Row>
+                          <Form.Control
+                            type="text"
+                            name="address"
+                            id="address-input"
+                            placeholder="Ingresa o busca tu dirección"
+                            value={registerData.address}
+                            onChange={handleRegisterChange}
+                            required
+                            disabled={isRegisterLoading}
+                            aria-describedby="registerAddressFeedback"
+                            className="input-form adress-input"
+                          />
+                        </Autocomplete>
+                        <Button
+                          variant="outline-secondary"
+                          onClick={() => setShowMapModal(true)}
+                          disabled={isRegisterLoading}
+                          title="Abrir mapa para seleccionar ubicación"
+                          style={{ whiteSpace: "nowrap" }}
+                          className="input-form"
+                        >
+                          Mapa
+                        </Button>
+                      </InputGroup>
+                      <Form.Control.Feedback
+                        type="invalid"
+                        id="registerAddressFeedback"
+                      >
+                        Por favor ingresa tu dirección.
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </div>
+                </div>
+              </div>
 
-                  <Row>
-                    {/* <Col md={8}>
-                      <Form.Group className="mb-3" controlId="registerStreet">
+              <div>
+                {/* <div md={8}>
+                      <Form.Group controlId="registerStreet">
                         <Form.Label>Calle</Form.Label>
                         <Form.Control
                           type="text"
@@ -715,10 +648,10 @@ const Login: React.FC = () => {
                           disabled={isRegisterLoading}
                         />
                       </Form.Group>
-                    </Col> */}
-                    {/* <Col md={4}>
+                    </div> */}
+                {/* <div md={4}>
                       <Form.Group
-                        className="mb-3"
+                      
                         controlId="registerStreetNumber"
                       >
                         <Form.Label>Número</Form.Label>
@@ -731,14 +664,14 @@ const Login: React.FC = () => {
                           disabled={isRegisterLoading}
                         />
                       </Form.Group>
-                    </Col> */}
-                  </Row>
+                    </div> */}
+              </div>
 
-                  {/* Campos para código postal y teléfono */}
-                  <Row>
-                    {/* <Col md={6}>
+              {/* Campos para código postal y teléfono */}
+              <div>
+                {/* <div>
                       <Form.Group
-                        className="mb-3"
+                      
                         controlId="registerPostalCode"
                       >
                         <Form.Label>Código Postal</Form.Label>
@@ -751,9 +684,9 @@ const Login: React.FC = () => {
                           disabled={isRegisterLoading}
                         />
                       </Form.Group>
-                    </Col> */}
-                    {/* <Col md={6}>
-                      <Form.Group className="mb-3" controlId="registerPhone">
+                    </div> */}
+                {/* <div>
+                      <Form.Group controlId="registerPhone">
                         <Form.Label>Teléfono</Form.Label>
                         <Form.Control
                           type="text"
@@ -764,101 +697,129 @@ const Login: React.FC = () => {
                           disabled={isRegisterLoading}
                         />
                       </Form.Group>
-                    </Col> */}
-                  </Row>
-
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3" controlId="registerPassword">
-                        <Form.Label>Contraseña</Form.Label>
-                        <Form.Control
-                          type={showRegisterPassword ? "text" : "password"}
-                          name="password"
-                          placeholder="Elija una contraseña"
-                          value={registerData.password}
-                          onChange={handleRegisterChange}
-                          required
-                          disabled={isRegisterLoading}
-                          aria-describedby="registerPasswordFeedback"
-                          minLength={6}
-                        />
-                        <Form.Control.Feedback
-                          type="invalid"
-                          id="registerPasswordFeedback"
-                        >
-                          Elija una contraseña (mínimo 6 caracteres).
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group
-                        className="mb-3"
-                        controlId="registerConfirmPassword"
-                      >
-                        <Form.Label>Confirmar Contraseña</Form.Label>
-                        <Form.Control
-                          type={showRegisterPassword ? "text" : "password"}
-                          name="confirmPassword"
-                          placeholder="Confirme su contraseña"
-                          value={registerData.confirmPassword}
-                          onChange={handleRegisterChange}
-                          required
-                          disabled={isRegisterLoading}
-                          aria-describedby="registerConfirmPasswordFeedback"
-                          pattern={registerData.password.replace(
-                            /[.*+?^${}()|[\]\\]/g,
-                            "\\$&"
-                          )}
-                        />{" "}
-                        {/* Escapar caracteres especiales para pattern */}
-                        <Form.Control.Feedback
-                          type="invalid"
-                          id="registerConfirmPasswordFeedback"
-                        >
-                          Las contraseñas no coinciden.
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  <Form.Group className="mb-4" controlId="registerShowPassword">
-                    <Form.Check
-                      type="checkbox"
-                      label="Mostrar contraseña"
-                      checked={showRegisterPassword}
-                      onChange={(e) =>
-                        setShowRegisterPassword(e.target.checked)
-                      }
-                      disabled={isRegisterLoading}
-                    />
-                  </Form.Group>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    className="w-100"
-                    disabled={isRegisterLoading}
-                  >
-                    {isRegisterLoading ? (
-                      <>
-                        <Spinner
-                          as="span"
-                          animation="border"
-                          size="sm"
-                          role="status"
-                          aria-hidden="true"
-                          className="me-2"
-                        />
-                        Creando cuenta...
-                      </>
-                    ) : (
-                      "Crear Cuenta"
-                    )}
-                  </Button>
-                </Form>
-              </Tab>
-            </Tabs>
+                    </div> */}
+              </div>
+              <div className="buttons-container">
+                <div onClick={() => navigate(-1)} className="back-btn">
+                  <p>
+                    <BackIcon /> Volver
+                  </p>
+                </div>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={isRegisterLoading}
+                  className="auth-btn"
+                >
+                  {isRegisterLoading ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                        className="me-2"
+                      />
+                      Creando cuenta...
+                    </>
+                  ) : (
+                    "Crear Cuenta"
+                  )}
+                </Button>
+              </div>
+            </Form>
           </div>
-        </Col>
-      </Row>
+        </div>
+      </div>
+      <div className="right-container">
+        <div id="login-register-div" className="login-register-div">
+          {/* === Tab de Login === */}
+          <div className="div-login-container">
+            <h1 className="title-auth">Acceder</h1>
+            <hr className="red-line-login" />
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form
+              noValidate
+              validated={validated}
+              onSubmit={handleLogin}
+              className="login-form "
+            >
+              {/* Campos de Login ... (sin cambios) */}
+              <Form.Group controlId="loginEmail">
+                <Form.Control
+                  type="email"
+                  placeholder="Email"
+                  value={usernameOrEmail}
+                  onChange={(e) => setUsernameOrEmail(e.target.value)}
+                  required
+                  disabled={isLoginLoading}
+                  aria-describedby="loginEmailFeedback"
+                  className="input-form"
+                />
+                <Form.Control.Feedback type="invalid" id="loginEmailFeedback">
+                  Ingrese un email válido.
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group controlId="loginPassword">
+                <Form.Control
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoginLoading}
+                  aria-describedby="loginPasswordFeedback"
+                  className="input-form"
+                />
+                <Form.Control.Feedback
+                  type="invalid"
+                  id="loginPasswordFeedback"
+                >
+                  Ingrese su contraseña.
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group controlId="loginShowPassword">
+                <Form.Check
+                  type="checkbox"
+                  label="Mostrar contraseña"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  disabled={isLoginLoading}
+                />
+              </Form.Group>
+              <div className="login-button-container">
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={isLoginLoading}
+                  className="auth-btn"
+                >
+                  {isLoginLoading ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                        className="me-2"
+                      />
+                      Iniciando sesión...
+                    </>
+                  ) : (
+                    "Iniciar Sesión"
+                  )}
+                </Button>
+              </div>
+            </Form>
+          </div>
+
+          {/* === Tab de Registro === */}
+        </div>
+      </div>
 
       {/* === Modal para el mapa (CORREGIDO) === */}
       <Modal
@@ -891,7 +852,6 @@ const Login: React.FC = () => {
             <Form.Control
               type="text"
               placeholder="Buscar dirección en el mapa..."
-              className="mb-3"
               style={{ width: "100%" }}
             />
           </Autocomplete>
@@ -911,7 +871,7 @@ const Login: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-    </Container> // Cierre del Container principal
+    </div> // Cierre del Container principal
   ); // Cierre del return
 }; // Cierre del componente Login
 

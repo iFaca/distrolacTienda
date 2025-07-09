@@ -1,0 +1,76 @@
+.profile-full-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.data-profile {
+  display: flex;
+  flex-direction: column;
+  flex: 1 !important;
+  width: 100%;
+}
+
+.data-profile-pass {
+  display: flex;
+  flex-direction: column;
+  flex: 1 !important;
+  width: 100%;
+}
+
+.title-profile{
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.name-lastname{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.name-lastname div{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.btn-save-profile{
+    width: 100%;
+    background-color: #bf4a3f !important;
+    border: none !important;
+    margin-bottom: 20px;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-save-profile:hover{
+    background-color: #8f372f !important;
+}
+
+.buttons-profile{
+  display: flex;
+  gap: 10px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}

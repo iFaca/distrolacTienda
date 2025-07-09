@@ -46,14 +46,84 @@
 }
 /* Login.css */
 .login-page {
-  background-color: #f8f9fa;
   min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.right-container {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
+  height: -webkit-fill-available;
+  background-color: #f2f2f2;
+}
+
+.left-container {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.left-container > div {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  max-width: 70%;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+  padding: 30px 20px;
+}
+
+.distro-logo-login {
+  max-width: 300px;
+}
+
+.login-register-div {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  width: 100%;
+}
+
+.div-login-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 20px;
+  max-width: 70%;
+  justify-content: flex-start;
+  padding-top: 120px;
+}
+
+.div-register-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 20px;
+  width: 100%;
 }
 
 .login-container {
   background-color: white;
   border-radius: 8px;
   transition: all 0.3s ease;
+}
+
+.red-line-login {
+  color: #bf3939;
 }
 
 .login-container:hover {
@@ -98,6 +168,115 @@
 
 .btn-primary:disabled {
   opacity: 0.65;
+}
+
+.input-form {
+  height: 50px;
+  border: 1px solid #bf3939 !important;
+  border-radius: 5px;
+}
+
+.input-form:focus {
+  box-shadow: 0 0 0 0.25rem rgba(253, 13, 13, 0.25) !important;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.register-form div {
+  width: 100%;
+}
+
+.title-auth {
+  font-weight: 600;
+  font-size: 24px;
+}
+
+.delivery-auth {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 20px;
+}
+
+.name-lastname-auth {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.adress-group {
+  display: flex;
+  flex-wrap: nowrap !important;
+  align-items: stretch;
+}
+
+.adress-group > * {
+  flex: 1 1 auto;
+  margin: 0;
+}
+.adress-group .btn {
+  flex: 0 0 auto;
+  border-left: none !important;
+}
+
+.adress-group .btn:hover {
+  background-color: #bf3939;
+}
+
+.input-group > div {
+  width: auto !important;
+}
+
+.adress-input {
+  border-right: none !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+.auth-btn {
+  background-color: #bf3939 !important;
+  border: none !important;
+  width: 100%;
+  max-width: 200px;
+  margin-bottom: 20px;
+}
+
+.auth-btn:hover {
+  background-color: #8e1c1c !important;
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.login-form div {
+  width: 100%;
+}
+
+.login-button-container{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {

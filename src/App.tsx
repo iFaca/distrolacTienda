@@ -1,6 +1,6 @@
 // App.tsx después de eliminar BrowserRouter
 import "./App.css";
-import { Routes, Route } from "react-router-dom"; // Eliminamos BrowserRouter aquí
+import { Routes, Route, useLocation } from "react-router-dom"; // Eliminamos BrowserRouter aquí
 import NavBar from "../src/components/NavBar/NavBar";
 import Header from "../src/components/Header/Header";
 import Categories from "./components/Products/HomeProducts/Categories";
@@ -18,12 +18,16 @@ import Profile from "./components/Profile/Profile";
 import Orders from "./components/Profile/MyOrders/MyOrders";
 import { LoadScript } from "@react-google-maps/api";
 import CardDelivery from "./components/CardDerlivery/CardDelivery";
+import Brands from "./components/Brands/Brands";
 
 function App() {
+  const location = useLocation();
+  const hideNavAndFooter = location.pathname === "/login";
+
   return (
     <div className="app-container">
-      <NavBar />
       <main className="main-content">
+        {!hideNavAndFooter && <NavBar />}
         <Routes>
           <Route
             path="/"
@@ -32,6 +36,7 @@ function App() {
                 <Header />
                 <Categories />
                 <CardDelivery />
+                <Brands />
                 {/* <Info />
                     <CardDelivery />
                     <Offer /> */}
@@ -50,8 +55,8 @@ function App() {
           <Route path="/perfil" element={<Profile />} />
           <Route path="/mispedidos" element={<Orders />} />
         </Routes>
+        {!hideNavAndFooter && <Footer />}
       </main>
-      <Footer />
     </div>
   );
 }

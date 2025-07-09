@@ -1,15 +1,56 @@
 .swiper-container {
-  height: 705px;
-  background-color: #f0f0f0;
+  height: 60vh;
+  width: 100%;
+  position: relative;
 }
 
 .swiper-img {
   width: 100%;
   height: 100%;
   object-fit: cover; /* Evita que la imagen se estire */
-  object-position: center; 
+  object-position: center;
+  display: block;
+  position: relative;
+  background-color: transparent;
 }
 
+.swiper-img-container{
+  width: 100%;
+  height: 100%;
+}
+
+/* Degradé vertical a blanco */
+.swiper-img-container::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.014) 60%, #ffffff 100%);
+  /* Ajusta el 60% para controlar dónde empieza el degradé */
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: #3f61bf !important;
+  transition: all 300ms ease;
+}
+
+.swiper-button-next {
+  right: 15px !important;
+}
+
+.swiper-button-prev {
+  left: 15px !important;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  transform: scale(0.8);
+  color: #2d468a !important;
+}
 
 @media (max-width: 768px) {
   .swiper-container {

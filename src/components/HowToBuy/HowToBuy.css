@@ -1,89 +1,166 @@
 /* Estilos generales */
 .how-to-buy-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    text-align: center;
+  width: 100%;
+  margin: 0 auto;
 }
 
 /* Sección de cabecera */
 .header-section {
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
+  height: 60vh;
 }
 
 .header-image {
-    width: 100%;
-    height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Evita que la imagen se estire */
+  object-position: center;
+  display: block;
+  position: relative;
+  background-color: transparent;
+}
+
+/* Degradé vertical a blanco */
+.header-section::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.014) 60%, #ffffff 100%);
+  /* Ajusta el 60% para controlar dónde empieza el degradé */
 }
 
 /* Sección de iconos con textos */
 .steps-section {
-    margin-top: 40px;
+  margin-top: 40px;
 }
 
 .section-title {
-    font-size: 24px;
-    margin-bottom: 20px;
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 
 .steps-container {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
 }
 
 .step-item {
-    text-align: center;
-    margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .step-icon {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 10px;
+  width: 50px;
+  height: 50px;
+  margin-bottom: 10px;
 }
 
 .step-text {
-    font-weight: bold;
-    color: #ff5733; /* Color naranja claro */
+  font-weight: bold;
+  color: #ff5733; /* Color naranja claro */
+}
+
+.methods-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.methods-section-container {
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
+  padding: 20px;
+  justify-content: center;
 }
 
 /* Sección de métodos de pago y envío */
 .methods-section {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .methods-column {
-    width: 48%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 500px;
 }
 
 .methods-title {
-    font-size: 18px;
-    margin-bottom: 10px;
+  font-size: 24px;
+  margin-bottom: 10px;
+  font-weight: 600;
 }
 
 .methods-icon {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 10px;
+  width: 50px;
+  height: 50px;
+  margin-bottom: 10px;
 }
 
 .methods-description {
-    line-height: 1.6;
+  line-height: 1.6;
+  text-align: center;
+  padding: 10px;
+  font-size: 16px;
 }
 
 /* Sección del mapa */
 .map-section {
-    margin-top: 40px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .map-image {
-    width: 100%;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1000px !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.map-section-full-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.map-section-container {
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  margin-bottom: 40px;
+}
+
+.red-underline {
+  border-bottom: 2px solid #bf4a3f;
+  margin-bottom: 20px;
+  width: max-content;
+}
+
+.map-title {
+  width: 100%;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 /* -------------------------------------
@@ -92,67 +169,53 @@
 
 /* Mobile (max-width: 767px) */
 @media (max-width: 767px) {
-    .steps-container {
-        flex-direction: column; /* Iconos y textos uno debajo del otro */
-    }
+  .steps-container {
+    flex-direction: column; /* Iconos y textos uno debajo del otro */
+  }
 
-    .step-item {
-        margin-bottom: 15px;
-    }
+  .step-item {
+    margin-bottom: 15px;
+  }
 
-    .methods-section {
-        flex-direction: column; /* Métodos de pago y envío uno debajo del otro */
-    }
+  .methods-section {
+    flex-direction: column; /* Métodos de pago y envío uno debajo del otro */
+  }
 
-    .methods-column {
-        width: 100%; /* Cada columna ocupa todo el ancho */
-        margin-bottom: 20px;
-    }
-
-    .map-image {
-        max-width: 100%;
-    }
+  .map-image {
+    max-width: 100%;
+  }
 }
 
 /* Tablet (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
-    .steps-container {
-        flex-direction: column; /* Iconos y textos uno debajo del otro */
-    }
+  .steps-container {
+    flex-direction: column; /* Iconos y textos uno debajo del otro */
+  }
 
-    .step-item {
-        margin-bottom: 15px;
-    }
+  .step-item {
+    margin-bottom: 15px;
+  }
 
-    .methods-section {
-        flex-direction: column; /* Métodos de pago y envío uno debajo del otro */
-    }
+  .methods-section {
+    flex-direction: column; /* Métodos de pago y envío uno debajo del otro */
+  }
 
-    .methods-column {
-        width: 100%; /* Cada columna ocupa todo el ancho */
-        margin-bottom: 20px;
-    }
-
-    .map-image {
-        max-width: 100%;
-    }
+  .map-image {
+    max-width: 100%;
+  }
 }
 
 /* Desktop (1024px+) */
 @media (min-width: 1024px) {
-    .steps-container {
-        flex-direction: row; /* Iconos y textos alineados horizontalmente */
-    }
+  .steps-container {
+    flex-direction: row; /* Iconos y textos alineados horizontalmente */
+  }
 
-    .methods-section {
-        flex-direction: row; /* Métodos de pago y envío lado a lado */
-    }
+  .methods-section {
+    flex-direction: row; /* Métodos de pago y envío lado a lado */
+  }
 
-    .methods-column {
-        width: 48%; /* Cada columna ocupa 48% del ancho */
-    }
-
-    .map-image {
-        max-width: 100%;
-    }
+  .map-image {
+    max-width: 100%;
+  }
 }

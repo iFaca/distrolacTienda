@@ -4,6 +4,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../types";
 import { Alert } from "react-bootstrap";
 import "./CartDetail.css";
+import BackIcon from "@mui/icons-material/ArrowBack";
+import Breadcrums from "../../Breadcrumbs/Breadcrums";
 
 interface CartItem {
   id: string;
@@ -139,118 +141,135 @@ export default function CartDetail() {
   };
   console.log("ShippingData:", shippingData);
   return (
-    <div className="cartdetail-container">
-      <div className="cartdetail-leftcolumn">
-        {error && <Alert variant="danger">{error}</Alert>}
-
-        <fieldset className="cartdetail-form">
-          <legend>Contacto</legend>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={shippingData.email}
-            onChange={handleInputChange}
-            required
+    <div className="cart-detail-full-container">
+      <div className="cartdetail-container-1">
+        <div className="breadcrum-container">
+          <Breadcrums
+            items={[
+              { label: "Mi carrito", to: "/carrito" },
+              { label: "Detalles del pedido" },
+            ]}
           />
-          <label className="cartdetail-checkbox">
-            <input type="checkbox" />
-            <span>Quiero recibir ofertas por email</span>
-          </label>
-        </fieldset>
-
-        <fieldset className="cartdetail-form">
-          <legend>Datos de envío</legend>
-          <div className="cartdetail-row">
-            <input
-              type="text"
-              name="firstName"
-              placeholder="Nombre"
-              value={shippingData.firstName}
-              onChange={handleInputChange}
-              required
-            />
-            <input
-              type="text"
-              name="lastName"
-              placeholder="Apellido"
-              value={shippingData.lastName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          {/* Único campo de dirección */}
-          <input
-            type="text"
-            name="address"
-            placeholder="Dirección completa"
-            value={shippingData.address}
-            onChange={handleInputChange}
-            required
-          />
-
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Teléfono"
-            value={shippingData.phone}
-            onChange={handleInputChange}
-            required
-          />
-          <input
-            type="text"
-            name="comments"
-            placeholder="Comentarios (Opcional)"
-            value={shippingData.comments}
-            onChange={handleInputChange}
-          />
-        </fieldset>
-
-        <div className="cartdetail-buttons">
-          <a href="#" onClick={() => navigate("/cart")}>
-            Volver al carrito
-          </a>
-          <button onClick={handleGoToShipping}>Continuar con el envío</button>
         </div>
-      </div>
+        <div className="red-underline">
+          <h1>DETALLES DEL PEDIDO</h1>
+        </div>
+        <div className="cartdetail-container">
+          <div>
+            <div className="cartdetail-leftcolumn">
+              {error && <Alert variant="danger">{error}</Alert>}
 
-      <div className="cartdetail-rightcolumn">
-        <h2>Detalle del Pedido</h2>
-        <ul className="cartdetail-items">
-          {cartItems.map((item) => {
-            const price = parseFloat(item.price.toString());
-            const formattedPrice = !isNaN(price) ? price.toFixed(2) : "0.00";
-            return (
-              <li key={item.id} className="cartdetail-item">
-                <img src={item.image} alt={item.title} />
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>$ {formattedPrice}</p>
+              <fieldset className="cartdetail-form">
+                <legend>Contacto</legend>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={shippingData.email}
+                  onChange={handleInputChange}
+                  required
+                />
+                <label className="cartdetail-checkbox">
+                  <input type="checkbox" className="checkbox-input" />
+                  <span>Quiero recibir ofertas por email</span>
+                </label>
+              </fieldset>
+
+              <fieldset className="cartdetail-form">
+                <legend>Datos de envío</legend>
+                <div className="cartdetail-row">
+                  <input
+                    type="text"
+                    name="firstName"
+                    placeholder="Nombre"
+                    value={shippingData.firstName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <input
+                    type="text"
+                    name="lastName"
+                    placeholder="Apellido"
+                    value={shippingData.lastName}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
-                <p className="cartdetail-quantity">x{item.quantity}</p>
-              </li>
-            );
-          })}
-        </ul>
-        <div className="cartdetail-summary">
-          <div className="cartdetail-coupon">
-            <input type="text" placeholder="Cupón de descuento" />
-            <button>Agregar código</button>
+
+                {/* Único campo de dirección */}
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Dirección completa"
+                  value={shippingData.address}
+                  onChange={handleInputChange}
+                  required
+                />
+
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Teléfono"
+                  value={shippingData.phone}
+                  onChange={handleInputChange}
+                  required
+                />
+                <input
+                  type="text"
+                  name="comments"
+                  placeholder="Comentarios (Opcional)"
+                  value={shippingData.comments}
+                  onChange={handleInputChange}
+                />
+              </fieldset>
+            </div>
+
+            <div className="cartdetail-rightcolumn">
+              <h2>Detalle del Pedido</h2>
+              <ul className="cartdetail-items">
+                {cartItems.map((item) => {
+                  const price = parseFloat(item.price.toString());
+                  const formattedPrice = !isNaN(price)
+                    ? price.toFixed(2)
+                    : "0.00";
+                  return (
+                    <li key={item.id} className="cartdetail-item">
+                      <img src={item.image} alt={item.title} />
+                      <div>
+                        <h3>{item.title}</h3>
+                        <p>$ {formattedPrice}</p>
+                      </div>
+                      <p className="cartdetail-quantity">x{item.quantity}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="cartdetail-summary">
+                <div className="cartdetail-coupon">
+                  <input type="text" placeholder="Cupón de descuento" />
+                  <button>Agregar código</button>
+                </div>
+                <hr className="red-line-login" />
+                <div className="cartdetail-totals">
+                  <div>
+                    <span>Subtotal</span>
+                    <span className="subtotal-span">${total}</span>
+                  </div>
+                  <div>
+                    <span>Envío</span>
+                    <span className="free-delivery">Gratis</span>
+                  </div>
+                  <hr className="red-line-login" />
+                  <div className="cartdetail-total-row">
+                    <span>Total</span>
+                    <span>${total}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="cartdetail-totals">
-            <div>
-              <span>Subtotal</span>
-              <span>${total}</span>
-            </div>
-            <div>
-              <span>Envío</span>
-              <span>Gratis</span>
-            </div>
-            <div className="cartdetail-total-row">
-              <span>Total</span>
-              <span>${total}</span>
-            </div>
+          <div className="cartdetail-buttons">
+            <button onClick={handleGoToShipping}>Continuar con el envío</button>
           </div>
         </div>
       </div>

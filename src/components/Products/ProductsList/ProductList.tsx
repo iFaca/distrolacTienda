@@ -4,6 +4,8 @@ import CategoryCard from "./CategoryCard";
 import "./ProductList.css";
 import ProductCard from "./ProductCard";
 import { useNavigate } from "react-router-dom";
+import BackIcon from "@mui/icons-material/ArrowBack";
+import Breadcrums from "../../Breadcrumbs/Breadcrums";
 
 const BACKEND_URI = import.meta.env.VITE_BACK_APP_URI;
 
@@ -43,8 +45,12 @@ const ProductList: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
+  const [selectedCategoryName, setSelectedCategoryName] = useState<
+    string | null
+  >(null);
   const [subCategories, setSubCategories] = useState<SubCategoryItem[]>([]);
   const [subCategoryItems, setSubCategoryItems] = useState<Product[]>([]); // Cambia el tipo aquí a Product
+  const [itemSelected, setItemSelected] = useState("");
 
   // Función para obtener todos los items
   const fetchAllItems = async () => {
@@ -71,6 +77,7 @@ const ProductList: React.FC = () => {
     setSelectedCategoryId(item._id);
     setSubCategories(item.categories); // Obtener subcategorías del item seleccionado
     setSubCategoryItems([]); // Reiniciar items de subcategoría
+    setSelectedCategoryName(item.name);
   };
 
   const navigate = useNavigate();
@@ -89,6 +96,8 @@ const ProductList: React.FC = () => {
 
       console.log("Productos filtrados de la subcategoría:", filteredProducts);
       setSubCategoryItems(filteredProducts); // Establecer los items de la subcategoría
+      setItemSelected(subCategory.name);
+      console.log("ITEM SELECTED:", subCategory.name);
     } catch (error) {
       console.error("Error al traer los items de la subcategoría:", error);
       setError("Error al cargar los items de la subcategoría.");
@@ -99,6 +108,7 @@ const ProductList: React.FC = () => {
     setSelectedCategoryId(null);
     setSubCategories([]);
     setSubCategoryItems([]); // Reiniciar items de subcategoría
+    setItemSelected("");
   };
 
   // Renderizado de carga y errores
@@ -107,69 +117,104 @@ const ProductList: React.FC = () => {
 
   return (
     <div className="products-container">
-      {selectedCategoryId === null ? (
-        <div className="product-grid">
-          {items.map((item) => (
-            <CategoryCard
-              key={item._id}
-              title={item.name}
-              onClick={() => handleCategoryClick(item)} // Al hacer clic, obtener las subcategorías
-            />
-          ))}
-        </div>
-      ) : (
-        <div>
-          <button onClick={handleBackToCategories}>Volver a Categorías</button>
-          <h2>Subcategorías</h2>
-          <div className="product-grid">
-            {subCategories.length > 0 ? (
-              subCategories.map((subCategory) => (
-                <CategoryCard
-                  key={subCategory._id}
-                  title={subCategory.name}
-                  onClick={() => handleSubCategoryClick(subCategory)} // Llamar a la función para obtener items de la subcategoría
-                />
-              ))
-            ) : (
-              <p>No hay subcategorías disponibles.</p>
-            )}
+      <div className="product-container-2">
+        {selectedCategoryId === null ? (
+          <div className="breadcrum-container">
+            <Breadcrums items={[{ label: "Productos" }]} />
           </div>
-
-          {subCategoryItems.length > 0 && (
-            <div>
-              <h3>Items de Subcategoría</h3>
-              <div className="product-grid">
-                {subCategoryItems.map((product) => (
-                  <ProductCard
-                    key={product._id}
-                    id={product._id}
-                    title={product.name}
-                    price={
-                      product.priceLists && product.priceLists.length >= 5
-                        ? product.priceLists[4].salePrice
-                        : "N/A"
-                    }
-                    image={product.images[0]} // Mostrar la primera imagen del producto
-                    description={product.description} // Asegúrate de pasar la descripción
-                    onClick={() => {
-                      console.log(`Producto seleccionado: ${product.name}`);
-                      navigate(`/productos/${product._id}`, {
-                        state: {
-                          id: product._id,
-                          title: product.name,
-                          image: product.images[0],
-                          description: product.description,
-                          purchasePrice: product.purchasePrice,
-                        },
-                      });
-                    }}
-                  />
-                ))}
+        ) : (
+          <div className="breadcrum-container">
+            <Breadcrums
+              items={[
+                {
+                  label: "Productos",
+                  to: "/productos",
+                  onClick: handleBackToCategories,
+                },
+                { label: selectedCategoryName || "" },
+              ]}
+            />
+          </div>
+        )}
+        {selectedCategoryId === null ? (
+          <div className="categories-container">
+            <div className="product-grid-2">
+              <div className="header-products-list">
+                <div className="text-products-home">
+                  <div className="h2-container">
+                    <h2>PRODUCTOS</h2>
+                  </div>
+                  <h2>POR CATEGORIAS</h2>
+                </div>
               </div>
+
+              {items.map((item) => (
+                <CategoryCard
+                  key={item._id}
+                  title={item.name}
+                  onClick={() => handleCategoryClick(item)} // Al hacer clic, obtener las subcategorías
+                  isSelected={false}
+                />
+              ))}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="subcategories-container">
+            <div className="product-grid">
+              <div className="header-products-list">
+                <div className="text-products-home">
+                  <div className="h2-container">
+                    <h2>{selectedCategoryName}</h2>
+                  </div>
+                </div>
+              </div>
+              <div className="product-grid">
+                {subCategories.length > 0 ? (
+                  subCategories.map((subCategory) => (
+                    <CategoryCard
+                      key={subCategory._id}
+                      title={subCategory.name}
+                      onClick={() => handleSubCategoryClick(subCategory)}
+                      isSelected={
+                        itemSelected === subCategory.name ? true : false
+                      } // Llamar a la función para obtener items de la subcategoría
+                    />
+                  ))
+                ) : (
+                  <p>No hay subcategorías disponibles.</p>
+                )}
+              </div>
+
+              {subCategoryItems.length > 0 && (
+                <div className="product-list-items">
+                  <div className="text-title-sub">
+                    <h5>Productos de la Subcategoría </h5>
+                    <h5 className="item-h5">{itemSelected}</h5>
+                  </div>
+                  <hr />
+                  <div className="product-grid-items">
+                    {subCategoryItems.map((product) => (
+                      <ProductCard
+                        key={product._id}
+                        id={product._id}
+                        title={product.name}
+                        price={
+                          product.priceLists && product.priceLists.length >= 5
+                            ? product.priceLists[4].salePrice
+                            : "N/A"
+                        }
+                        image={product.images[0]} // Mostrar la primera imagen del producto
+                        description={product.description} // Asegúrate de pasar la descripción
+                        categoryName={itemSelected || ""}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -21,13 +21,19 @@ export default function Header() {
       loop={true}
     >
       <SwiperSlide>
-        <img src={Slider1} alt="Slide 1" className="swiper-img" />
+        <div className="swiper-img-container">
+          <img src={Slider1} alt="Slide 1" className="swiper-img" />
+        </div>
       </SwiperSlide>
       <SwiperSlide>
-        <img src={Slider1} alt="Slide 2" className="swiper-img" />
+        <div className="swiper-img-container">
+          <img src={Slider1} alt="Slide 1" className="swiper-img" />
+        </div>
       </SwiperSlide>
       <SwiperSlide>
-        <img src={Slider1} alt="Slide 3" className="swiper-img" />
+        <div className="swiper-img-container">
+          <img src={Slider1} alt="Slide 1" className="swiper-img" />
+        </div>
       </SwiperSlide>
       {/* Agrega más SwiperSlides si es necesario */}
     </Swiper>

@@ -34,17 +34,23 @@ const productCategories: Product[] = [
 ];
 
 const Categories: React.FC = () => (
-  <div className="products">
-    <h2>Productos</h2>
-    <p>Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum</p>
-    <div className="product-grid">
-      {productCategories.map((product, index) => (
-        <CategoryCard key={index} icon={product.icon} title={product.title} />
-      ))}
+  <div className="products-home-container">
+    <div className="products">
+      <div className="text-products-home" style={{ marginBottom: "20px" }}>
+        <div className="h2-container">
+          <h2>PRODUCTOS</h2>
+        </div>
+        <h2>DISPONIBLES</h2>
+      </div>
+      <div className="product-grid">
+        {productCategories.map((product, index) => (
+          <CategoryCard key={index} icon={product.icon} title={product.title} />
+        ))}
+      </div>
+      <Link className="more-products" to="/productos">
+        Ver más productos
+      </Link>
     </div>
-    <Link className="more-products" to="/productos">
-      Ver más productos
-    </Link>
   </div>
 );
 

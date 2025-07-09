@@ -1,4 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import AddToCartIcon from "@mui/icons-material/AddShoppingCart";
+import { useState } from "react";
+import Alert from "../../Alert/Alert";
 
 interface ProductCardProps {
   id: string;
@@ -9,6 +12,7 @@ interface ProductCardProps {
   priceLists?: Array<{
     marginInPercentage?: number;
   }>;
+  categoryName: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -18,13 +22,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
   description,
   price,
   priceLists,
+  categoryName
 }) => {
   const navigate = useNavigate();
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+  const [alertStatus, setAlertStatus] = useState<string>("");
+  const [alertEvent, setAlertEvent] = useState<boolean>(false);
 
   const handleCardClick = () => {
     if (id) {
       navigate(`/productos/${id}`, {
-        state: { id, title, image, description, price },
+        state: { id, title, image, description, price, categoryName },
       });
     } else {
       console.error("ID del producto no está definido");
@@ -55,11 +64,26 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
 
     localStorage.setItem("cart", JSON.stringify(cartItems));
-    alert("Producto agregado al carrito");
+    handleShowAlert("Producto agregado al carrito!", "success");
+    window.dispatchEvent(new Event("storage"));
+  };
+
+  const handleShowAlert = (message: string, status: string) => {
+    setAlertMessage(message);
+    setAlertStatus(status);
+    setShowAlert(true);
+    setAlertEvent(prev => !prev);
   };
 
   return (
-    <div className="card">
+    <div className="card-product">
+      <Alert
+        message={alertMessage}
+        status={alertStatus}
+        onClose={() => setShowAlert(false)}
+        show={showAlert}
+        event={() => setAlertEvent(!alertEvent)}
+      />
       <div
         onClick={handleCardClick}
         style={{ cursor: "pointer", display: "flex", flexDirection: "column" }}
@@ -68,13 +92,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
           src={image}
           alt={title}
           style={{ width: "100%", height: "auto", borderRadius: "8px" }}
+          className="img-product"
         />
-        <div className="card-title">{title}</div>
-        {price !== undefined && typeof price === "number" && (
-          <div className="card-price">Precio: ${price}</div>
-        )}
+        <hr />
+        <div className="card-title-product">{title}</div>
       </div>
-      <button onClick={handleAddToCart}>Agregar al carro</button>
+      <button
+        onClick={handleAddToCart}
+        className="add-to-cart-btn"
+        title="Añadir al carrito"
+      >
+        <AddToCartIcon />
+      </button>
+      {price !== undefined && typeof price === "number" && (
+        <div className="card-price">${price}</div>
+      )}
     </div>
   );
 };
