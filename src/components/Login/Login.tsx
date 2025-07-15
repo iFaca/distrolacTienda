@@ -82,6 +82,9 @@ const Login: React.FC = () => {
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [register, { isLoading: isRegisterLoading }] = useRegisterMutation();
 
+  const [showRegister, setShowRegister] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
+
   // Efecto para inicializar el mapa cuando el modal se muestra
   useEffect(() => {
     if (showMapModal && mapRef.current && window.google) {
@@ -390,7 +393,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="login-page">
-      <div className="left-container">
+      <div className={showRegister ? "left-container" : "hidden-register"}>
         <div>
           <div className="logo-container">
             <img
@@ -700,7 +703,17 @@ const Login: React.FC = () => {
                     </div> */}
               </div>
               <div className="buttons-container">
-                <div onClick={() => navigate(-1)} className="back-btn">
+                <div
+                  onClick={() => {
+                    if (showLogin) {
+                      navigate(-1);
+                    } else {
+                      setShowRegister(false);
+                      setShowLogin(true);
+                    }
+                  }}
+                  className="back-btn"
+                >
                   <p>
                     <BackIcon /> Volver
                   </p>
@@ -732,7 +745,8 @@ const Login: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="right-container">
+
+      <div className={showLogin ? "right-container" : "hidden-login"}>
         <div id="login-register-div" className="login-register-div">
           {/* === Tab de Login === */}
           <div className="div-login-container">
@@ -813,6 +827,18 @@ const Login: React.FC = () => {
                     "Iniciar Sesión"
                   )}
                 </Button>
+              </div>
+              <div className="button-register-container">
+                <hr className="red-line-login" />
+                <a
+                  onClick={() => {
+                    setShowRegister(true);
+                    setShowLogin(false);
+                  }}
+                  className="button-register"
+                >
+                  No tienes cuenta?, Regístrate
+                </a>
               </div>
             </Form>
           </div>

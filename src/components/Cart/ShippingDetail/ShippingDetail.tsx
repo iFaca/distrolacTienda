@@ -5,6 +5,7 @@ import emailjs from "@emailjs/browser";
 import { RootState } from "../../types";
 import "./ShippingDetail.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
+import Alert from "../../Alert/Alert";
 
 const EMAIL_SERVICE_ID = "service_szd7tra";
 const EMAIL_TEMPLATE_CLIENT_ID = "template_9afqj0i";
@@ -61,6 +62,11 @@ export default function ShippingDetail() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+  const [alertStatus, setAlertStatus] = useState<string>("");
+  const [alertEvent, setAlertEvent] = useState<boolean>(false);
 
   // Función para obtener directamente el perfil del usuario
   const fetchUserProfile = async (token: string) => {
@@ -271,6 +277,10 @@ export default function ShippingDetail() {
       setIsSubmitting(true);
 
       if (!cartItems.every(validateCartItem)) {
+        handleShowAlert(
+          "Algunos productos no tienen todos los campos requeridos",
+          "error"
+        );
         throw new Error(
           "Algunos productos no tienen todos los campos requeridos"
         );
@@ -372,13 +382,14 @@ export default function ShippingDetail() {
 
         // Manejar errores específicos
         if (errorData.duplicateFields) {
+          handleShowAlert("Ya existe un registro similar", "error");
           throw new Error(
             `Ya existe un registro similar: ${errorData.duplicateFields.join(
               ", "
             )}`
           );
         }
-
+        handleShowAlert("Error al crear la orden", "error");
         throw new Error(
           `Error al crear la orden: ${errorData.message || response.statusText}`
         );
@@ -433,25 +444,38 @@ export default function ShippingDetail() {
       }, 2000);
     } catch (error) {
       console.error("Error detallado:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Error al procesar el pedido. Por favor, inténtalo de nuevo más tarde."
+      handleShowAlert(
+        "Error al procesar el pedido. Por favor, inténtalo de nuevo más tarde.",
+        "error"
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleShowAlert = (message: string, status: string) => {
+    setAlertMessage(message);
+    setAlertStatus(status);
+    setShowAlert(true);
+    setAlertEvent((prev) => !prev);
+  };
+
   return (
     <div className="shipping-full-container">
+      <Alert
+        message={alertMessage}
+        status={alertStatus}
+        onClose={() => setShowAlert(false)}
+        show={showAlert}
+        event={() => setAlertEvent(!alertEvent)}
+      />
       <div className="shipping-container-1">
         <div className="breadcrum-container">
           <Breadcrums
             items={[
               { label: "Mi carrito", to: "/carrito" },
               { label: "Detalles del pedido", to: "/detalledepedido" },
-              { label: "Confirmar pedido" }
+              { label: "Confirmar pedido" },
             ]}
           />
         </div>
@@ -575,16 +599,6 @@ export default function ShippingDetail() {
                   detalles.
                 </p>
                 <p>Serás redirigido al inicio en unos segundos...</p>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="error-popup">
-              <div className="error-content">
-                <h3>Error</h3>
-                <p>{error}</p>
-                <button onClick={() => setError("")}>Cerrar</button>
               </div>
             </div>
           )}

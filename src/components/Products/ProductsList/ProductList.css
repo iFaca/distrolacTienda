@@ -24,7 +24,7 @@
   display: flex;
   flex-wrap: wrap; /* Permite que las tarjetas se ajusten a la línea siguiente */
   gap: 20px; /* Espacio entre tarjetas */
-  justify-content: flex-start; /* Centra las tarjetas en la pantalla */
+  justify-content: center; /* Centra las tarjetas en la pantalla */
   width: 100%;
   max-width: 1280px;
 }

@@ -283,3 +283,11 @@
 .subtotal-span {
   font-weight: 500 !important;
 }
+
+@media (max-width: 768px) {
+
+  .cartdetail-container-1{
+    align-items: center;
+  }
+
+}

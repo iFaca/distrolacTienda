@@ -97,3 +97,25 @@
     background-color: #f0f0f0;
     color: #bf4a3f;
 }
+
+@media only screen and (max-width: 750px) {
+    .products{
+        align-items: center;
+    }
+
+    .text-products-home{
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-grid{
+        justify-content: center !important;
+    }
+
+    .card-home{
+        max-width: 200px;
+        width: 40%;
+        min-width: 25%;
+    }
+}

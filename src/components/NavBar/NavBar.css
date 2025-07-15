@@ -105,7 +105,7 @@
 .hamburger-menu {
   display: none; /* Oculto por defecto en pantallas grandes */
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: space-evenly;
   width: 2rem;
   height: 2rem;
   background: transparent;
@@ -117,8 +117,8 @@
 
 /* Las 3 líneas del icono */
 .hamburger-menu span {
-  width: 2rem;
-  height: 0.25rem;
+  width: 1.5rem;
+  height: 0.20rem;
   background: #333;
   border-radius: 10px;
   transition: all 0.3s linear;
@@ -128,16 +128,16 @@
 
 /* Animación a 'X' cuando el menú está activo */
 .hamburger-menu.active span:nth-child(1) {
-  transform: rotate(45deg);
+  transform: rotate(55deg);
 }
 
 .hamburger-menu.active span:nth-child(2) {
   opacity: 0;
-  transform: translateX(20px);
+  transform: translateX(30px);
 }
 
 .hamburger-menu.active span:nth-child(3) {
-  transform: rotate(-45deg);
+  transform: rotate(-55deg);
 }
 
 /* --- ESTILOS DEL MENÚ DEL PERFIL --- */
@@ -210,12 +210,30 @@
 }
 
 /* --- ESTILOS RESPONSIVE PARA MÓVILES --- */
-@media (max-width: 850px) {
+@media (max-width: 920px) {
   /* Ajustado a 850px para dar más espacio */
 
   /* Mostrar el botón de hamburguesa */
   .hamburger-menu {
     display: flex;
+    width: auto;
+  }
+
+  .navbar > a{
+    flex: 1;
+    max-width: 50%;
+  }
+
+  .navbar > a > img{
+    max-width: 100%;
+    width: auto;
+    max-height: 37px;
+    height: auto;
+  }
+
+  .icons-container{
+    flex: 1;
+    justify-content: flex-end;
   }
 
   /* Ocultar los links de navegación por defecto */
@@ -225,15 +243,14 @@
     justify-content: center;
     background: #fff;
     position: absolute;
-    top: 75px; /* Altura del navbar */
-    left: 0;
+    top: 60px;
     width: 100%;
     height: auto;
     padding: 20px 0;
     box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
 
     /* Oculto fuera de la pantalla por defecto */
-    transform: translateX(-100%);
+    transform: translateX(-120%);
   }
 
   /* Mostrar el menú cuando está activo */
@@ -264,12 +281,15 @@
   /* El menú de perfil se sigue manejando por separado */
   .menu-dropdown {
     position: fixed;
-    bottom: 0;
     left: 0;
     right: 0;
-    top: auto;
+    top: 75px;
     margin: 0;
-    border-radius: 12px 12px 0 0;
+    border-radius: 0px 0px 12px 12px;
+  }
+
+  .menu-header{
+    border-radius: 0px;
   }
 
   .menu-dropdown::before {

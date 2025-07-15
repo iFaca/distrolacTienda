@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import { Table, Button, Container, Modal } from "react-bootstrap";
 import { RootState } from "../../types";
 import "./MyOrders.css";
-import BackIcon from "@mui/icons-material/ArrowBack";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 
 const BASE_URL = import.meta.env.VITE_BACK_APP_URI;
@@ -223,9 +222,8 @@ export default function MyOrders() {
           <div className="text-center mt-4">
             <p>No tienes pedidos realizados aún.</p>
             <Button
-              variant="primary"
-              onClick={() => navigate("/products")}
-              className="main-button"
+              onClick={() => navigate("/productos")}
+              className="btn-orders"
             >
               Ir a Productos
             </Button>

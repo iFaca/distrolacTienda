@@ -295,4 +295,30 @@
   .confirmation-content p {
     font-size: 14px;
   }
+
+  .shipping-container{
+    flex-direction: column-reverse;
+  }
+
+  .shipping-info{
+    overflow-x: scroll;
+  }
+
+  .shipping-container-1{
+    align-items: center;
+  }
+
+  .shipping-info-row{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .shipping-info-row span:nth-child(2){
+    margin: 0px;
+  }
+
+  .shipping-info-row button{
+    padding: 0px;
+  }
 }

@@ -1,44 +1,57 @@
-.nav-links{
-    width: 100%;
-    display: flex;
+.nav-links {
+  width: 100%;
+  display: flex;
 }
 
-.nav-links > ul{
-    display: flex;
-    padding: 0px;
-    gap: 5px;
-    align-items: center;
-    margin: 0px;
+.nav-links > ul {
+  display: flex;
+  padding: 0px;
+  gap: 5px;
+  align-items: center;
+  margin: 0px;
 }
 
-.nav-links > ul li{
-    list-style: none;
-    display: flex;
-    gap: 5px;
-    text-decoration: none;
-    align-items: center;
+.nav-links > ul li {
+  list-style: none;
+  display: flex;
+  gap: 5px;
+  text-decoration: none;
+  align-items: center;
 }
 
-.nav-links > ul li:last-child > span{
-    color: #bf4a3f;
+.nav-links > ul li:last-child > span {
+  color: #bf4a3f;
+  text-align: center;
 }
 
-.nav-links > ul li > p{
-    margin: 0px;
-    color: #bf4a3f;
-    font-weight: 600;
+.nav-links > ul li > p {
+  margin: 0px;
+  color: #bf4a3f;
+  font-weight: 600;
+  text-align: center;
 }
 
-.nav-links > ul li > a{
-    text-decoration: none;
-    color: #000;
-    transition: all 300ms ease;
+.nav-links > ul li > a {
+  text-decoration: none;
+  color: #000;
+  transition: all 300ms ease;
+  text-align: center;
 }
 
-.nav-links > ul li > a:hover{
-    color: #bf4a3f;
+.nav-links > ul li > a:hover {
+  color: #bf4a3f;
 }
 
-.hr-nav-links{
-    width: 100%;
+.hr-nav-links {
+  width: 100%;
+}
+
+@media only screen and (max-width: 750px) {
+  .nav-links > ul li > a {
+    font-size: 12px;
+  }
+
+  .nav-links > ul li:last-child > span {
+    font-size: 12px;
+  }
 }

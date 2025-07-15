@@ -6,7 +6,8 @@
   align-items: center;
   justify-content: center;
   width: 300px;
-  height: 80px;
+  min-height: 80px;
+  height: fit-content;
   color: #fff;
   border-radius: 15px;
   bottom: 20px;
@@ -24,6 +25,10 @@
 
 .success {
   background-color: rgb(28, 128, 66);
+}
+
+.error{
+  background-color: rgb(223, 30, 30);
 }
 
 .alert-text-container {

@@ -269,8 +269,10 @@ export default function Profile() {
           <Breadcrums items={[{ label: "Mi perfil" }]} />
         </div>
         <Col xs={12} md={8} lg={6} className="data-profile">
-          <h2 className="title-profile">Mi Perfil</h2>
-          <hr className="red-line-login" />
+          <div className="red-underline">
+            <h1 className="cart-title">MI PERFIL</h1>
+          </div>
+          <hr className="red-line-login"/>
           {isLoadingProfile && (
             <Alert variant="info">
               <Spinner animation="border" size="sm" className="me-2" />

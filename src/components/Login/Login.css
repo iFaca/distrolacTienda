@@ -55,7 +55,8 @@
   flex-wrap: wrap;
 }
 
-.right-container {
+.right-container,
+.hidden-login {
   display: flex;
   flex: 1;
   min-height: 100vh;
@@ -63,7 +64,8 @@
   background-color: #f2f2f2;
 }
 
-.left-container {
+.left-container,
+.hidden-register {
   display: flex;
   flex: 1;
   min-height: 100vh;
@@ -71,7 +73,8 @@
   justify-content: center;
 }
 
-.left-container > div {
+.left-container,
+.hidden-register > div {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -123,6 +126,7 @@
 }
 
 .red-line-login {
+  width: 100%;
   color: #bf3939;
 }
 
@@ -271,7 +275,7 @@
   width: 100%;
 }
 
-.login-button-container{
+.login-button-container {
   width: 100%;
   display: flex;
   align-items: center;
@@ -279,10 +283,41 @@
   margin-top: 20px;
 }
 
+.button-register{
+  color: #bf3939;
+  display: flex;
+  gap: 3px;
+  margin-top: 20px;
+}
+
 @media (max-width: 768px) {
   .login-container {
     margin: 1rem;
     padding: 1.5rem !important;
+  }
+
+  .hidden-register,
+  .hidden-login {
+    display: none;
+  }
+
+  .left-container {
+    max-width: 100%;
+  }
+
+  .right-container {
+    max-width: 100%;
+  }
+
+  .div-login-container{
+    padding: 20px;
+    justify-content: center;
+    max-width: 100%;
+  }
+
+  .button-register-container{
+    display: flex;
+    flex-direction: column;
   }
 }
 /* breakpoints */
@@ -297,5 +332,9 @@
 @media only screen and (min-width: 768px) {
   .logo {
     width: 600px;
+  }
+
+  .button-register-container{
+    display: none;
   }
 }
