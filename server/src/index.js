@@ -21,5 +21,5 @@ app.use(express.json());
 app.use("/api/nodemailer", nodemailerRoutes);
 
 app.listen(port, () => {
-  console.log(`Tienda Distrolac escuchando a: http://localhost:${port}`);
+  console.log(`-- Tienda Distrolac escuchando a: http://localhost:${port} --`);
 });
