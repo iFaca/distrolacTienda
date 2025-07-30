@@ -6,6 +6,7 @@ import { Table, Button, Container, Modal } from "react-bootstrap";
 import { RootState } from "../../types";
 import "./MyOrders.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
+import Spinner from "../../Spinner/Spinner";
 
 const BASE_URL = import.meta.env.VITE_BACK_APP_URI;
 
@@ -23,8 +24,7 @@ interface Order {
     lastName: string;
     email: string;
     phone: string;
-    street: string;
-    streetNumber: string;
+    address: string;
     comments?: string;
   };
   orderItems: OrderItem[];
@@ -38,7 +38,7 @@ interface Order {
 
 export default function MyOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -49,6 +49,7 @@ export default function MyOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
+        setLoading(true);
         const response = await fetch(`${BASE_URL}/store/orders/myorders`, {
           headers: {
             Authorization: `Bearer ${userInfo?.token}`,
@@ -61,6 +62,7 @@ export default function MyOrders() {
         }
 
         const data = await response.json();
+        console.log("data ordenes", data);
         setOrders(data);
       } catch (error) {
         setError("Error al cargar tus pedidos");
@@ -107,8 +109,7 @@ export default function MyOrders() {
               <strong>Teléfono:</strong> {selectedOrder.customerInfo.phone}
             </p>
             <p>
-              <strong>Dirección:</strong> {selectedOrder.customerInfo.street}{" "}
-              {selectedOrder.customerInfo.streetNumber}
+              <strong>Dirección:</strong> {selectedOrder.customerInfo.address}
             </p>
             {selectedOrder.customerInfo.comments && (
               <p>
@@ -191,11 +192,9 @@ export default function MyOrders() {
 
   if (loading) {
     return (
-      <Container className="mt-4 text-center">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Cargando...</span>
-        </div>
-      </Container>
+      <>
+        <Spinner />
+      </>
     );
   }
 
@@ -249,7 +248,7 @@ export default function MyOrders() {
                 {orders.map((order) => (
                   <tr key={order._id}>
                     <td>{new Date(order.orderDate).toLocaleDateString()}</td>
-                    <td>{`${order.customerInfo.street} ${order.customerInfo.streetNumber}`}</td>
+                    <td>{`${order.customerInfo?.address}` || ""}</td>
                     <td>${order.total.toFixed(2)}</td>
                     <td>
                       <Button

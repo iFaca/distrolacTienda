@@ -334,7 +334,7 @@ const Login: React.FC = () => {
         phone: registerData.phone, // Usar el valor recuperado del input o del estado
       };
 
-      console.log("Datos que se enviarán:", JSON.stringify(dataToSend));
+      console.log("Datos que se enviarán:", dataToSend);
 
       const res = await register(dataToSend).unwrap();
       dispatch(setCredentials({ ...res }));

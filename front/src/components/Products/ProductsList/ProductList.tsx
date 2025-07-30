@@ -6,6 +6,7 @@ import ProductCard from "./ProductCard";
 import { useNavigate } from "react-router-dom";
 import BackIcon from "@mui/icons-material/ArrowBack";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
+import Spinner from "../../Spinner/Spinner";
 
 const BACKEND_URI = import.meta.env.VITE_BACK_APP_URI;
 
@@ -40,7 +41,7 @@ interface Product {
 
 const ProductList: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
@@ -55,6 +56,7 @@ const ProductList: React.FC = () => {
   // Función para obtener todos los items
   const fetchAllItems = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${BACKEND_URI}/items`);
       console.log("Datos de items de la API:", response.data);
       setItems(response.data);
@@ -85,6 +87,7 @@ const ProductList: React.FC = () => {
   const handleSubCategoryClick = async (subCategory: SubCategoryItem) => {
     console.log("Subcategoría seleccionada:", subCategory);
     try {
+      setLoading(true);
       // Hacer la solicitud GET para obtener todos los productos
       const response = await axios.get(`${BACKEND_URI}/products`);
       const allProducts: Product[] = response.data;
@@ -101,6 +104,8 @@ const ProductList: React.FC = () => {
     } catch (error) {
       console.error("Error al traer los items de la subcategoría:", error);
       setError("Error al cargar los items de la subcategoría.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,12 +116,11 @@ const ProductList: React.FC = () => {
     setItemSelected("");
   };
 
-  // Renderizado de carga y errores
-  if (loading) return <div>Cargando...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div className="products-container">
+      {loading && <Spinner />}
       <div className="product-container-2">
         {selectedCategoryId === null ? (
           <div className="breadcrum-container">

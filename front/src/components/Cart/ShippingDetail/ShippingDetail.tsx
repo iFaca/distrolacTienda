@@ -6,6 +6,7 @@ import { RootState } from "../../types";
 import "./ShippingDetail.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Alert from "../../Alert/Alert";
+import Spinner from "../../Spinner/Spinner";
 
 const EMAIL_SERVICE_ID = "service_szd7tra";
 const EMAIL_TEMPLATE_CLIENT_ID = "template_9afqj0i";
@@ -67,6 +68,8 @@ export default function ShippingDetail() {
   const [alertMessage, setAlertMessage] = useState<string>("");
   const [alertStatus, setAlertStatus] = useState<string>("");
   const [alertEvent, setAlertEvent] = useState<boolean>(false);
+
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Función para obtener directamente el perfil del usuario
   const fetchUserProfile = async (token: string) => {
@@ -274,6 +277,7 @@ export default function ShippingDetail() {
     if (isSubmitting) return;
 
     try {
+      setLoading(true);
       setIsSubmitting(true);
 
       if (!cartItems.every(validateCartItem)) {
@@ -441,7 +445,7 @@ export default function ShippingDetail() {
 
       setTimeout(() => {
         navigate("/mispedidos", { replace: true });
-      }, 2000);
+      }, 3000);
     } catch (error) {
       console.error("Error detallado:", error);
       handleShowAlert(
@@ -450,6 +454,7 @@ export default function ShippingDetail() {
       );
     } finally {
       setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -462,6 +467,7 @@ export default function ShippingDetail() {
 
   return (
     <div className="shipping-full-container">
+      {loading && <Spinner />}
       <Alert
         message={alertMessage}
         status={alertStatus}

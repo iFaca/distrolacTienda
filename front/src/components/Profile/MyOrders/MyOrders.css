@@ -183,8 +183,18 @@
   height: 40px;
 }
 
+.table-responsive{
+  width: 100%;
+}
+
+.orders-table{
+  width: 100%;
+  overflow-x: auto;
+}
+
 .orders-table > thead > tr th {
   text-align: center;
+  align-self: center;
 }
 
 .orders-table > tbody > tr td {

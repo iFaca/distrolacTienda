@@ -36,7 +36,7 @@ const productCategories: Product[] = [
 const Categories: React.FC = () => (
   <div className="products-home-container">
     <div className="products">
-      <div className="text-products-home" style={{ marginBottom: "20px" }}>
+      <div className="text-products-home" style={{ marginBottom: "40px" }}>
         <div className="h2-container">
           <h2>PRODUCTOS</h2>
         </div>
