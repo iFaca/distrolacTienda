@@ -14,6 +14,8 @@ export interface UserInfo {
   token: string;
   address?: string;
   refreshToken?: string;
+  dni?: string;  
+  alias?: string;
 }
 
 
