@@ -22,9 +22,9 @@
 
 .product-grid {
   display: flex;
-  flex-wrap: wrap; /* Permite que las tarjetas se ajusten a la línea siguiente */
-  gap: 20px; /* Espacio entre tarjetas */
-  justify-content: center; /* Centra las tarjetas en la pantalla */
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
   width: 100%;
   max-width: 1280px;
 }
@@ -73,7 +73,6 @@
   color: #bf4a3f;
 }
 
-/* From Uiverse.io by eslam-hany */
 .card-category {
   position: relative;
   width: 250px;
@@ -253,8 +252,8 @@
 
 .product-grid-2 {
   display: flex;
-  flex-wrap: wrap; /* Permite que las tarjetas se ajusten a la línea siguiente */
-  gap: 30px; /* Espacio entre tarjetas */
-  justify-content: center; /* Centra las tarjetas en la pantalla */
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
   width: 100% !important;
 }

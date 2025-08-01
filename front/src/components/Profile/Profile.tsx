@@ -259,6 +259,8 @@ export default function Profile() {
       });
     } catch (err: any) {
       setError(err?.data?.message || "Error al cambiar la contraseña");
+    } finally {
+      setShowPassModal(false);
     }
   };
 
@@ -389,7 +391,7 @@ export default function Profile() {
         </ModalHeader>
         <ModalBody>
           <div className="data-profile-pass">
-            <Form onSubmit={handlePasswordSubmit}>
+            <Form>
               <Form.Group className="mb-3">
                 <Form.Label>Contraseña Actual</Form.Label>
                 <Form.Control
@@ -439,7 +441,7 @@ export default function Profile() {
         </ModalBody>
         <ModalFooter>
           <Button
-            type="submit"
+            onClick={(e) => handlePasswordSubmit(e)}
             className="btn-save-profile"
             disabled={isChangingPassword}
           >
