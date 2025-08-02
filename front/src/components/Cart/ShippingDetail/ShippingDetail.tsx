@@ -131,6 +131,8 @@ export default function ShippingDetail() {
         email: userInfo.email || "",
         address: userInfo.address || savedAddress || "", // Campo unificado
         phone: userInfo.phone || savedPhone || "",
+        dni: userInfo.dni || "", // Asegurarse de que dni esté presente
+        alias: userInfo.alias || "", // Asegurarse de que alias esté presente
         comments: "",
       });
     }
