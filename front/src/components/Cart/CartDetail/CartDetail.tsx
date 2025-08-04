@@ -23,6 +23,8 @@ interface ShippingData {
   address: string; // Usando solo address
   phone: string;
   comments?: string;
+  dni?: string; // Agregado para DNI
+  alias?: string; // Agregado para alias
 }
 
 export default function CartDetail() {
@@ -41,6 +43,8 @@ export default function CartDetail() {
     address: "",
     phone: "",
     comments: "",
+    dni: "", // Inicializado como vacío
+    alias: "", // Inicializado como vacío
   });
 
   useEffect(() => {
@@ -90,6 +94,8 @@ export default function CartDetail() {
         address: addressValue,
         phone: userInfo.phone || "",
         comments: "",
+        dni: userInfo.dni || "", // Asignar el DNI si está disponible
+        alias: userInfo.alias || "", // Asignar el alias si está disponible
       });
     }
   }, [userInfo]);

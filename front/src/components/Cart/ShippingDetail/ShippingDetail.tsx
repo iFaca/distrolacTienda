@@ -22,6 +22,8 @@ interface ShippingData {
   address: string; // Campo unificado de dirección
   phone: string;
   comments?: string;
+  dni?: string;
+  alias?: string;
 }
 
 interface CartItem {
@@ -56,6 +58,8 @@ export default function ShippingDetail() {
     address: "", // Campo unificado de dirección
     phone: "",
     comments: "",
+    dni: "",
+    alias: "",
   });
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -120,6 +124,8 @@ export default function ShippingDetail() {
         console.error("Error al recuperar datos guardados:", err);
       }
 
+      console.log("Datos del usuario:", userInfo);
+
       setShippingData({
         username: userInfo.username || "",
         firstName: userInfo.firstName || "",
@@ -127,6 +133,8 @@ export default function ShippingDetail() {
         email: userInfo.email || "",
         address: userInfo.address || savedAddress || "", // Campo unificado
         phone: userInfo.phone || savedPhone || "",
+        dni: userInfo.dni || "",
+        alias: userInfo.alias || "",
         comments: "",
       });
     }
@@ -319,6 +327,8 @@ export default function ShippingDetail() {
             lastName: shippingData.lastName,
             email: shippingData.email,
             phone: shippingData.phone,
+            dni: shippingData.dni,
+            alias: shippingData.alias,
             address: shippingData.address, // Dirección completa
             street: street, // Para compatibilidad
             streetNumber: streetNumber, // Para compatibilidad
@@ -344,6 +354,8 @@ export default function ShippingDetail() {
             lastName: shippingData.lastName,
             email: shippingData.email,
             phone: shippingData.phone,
+            dni: shippingData.dni,
+            alias: shippingData.alias,
             fullName: `${shippingData.firstName} ${shippingData.lastName}`,
             isStoreClient: true,
           },
@@ -366,7 +378,7 @@ export default function ShippingDetail() {
         },
       };
 
-      console.log("Enviando datos de orden:", JSON.stringify(orderData));
+      console.log("Enviando datos de orden:", orderData);
 
       const response = await fetch(
         `${import.meta.env.VITE_BACK_APP_URI}/store/orders`,
