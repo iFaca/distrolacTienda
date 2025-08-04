@@ -21,6 +21,8 @@ interface ShippingData {
   email: string;
   address: string; // Campo unificado de dirección
   phone: string;
+  dni?: string; // Asegurarse de que dni esté presente
+  alias?: string; // Asegurarse de que alias esté presente
   comments?: string;
   dni?: string;
   alias?: string;
@@ -58,8 +60,8 @@ export default function ShippingDetail() {
     address: "", // Campo unificado de dirección
     phone: "",
     comments: "",
-    dni: "",
-    alias: "",
+    alias: "", // Asegurarse de que alias esté presente 
+    dni: "", // Asegurarse de que dni esté presente
   });
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -133,8 +135,8 @@ export default function ShippingDetail() {
         email: userInfo.email || "",
         address: userInfo.address || savedAddress || "", // Campo unificado
         phone: userInfo.phone || savedPhone || "",
-        dni: userInfo.dni || "",
-        alias: userInfo.alias || "",
+        dni: userInfo.dni || "", // Asegurarse de que dni esté presente
+        alias: userInfo.alias || "", // Asegurarse de que alias esté presente
         comments: "",
       });
     }
@@ -169,6 +171,8 @@ export default function ShippingDetail() {
               ...prev,
               address: profileData.address || prev.address,
               phone: profileData.phone || prev.phone,
+              alias: profileData.alias || prev.alias, // Asegurarse de que alias esté presente
+              dni: profileData.dni || prev.dni, // Asegurarse de que
               // Mantener otros datos si es necesario
             }));
 
@@ -333,6 +337,8 @@ export default function ShippingDetail() {
             street: street, // Para compatibilidad
             streetNumber: streetNumber, // Para compatibilidad
             fullName: `${shippingData.firstName} ${shippingData.lastName}`,
+            dni: shippingData.dni || "", 
+            alias: shippingData.alias || "",
           },
           orderItems: cartItems.map((item) => ({
             title: item.title,
@@ -357,6 +363,8 @@ export default function ShippingDetail() {
             dni: shippingData.dni,
             alias: shippingData.alias,
             fullName: `${shippingData.firstName} ${shippingData.lastName}`,
+            dni: shippingData.dni || "",
+            alias: shippingData.alias || "",
             isStoreClient: true,
           },
           seller: storeVendorId,

@@ -50,6 +50,8 @@ export interface RegisterData {
   username: string;
   email: string;
   password: string;
+  dni: string;
+  alias: string;
 }
 
 export interface RegisterResponse {
