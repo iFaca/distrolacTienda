@@ -36,12 +36,25 @@ interface Order {
   createdAt: string;
 }
 
+interface Balance {
+  _id: string;
+  createdAt: string;
+  resultingBalance: number;
+  previousBalance: number;
+  amount: number;
+  operation: string;
+  reason: string;
+}
+
 export default function MyOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [showBalanceModal, setShowBalanceModal] = useState(false);
+  const [selectedBalance, setSelectedBalance] = useState<Balance | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [balances, setBalances] = useState<Balance[]>([]);
 
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
@@ -72,8 +85,33 @@ export default function MyOrders() {
       }
     };
 
+    const fetchBalances = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `${BASE_URL}/balancemovements/${userInfo?.email}`,
+          {
+            headers: {
+              Authorization: `Bearer ${userInfo?.token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log("data balances", data.balanceMovements);
+        setBalances(data.balanceMovements);
+      } catch (error) {
+        setError("Error al cargar tus pedidos");
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (userInfo?.token) {
       fetchOrders();
+      fetchBalances();
     }
   }, [userInfo]);
 
@@ -190,6 +228,58 @@ export default function MyOrders() {
     );
   };
 
+  const BalanceDetailModal = () => {
+    if (!selectedBalance) return null;
+
+    return (
+      <Modal
+        show={showBalanceModal}
+        onHide={() => setShowBalanceModal(false)}
+        size="lg"
+        className="order-detail-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Detalle de movimiento</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="order-detail-section">
+            <h5>Información del Movimiento</h5>
+            <p>
+              <strong>Fecha:</strong>{" "}
+              {new Date(selectedBalance?.createdAt ?? "").toLocaleDateString()}
+            </p>
+            <p>
+              <strong>Tipo:</strong>{" "}
+              {selectedBalance?.operation === "payment" ? "Pago" : "Pedido"}
+            </p>
+            <p>
+              <strong>Saldo anterior:</strong>{" "}
+              {selectedBalance?.previousBalance.toFixed(2)}
+            </p>
+            <p>
+              <strong>Monto:</strong> {selectedBalance?.amount.toFixed(2)}
+            </p>
+            <p>
+              <strong>Saldo resultante:</strong>{" "}
+              {selectedBalance?.resultingBalance.toFixed(2)}
+            </p>
+            <p>
+              <strong>Razón:</strong> {selectedBalance?.reason}
+            </p>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowBalanceModal(false)}
+          >
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  };
+
   if (loading) {
     return (
       <>
@@ -266,6 +356,77 @@ export default function MyOrders() {
             <OrderDetailModal />
           </>
         )}
+        <div className="balances-container">
+          <div className="red-underline">
+            <h1 className="cart-title">HISTORIAL DE MOVIMIENTOS</h1>
+          </div>
+          {balances?.length === 0 || !balances ? (
+            <div className="text-center mt-4">
+              <p>No tienes movimientos registrados.</p>
+            </div>
+          ) : (
+            <>
+              <Table
+                striped
+                bordered
+                hover
+                responsive
+                className="balances-table mt-3"
+              >
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Saldo anterior</th>
+                    <th>Monto</th>
+                    <th>Saldo Resultante</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {balances?.map((balance, index) => (
+                    <tr key={index}>
+                      <td>
+                        {new Date(balance.createdAt).toLocaleDateString()}
+                      </td>
+                      <td
+                        className={
+                          balance.operation === "payment"
+                            ? "text-success"
+                            : "text-danger"
+                        }
+                      >
+                        {balance.operation === "order" ? "Pedido" : "Pago"}
+                      </td>
+                      <td>${balance.previousBalance.toFixed(2)}</td>
+                      <td
+                        className={
+                          balance.amount < 0 ? "text-danger" : "text-success"
+                        }
+                      >
+                        ${balance.amount.toFixed(2)}
+                      </td>
+                      <td>${balance.resultingBalance.toFixed(2)}</td>
+                      <td>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setShowBalanceModal(true);
+                            setSelectedBalance(balance);
+                          }}
+                          className="detail-button"
+                        >
+                          Ver Detalle
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <BalanceDetailModal />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
