@@ -1,6 +1,5 @@
-// App.tsx después de eliminar BrowserRouter
 import "./App.css";
-import { Routes, Route, useLocation } from "react-router-dom"; // Eliminamos BrowserRouter aquí
+import { Routes, Route, useLocation } from "react-router-dom";
 import NavBar from "../src/components/NavBar/NavBar";
 import Header from "../src/components/Header/Header";
 import Categories from "./components/Products/HomeProducts/Categories";
@@ -19,6 +18,7 @@ import Orders from "./components/Profile/MyOrders/MyOrders";
 import { LoadScript } from "@react-google-maps/api";
 import CardDelivery from "./components/CardDerlivery/CardDelivery";
 import Brands from "./components/Brands/Brands";
+import Offers from "./components/Products/Offers/Offers"; // <--- 1. IMPORTA EL NUEVO COMPONENTE
 
 function App() {
   const location = useLocation();
@@ -34,15 +34,14 @@ function App() {
             element={
               <>
                 <Header />
+                <Offers /> {/* <--- 2. AÑADE EL COMPONENTE AQUÍ */}
                 <Categories />
                 <CardDelivery />
                 <Brands />
-                {/* <Info />
-                    <CardDelivery />
-                    <Offer /> */}
               </>
             }
           />
+          {/* ... resto de tus rutas ... */}
           <Route path="/productos" element={<ProductsList />} />
           <Route path="/productos/:id" element={<ProductDetail />} />
           <Route path="/sobrenosotros" element={<About />} />

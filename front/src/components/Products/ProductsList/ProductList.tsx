@@ -37,6 +37,7 @@ interface Product {
   currentStock: number;
   purchasePrice: number;
   priceLists: PriceList[];
+  offer?: boolean;
 }
 
 const ProductList: React.FC = () => {
