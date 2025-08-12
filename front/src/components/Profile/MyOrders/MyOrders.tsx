@@ -290,7 +290,7 @@ export default function MyOrders() {
 
   if (error) {
     return (
-      <Container className="mt-4">
+      <Container className="mt-4 mb-4">
         <div className="alert alert-danger" role="alert">
           {error}
         </div>
@@ -308,7 +308,7 @@ export default function MyOrders() {
           <h1 className="cart-title">MIS PEDIDOS</h1>
         </div>
         {orders.length === 0 ? (
-          <div className="text-center mt-4">
+          <div className="text-center mt-4 mb-4">
             <p>No tienes pedidos realizados aún.</p>
             <Button
               onClick={() => navigate("/productos")}
