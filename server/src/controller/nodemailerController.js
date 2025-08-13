@@ -1,15 +1,21 @@
 const nodemailer = require("nodemailer");
 const path = require("path");
+require("dotenv").config();
 
-// Create a test account or replace with real credentials.
+const PASSWORD_EMAIL = process.env.PASSWORD_EMAIL;
+const EMAILDISTROLAC = "administracion@distrolac.com";
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
+  host: "smtp.hostinger.com",
   port: 587,
   secure: false,
   auth: {
-    user: "janie68@ethereal.email",
-    pass: "5SpmYsbTZNcYz9CYfY",
+    user: EMAILDISTROLAC,
+    pass: PASSWORD_EMAIL,
   },
+  logger: true,
+  debug: true,
+  connectionTimeout: 10000,
 });
 
 exports.sendEmail = (req, res) => {
@@ -72,8 +78,8 @@ exports.sendEmail = (req, res) => {
         </html>
     `;
 
-    const mailOptions = {
-      from: '"Janie Herzog" <janie68@ethereal.email>',
+    const mailOptions1 = {
+      from: `"Distrolac" <${EMAILDISTROLAC}>`,
       to: email,
       subject: "Bienvenido a Distrolac",
       html: htmlTemplate1, // HTML body
@@ -85,15 +91,6 @@ exports.sendEmail = (req, res) => {
         },
       ],
     };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        return console.log(error);
-      }
-      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-      console.log("Email enviado correctamente:", info);
-      return res.status(200).json("Email enviado correctamente", info);
-    });
 
     // SEGUNDO EMAIL PARA DISTROLAC
     const htmlTemplate2 = `
@@ -147,30 +144,41 @@ exports.sendEmail = (req, res) => {
             </div>
         </div>
         </body>
-        </html>`
-    ;
+        </html>`;
 
     const mailOptions2 = {
-      from: '"Janie Herzog" <janie68@ethereal.email>',
-      to: email,
+      from: `"Distrolac" <${EMAILDISTROLAC}>`,
+      to: EMAILDISTROLAC,
       subject: "Solicitud de unión",
-      html: htmlTemplate2, // HTML body
+      html: htmlTemplate2,
       attachments: [
         {
           filename: "logotienda.png",
-          path: path.join(__dirname, "../../public/logotienda.png"), // Ruta absoluta a la imagen
+          path: path.join(__dirname, "../../public/logotienda.png"),
           cid: "logotienda",
         },
       ],
     };
 
-    transporter.sendMail(mailOptions2, (error, info) => {
+    transporter.sendMail(mailOptions1, (error, info1) => {
       if (error) {
-        return console.log(error);
+        console.error(error);
+        return res.status(500).json("Error al enviar el primer email", error);
       }
-      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-      console.log("Email enviado correctamente:", info);
-      return res.status(200).json("Email enviado correctamente", info);
+
+      console.log("Primer email enviado correctamente:", info1);
+
+      transporter.sendMail(mailOptions2, (error, info2) => {
+        if (error) {
+          console.error(error);
+          return res
+            .status(500)
+            .json("Error al enviar el segundo email", error);
+        }
+
+        console.log("Segundo email enviado correctamente:", info2);
+        return res.status(200).json("Ambos emails enviados correctamente");
+      });
     });
   } catch (error) {
     console.log("Error al enviar el email", error);
