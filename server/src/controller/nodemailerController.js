@@ -7,8 +7,8 @@ const EMAILDISTROLAC = "administracion@distrolac.com";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.hostinger.com",
-  port: 587,
-  secure: false,
+  port: 465,
+  secure: true,
   auth: {
     user: EMAILDISTROLAC,
     pass: PASSWORD_EMAIL,
