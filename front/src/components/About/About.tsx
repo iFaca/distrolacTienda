@@ -1,9 +1,10 @@
 import "./About.css";
+import aboutImg from "../../assets/aboutus.png"; // ajustá el path según la ubicación del componente
 
 export default function About() {
   return (
     <div className="about-full-container">
-      <img src="src/assets/aboutus.png" alt="About" />
+      <img src={aboutImg} alt="About" />
       <div className="div-about-text">
         <div className="about-container">
           <h1>SOBRE NOSOTROS</h1>
