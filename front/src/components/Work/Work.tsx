@@ -4,7 +4,7 @@ import axios from "axios";
 import Alert from "../Alert/Alert";
 import Spinner from "../Spinner/Spinner";
 
-const BACKEND_API_URL = "http://localhost:3000/api";
+const BACKEND_API_URL = import.meta.env.VITE_FORM_API || "/form-api";
 
 export default function Work() {
   // Estado para manejar los datos del formulario
