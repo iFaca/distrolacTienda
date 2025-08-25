@@ -97,6 +97,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <hr />
         <div className="card-title-product">{title}</div>
       </div>
+      {price !== undefined && typeof price === "number" && (
+        <div className="card-price">${price}</div>
+      )}
       <button
         onClick={handleAddToCart}
         className="add-to-cart-btn"
@@ -104,9 +107,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
       >
         <AddToCartIcon />
       </button>
-      {price !== undefined && typeof price === "number" && (
-        <div className="card-price">${price}</div>
-      )}
     </div>
   );
 };

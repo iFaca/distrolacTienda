@@ -17,12 +17,15 @@ export default function Header() {
       try {
         const apiUrl = `${import.meta.env.VITE_BACK_APP_URI}/slider-images-manager`;
         const response = await fetch(apiUrl);
+        console.log("Respuesta del apiUrl:", apiUrl);
+        console.log("Estado de la respuesta:", response);
 
         if (!response.ok) {
           throw new Error(`Error HTTP: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log("Estado de la data:", data);
         
         // --- CAMBIO CLAVE AQUÍ ---
         // Verificamos si la respuesta tiene el formato esperado
