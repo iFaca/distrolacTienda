@@ -1,139 +1,62 @@
 import "./brands.css";
 
-const Brands = () => {
-  return (
-    <div className="brands-full-container">
-      <div className="brands-container">
-        <div className="text-products-home" style={{ marginBottom: "20px" }}>
-          <div className="h2-container">
-            <h2>MARCAS LÍDERES</h2>
-          </div>
-          <h2>QUE CONFÍAN EN NOSOTROS</h2>
+import brescia from "../../assets/brescialat-Photoroom.png";
+import cagnoli from "../../assets/cagnoli-Photoroom.png";
+import chuker from "../../assets/chuker-Photoroom.png";
+import citric from "../../assets/citric-Photoroom.png";
+import delicias from "../../assets/delicias de la nonna-Photoroom.png";
+import fox from "../../assets/Fox-Photoroom.png";
+import granix from "../../assets/granix-Photoroom.png";
+import ilolay from "../../assets/ilolay-Photoroom.png";
+import indias from "../../assets/indias-Photoroom.png";
+import laItaliana from "../../assets/la italiana-Photoroom.png";
+import noalsa from "../../assets/noalsa-Photoroom.png";
+import paladini from "../../assets/paladini-Photoroom.png";
+import profecia from "../../assets/profecia-Photoroom.png";
+import ramolac from "../../assets/ramolac-Photoroom.png";
+import santaMaria from "../../assets/santa maria-Photoroom.png";
+import talca from "../../assets/talca-Photoroom.png";
+import trozer from "../../assets/trozer-Photoroom.png";
+
+const items: Array<[string, string]> = [
+  [brescia, "Brescialat"],
+  [cagnoli, "Cagnoli"],
+  [chuker, "Chuker"],
+  [citric, "Citric"],
+  [delicias, "Delicias De La Nonna"],
+  [fox, "Fox"],
+  [granix, "Granix"],
+  [ilolay, "Ilolay"],
+  [indias, "Indias"],
+  [laItaliana, "La Italiana"],
+  [noalsa, "Noalsa"],
+  [paladini, "Paladini"],
+  [profecia, "Profecía"],
+  [ramolac, "Ramolac"],
+  [santaMaria, "Santa María"],
+  [talca, "Talca"],
+  [trozer, "Trozer"],
+];
+
+const Brands = () => (
+  <div className="brands-full-container">
+    <div className="brands-container">
+      <div className="text-products-home" style={{ marginBottom: 20 }}>
+        <div className="h2-container">
+          <h2>MARCAS LÍDERES</h2>
         </div>
-        <div className="items-container">
-          <div className="item-brand">
-            <img
-              src="src/assets/brescialat-Photoroom.png"
-              alt="Brescialat"
-              className="brand-img"
-            />
+        <h2>QUE CONFÍAN EN NOSOTROS</h2>
+      </div>
+
+      <div className="items-container">
+        {items.map(([src, alt]) => (
+          <div className="item-brand" key={alt}>
+            <img src={src} alt={alt} className="brand-img" />
           </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/cagnoli-Photoroom.png"
-              alt="Cagnoli"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/chuker-Photoroom.png"
-              alt="Chuker"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/citric-Photoroom.png"
-              alt="Citric"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/delicias de la nonna-Photoroom.png"
-              alt="Delicias De La Nonna"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/Fox-Photoroom.png"
-              alt="Fox"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/granix-Photoroom.png"
-              alt="Granix"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/ilolay-Photoroom.png"
-              alt="Ilolay"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/indias-Photoroom.png"
-              alt="Indias"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/la italiana-Photoroom.png"
-              alt="La Italiana"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/noalsa-Photoroom.png"
-              alt="Noalsa"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/paladini-Photoroom.png"
-              alt="Paladini"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/profecia-Photoroom.png"
-              alt="Profecia"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/ramolac-Photoroom.png"
-              alt="Ramolac"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/santa maria-Photoroom.png"
-              alt="Santa Maria"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/talca-Photoroom.png"
-              alt="Talca"
-              className="brand-img"
-            />
-          </div>
-          <div className="item-brand">
-            <img
-              src="src/assets/trozer-Photoroom.png"
-              alt="Trozer"
-              className="brand-img"
-            />
-          </div>
-        </div>
+        ))}
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 export default Brands;
