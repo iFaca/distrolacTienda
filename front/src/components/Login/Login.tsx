@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState /*, useEffect, useRef*/ } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
@@ -14,13 +14,15 @@ import {
   Modal,
   InputGroup,
 } from "react-bootstrap";
-// Asegúrate que Autocomplete esté importado
-import { Autocomplete } from "@react-google-maps/api";
+/* ===== GOOGLE MAPS REMOVIDO (COMENTADO)
+import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
+===== */
 import { useLoginMutation, useRegisterMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import "./Login.css";
 import BackIcon from "@mui/icons-material/ArrowBack";
 import Logo from "../../assets/logotienda.png";
+
 interface LoginFormData {
   email: string;
   password: string;
@@ -34,10 +36,6 @@ interface RegisterFormData {
   password: string;
   confirmPassword: string;
   address: string;
-  // Mantenemos estos campos comentados para referencia futura
-  // street: string;
-  // streetNumber: string;
-  // postalCode: string;
   phone: string;
   dni: string;
   alias: string;
@@ -69,6 +67,7 @@ const Login: React.FC = () => {
   const [registerValidated, setRegisterValidated] = useState<boolean>(false);
   const [registerError, setRegisterError] = useState<string>("");
 
+  /* ===== GOOGLE MAPS REMOVIDO (COMENTADO)
   // Estados para el Mapa y Autocomplete
   const [showMapModal, setShowMapModal] = useState<boolean>(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -76,9 +75,33 @@ const Login: React.FC = () => {
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null); // Autocomplete del formulario principal
-  // --- NUEVO ESTADO PARA AUTOCOMPLETE DEL MODAL ---
   const [modalAutocomplete, setModalAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null); // Autocomplete dentro del modal
+
+  // Loader de Google Maps (usar variable de entorno)
+  const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = [
+    "places",
+  ];
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-maps-script",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+    libraries,
+  });
+
+  // Efecto para inicializar el mapa cuando el modal se muestra (y la API ya cargó)
+  useEffect(() => { ... }, [showMapModal, isLoaded, registerData.address]);
+
+  // HANDLERS PARA AUTOCOMPLETE DEL FORMULARIO PRINCIPAL
+  const onLoadAutocomplete = (...) => { ... };
+  const onPlaceChanged = () => { ... };
+
+  // HANDLERS PARA AUTOCOMPLETE DEL MODAL
+  const onLoadModalAutocomplete = (...) => { ... };
+  const onModalPlaceChanged = () => { ... };
+
+  // Función para cerrar el modal y actualizar la dirección desde el marcador
+  const handleCloseMapModal = () => { ... };
+  ===== */
 
   // Hooks
   const navigate = useNavigate();
@@ -89,181 +112,7 @@ const Login: React.FC = () => {
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
 
-  // Efecto para inicializar el mapa cuando el modal se muestra
-  useEffect(() => {
-    if (showMapModal && mapRef.current && window.google) {
-      // Crear el mapa
-      const mapInstance = new window.google.maps.Map(mapRef.current, {
-        zoom: 15,
-        center: { lat: -32.8894, lng: -68.8458 }, // Coordenadas por defecto de Mendoza
-        mapTypeControl: false,
-        streetViewControl: false,
-      });
-
-      // Crear el marcador
-      const markerInstance = new window.google.maps.Marker({
-        map: mapInstance,
-        draggable: true,
-        animation: window.google.maps.Animation.DROP,
-      });
-
-      setMap(mapInstance);
-      setMarker(markerInstance);
-
-      // Si hay una dirección existente, geocodificarla y centrar el mapa
-      if (registerData.address) {
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode(
-          { address: registerData.address },
-          (results, status) => {
-            if (
-              status === "OK" &&
-              results &&
-              results[0] &&
-              results[0].geometry
-            ) {
-              const location = results[0].geometry.location;
-              mapInstance.setCenter(location);
-              markerInstance.setPosition(location);
-            } else {
-              // Si falla la geocodificación, usar geolocalización
-              if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    const pos = {
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude,
-                    };
-                    mapInstance.setCenter(pos);
-                    markerInstance.setPosition(pos);
-                  },
-                  () => {
-                    // Si falla la geolocalización, usar coordenadas por defecto
-                    const defaultPos = { lat: -32.8894, lng: -68.8458 };
-                    mapInstance.setCenter(defaultPos);
-                    markerInstance.setPosition(defaultPos);
-                  }
-                );
-              }
-            }
-          }
-        );
-      } else {
-        // Si no hay dirección, intentar usar geolocalización
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const pos = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-              };
-              mapInstance.setCenter(pos);
-              markerInstance.setPosition(pos);
-            },
-            () => {
-              // Si falla la geolocalización, usar coordenadas por defecto
-              const defaultPos = { lat: -32.8894, lng: -68.8458 };
-              mapInstance.setCenter(defaultPos);
-              markerInstance.setPosition(defaultPos);
-            }
-          );
-        }
-      }
-
-      // Listener para actualizar la dirección cuando se arrastra el marcador
-      markerInstance.addListener("dragend", () => {
-        const position = markerInstance.getPosition();
-        if (position) {
-          const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode({ location: position }, (results, status) => {
-            if (status === "OK" && results && results[0]) {
-              setRegisterData((prev) => ({
-                ...prev,
-                address: results[0].formatted_address,
-              }));
-            }
-          });
-        }
-      });
-
-      // Cleanup function
-      return () => {
-        if (marker) {
-          marker.setMap(null);
-        }
-        setMap(null);
-        setMarker(null);
-      };
-    }
-  }, [showMapModal, registerData.address]); // Incluir 'map' aquí asegura que listeners se añadan si el mapa cambia
-
-  // --- HANDLERS PARA AUTOCOMPLETE DEL FORMULARIO PRINCIPAL ---
-  const onLoadAutocomplete = (
-    autocompleteInstance: google.maps.places.Autocomplete
-  ) => {
-    setAutocomplete(autocompleteInstance);
-  };
-
-  const onPlaceChanged = () => {
-    if (autocomplete !== null) {
-      const place = autocomplete.getPlace();
-      if (place.formatted_address) {
-        setRegisterData((prev) => ({
-          ...prev,
-          address: place.formatted_address,
-        }));
-      }
-    }
-  };
-
-  // --- NUEVOS HANDLERS PARA AUTOCOMPLETE DEL MODAL ---
-  const onLoadModalAutocomplete = (
-    autocompleteInstance: google.maps.places.Autocomplete
-  ) => {
-    autocompleteInstance.setFields([
-      "address_components",
-      "geometry",
-      "name",
-      "formatted_address",
-    ]);
-    setModalAutocomplete(autocompleteInstance);
-  };
-
-  const onModalPlaceChanged = () => {
-    if (!modalAutocomplete) return;
-
-    try {
-      const place = modalAutocomplete.getPlace();
-
-      if (!place.geometry || !place.geometry.location) {
-        console.warn("No se encontró geometría para el lugar seleccionado");
-        return;
-      }
-
-      // Actualizar el mapa
-      if (map && marker) {
-        const location = place.geometry.location;
-
-        // Centrar el mapa en la ubicación
-        map.setCenter(location);
-        map.setZoom(17);
-
-        // Mover el marcador
-        marker.setPosition(location);
-
-        // Actualizar el campo de dirección
-        if (place.formatted_address) {
-          setRegisterData((prev) => ({
-            ...prev,
-            address: place.formatted_address,
-          }));
-        }
-      }
-    } catch (error) {
-      console.error("Error al procesar el lugar seleccionado:", error);
-    }
-  };
-  // --- MANEJADORES DE FORMULARIOS ---
+  // MANEJADORES DE FORMULARIOS
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
@@ -291,11 +140,8 @@ const Login: React.FC = () => {
     setRegisterError("");
     const form = event.currentTarget;
 
-    console.log("Datos del formulario antes de validar:", registerData);
-
-    // Validación específica para la dirección
+    // Validación específica para la dirección (ahora solo input plano)
     if (!registerData.address || registerData.address.trim() === "") {
-      console.error("Error: La dirección está vacía");
       setRegisterError("La dirección es requerida");
       return;
     }
@@ -319,28 +165,18 @@ const Login: React.FC = () => {
     }
 
     try {
-      // Obtener el valor de la dirección directamente del input
-      const addressInput = document.getElementById(
-        "address-input"
-      ) as HTMLInputElement;
-      const addressValue = addressInput
-        ? addressInput.value
-        : registerData.address;
-
-      // Crear un objeto nuevo para enviar, no usar spreading para asegurar que todos los campos estén explícitos
+      // Tomamos la dirección directamente del estado (no hay Autocomplete)
       const dataToSend = {
         username: registerData.username,
         firstName: registerData.firstName,
         lastName: registerData.lastName,
         email: registerData.email,
         password: registerData.password,
-        address: addressValue.trim(),
-        phone: registerData.phone, // Usar el valor recuperado del input o del estado
+        address: registerData.address.trim(),
+        phone: registerData.phone,
         dni: registerData.dni,
         alias: registerData.alias,
       };
-
-      console.log("Datos que se enviarán:", dataToSend);
 
       const res = await register(dataToSend).unwrap();
       dispatch(setCredentials({ ...res }));
@@ -352,6 +188,7 @@ const Login: React.FC = () => {
       );
     }
   };
+
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setRegisterData((prev) => ({
@@ -379,30 +216,22 @@ const Login: React.FC = () => {
       if (name === "confirmPassword" && registerData.password !== value) {
         setRegisterError("Las contraseñas no coinciden");
       } else {
-        setRegisterError(""); // Limpiar error si ahora coinciden o si se edita la primera
+        setRegisterError("");
       }
     }
   };
 
-  // Función para cerrar el modal y actualizar la dirección desde el marcador
-  const handleCloseMapModal = () => {
-    // Asegurarse de que la dirección se actualice con la última posición del marcador
-    if (marker) {
-      const position = marker.getPosition();
-      if (position) {
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode({ location: position }, (results, status) => {
-          if (status === "OK" && results && results[0]) {
-            setRegisterData((prev) => ({
-              ...prev,
-              address: results[0].formatted_address,
-            }));
-          }
-        });
-      }
-    }
-    setShowMapModal(false);
-  };
+  /* ===== GOOGLE MAPS REMOVIDO (COMENTADO)
+  if (loadError) {
+    return (
+      <div className="login-page">
+        <Alert variant="danger">
+          Error cargando Google Maps: {String(loadError)}
+        </Alert>
+      </div>
+    );
+  }
+  ===== */
 
   return (
     <div className="login-page">
@@ -425,7 +254,7 @@ const Login: React.FC = () => {
               onSubmit={handleRegister}
               className="register-form "
             >
-              {/* Campos de Registro ... (mejoras en validación de contraseña) */}
+              {/* Campos de Registro */}
               <div>
                 <Form.Group controlId="registerEmail">
                   <Form.Control
@@ -528,7 +357,7 @@ const Login: React.FC = () => {
                       "\\$&"
                     )}
                     className="input-form"
-                  />{" "}
+                  />
                   {/* Escapar caracteres especiales para pattern */}
                   <Form.Control.Feedback
                     type="invalid"
@@ -547,6 +376,7 @@ const Login: React.FC = () => {
                   disabled={isRegisterLoading}
                 />
               </Form.Group>
+
               <div className="delivery-auth">
                 <h1 className="title-auth">Datos del envío</h1>
                 <div className="name-lastname-auth">
@@ -610,47 +440,21 @@ const Login: React.FC = () => {
                 <div>
                   <div>
                     <Form.Group controlId="registerAddress">
+                      {/* ===== INPUT PLANO SIN GOOGLE MAPS ===== */}
                       <InputGroup className="adress-group">
-                        <Autocomplete
-                          onLoad={(autocompleteInstance) => {
-                            setAutocomplete(autocompleteInstance);
-                          }}
-                          onPlaceChanged={() => {
-                            if (autocomplete) {
-                              const place = autocomplete.getPlace();
-                              if (place && place.formatted_address) {
-                                setRegisterData((prevData) => ({
-                                  ...prevData,
-                                  address: place.formatted_address,
-                                }));
-                                if (
-                                  map &&
-                                  marker &&
-                                  place.geometry &&
-                                  place.geometry.location
-                                ) {
-                                  const location = place.geometry.location;
-                                  map.panTo(location);
-                                  map.setZoom(17);
-                                  marker.setPosition(location);
-                                }
-                              }
-                            }
-                          }}
-                        >
-                          <Form.Control
-                            type="text"
-                            name="address"
-                            id="address-input"
-                            placeholder="Ingresa o busca tu dirección"
-                            value={registerData.address}
-                            onChange={handleRegisterChange}
-                            required
-                            disabled={isRegisterLoading}
-                            aria-describedby="registerAddressFeedback"
-                            className="input-form adress-input"
-                          />
-                        </Autocomplete>
+                        <Form.Control
+                          type="text"
+                          name="address"
+                          id="address-input"
+                          placeholder="Ingresa tu dirección"
+                          value={registerData.address}
+                          onChange={handleRegisterChange}
+                          required
+                          disabled={isRegisterLoading}
+                          aria-describedby="registerAddressFeedback"
+                          className="input-form adress-input"
+                        />
+                        {/* Botón Mapa removido (comentado)
                         <Button
                           variant="outline-secondary"
                           onClick={() => setShowMapModal(true)}
@@ -661,6 +465,7 @@ const Login: React.FC = () => {
                         >
                           Mapa
                         </Button>
+                        */}
                       </InputGroup>
                       <Form.Control.Feedback
                         type="invalid"
@@ -673,70 +478,10 @@ const Login: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                {/* <div md={8}>
-                      <Form.Group controlId="registerStreet">
-                        <Form.Label>Calle</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="street"
-                          placeholder="Ingrese el nombre de la calle"
-                          value={registerData.street}
-                          onChange={handleRegisterChange}
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </div> */}
-                {/* <div md={4}>
-                      <Form.Group
-                      
-                        controlId="registerStreetNumber"
-                      >
-                        <Form.Label>Número</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="streetNumber"
-                          placeholder="Número"
-                          value={registerData.streetNumber}
-                          onChange={handleRegisterChange}
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </div> */}
-              </div>
+              {/* Campos comentados de referencia futura (conservados) */}
+              <div>{/* Street / Number placeholders */}</div>
+              <div>{/* PostalCode / Phone placeholders duplicados */}</div>
 
-              {/* Campos para código postal y teléfono */}
-              <div>
-                {/* <div>
-                      <Form.Group
-                      
-                        controlId="registerPostalCode"
-                      >
-                        <Form.Label>Código Postal</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="postalCode"
-                          placeholder="Ingrese el código postal"
-                          value={registerData.postalCode}
-                          onChange={handleRegisterChange}
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </div> */}
-                {/* <div>
-                      <Form.Group controlId="registerPhone">
-                        <Form.Label>Teléfono</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="phone"
-                          placeholder="Ingrese su teléfono"
-                          value={registerData.phone}
-                          onChange={handleRegisterChange}
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </div> */}
-              </div>
               <div className="buttons-container">
                 <div
                   onClick={() => {
@@ -794,7 +539,7 @@ const Login: React.FC = () => {
               onSubmit={handleLogin}
               className="login-form "
             >
-              {/* Campos de Login ... (sin cambios) */}
+              {/* Campos de Login */}
               <Form.Group controlId="loginEmail">
                 <Form.Control
                   type="email"
@@ -882,10 +627,10 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* === Modal para el mapa (CORREGIDO) === */}
+      {/* === Modal para el mapa (REMOVIDO/COMENTADO) ===
       <Modal
         show={showMapModal}
-        onHide={handleCloseMapModal} // Usar handler personalizado para asegurar actualización de dirección
+        onHide={handleCloseMapModal}
         size="lg"
         centered
         backdrop="static"
@@ -895,43 +640,24 @@ const Login: React.FC = () => {
           <Modal.Title>Selecciona tu ubicación</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* --- INPUT DE BÚSQUEDA DENTRO DEL MODAL --- */}
-          <Autocomplete
-            onLoad={onLoadModalAutocomplete}
-            onPlaceChanged={onModalPlaceChanged}
-            options={{
-              componentRestrictions: { country: "ar" },
-              fields: [
-                "address_components",
-                "geometry",
-                "name",
-                "formatted_address",
-              ],
-              types: ["address"],
-            }}
-          >
-            <Form.Control
-              type="text"
-              placeholder="Buscar dirección en el mapa..."
-              style={{ width: "100%" }}
-            />
-          </Autocomplete>
-          <div
-            ref={mapRef}
-            style={{
-              height: "400px",
-              width: "100%",
-              backgroundColor: "#e0e0e0",
-            }}
-          ></div>
+          {isLoaded ? (
+            <>
+              <Autocomplete ... />
+              <div ref={mapRef} style={{ height: "400px", width: "100%", backgroundColor: "#e0e0e0" }} />
+            </>
+          ) : (
+            <div style={{ height: 400 }} className="d-flex align-items-center justify-content-center">
+              <Spinner animation="border" />
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer>
-          {/* Botón para cerrar el modal (usará handleCloseMapModal) */}
           <Button variant="primary" onClick={handleCloseMapModal}>
             Confirmar Ubicación
           </Button>
         </Modal.Footer>
       </Modal>
+      */}
     </div> // Cierre del Container principal
   ); // Cierre del return
 }; // Cierre del componente Login
