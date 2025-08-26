@@ -18,7 +18,7 @@ import { Autocomplete } from "@react-google-maps/api";
 import { useLoginMutation, useRegisterMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import "./Login.css";
-
+import Logo from "../../assets/logotienda.png";
 interface LoginFormData {
   email: string;
   password: string;
@@ -387,7 +387,7 @@ const Login: React.FC = () => {
           <div className="login-container p-4 p-md-5 border rounded bg-white shadow-sm">
             <div className="login-logo text-center mb-4">
               <img
-                src="/logo.png"
+                src={Logo}
                 alt="Distrolac Logo"
                 style={{ maxWidth: "150px", height: "auto" }}
               />
