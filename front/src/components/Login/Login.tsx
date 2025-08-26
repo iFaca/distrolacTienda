@@ -254,6 +254,7 @@ const Login: React.FC = () => {
       console.error("Error al procesar el lugar seleccionado:", error);
     }
   };
+
   // --- MANEJADORES DE FORMULARIOS ---
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -310,23 +311,15 @@ const Login: React.FC = () => {
     }
 
     try {
-      // Obtener el valor de la dirección directamente del input
-      const addressInput = document.getElementById(
-        "address-input"
-      ) as HTMLInputElement;
-      const addressValue = addressInput
-        ? addressInput.value
-        : registerData.address;
-
-      // Crear un objeto nuevo para enviar, no usar spreading para asegurar que todos los campos estén explícitos
+      // ⚠️ Ya no leemos el DOM por id; usamos el estado para evitar warnings/controlId
       const dataToSend = {
         username: registerData.username,
         firstName: registerData.firstName,
         lastName: registerData.lastName,
         email: registerData.email,
         password: registerData.password,
-        address: addressValue.trim(),
-        phone: registerData.phone, // Usar el valor recuperado del input o del estado
+        address: registerData.address.trim(),
+        phone: registerData.phone, // valor del estado
       };
 
       console.log("Datos que se enviarán:", JSON.stringify(dataToSend));
@@ -341,6 +334,7 @@ const Login: React.FC = () => {
       );
     }
   };
+
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setRegisterData((prev) => ({
@@ -666,7 +660,6 @@ const Login: React.FC = () => {
                             <Form.Control
                               type="text"
                               name="address"
-                              id="address-input"
                               placeholder="Ingresa o busca tu dirección"
                               value={registerData.address}
                               onChange={(e) => {
@@ -700,71 +693,6 @@ const Login: React.FC = () => {
                         </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
-                  </Row>
-
-                  <Row>
-                    {/* <Col md={8}>
-                      <Form.Group className="mb-3" controlId="registerStreet">
-                        <Form.Label>Calle</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="street"
-                          placeholder="Ingrese el nombre de la calle"
-                          value={registerData.street}
-                          onChange={handleRegisterChange}
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </Col> */}
-                    {/* <Col md={4}>
-                      <Form.Group
-                        className="mb-3"
-                        controlId="registerStreetNumber"
-                      >
-                        <Form.Label>Número</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="streetNumber"
-                          placeholder="Número"
-                          value={registerData.streetNumber}
-                          onChange={handleRegisterChange}
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </Col> */}
-                  </Row>
-
-                  {/* Campos para código postal y teléfono */}
-                  <Row>
-                    {/* <Col md={6}>
-                      <Form.Group
-                        className="mb-3"
-                        controlId="registerPostalCode"
-                      >
-                        <Form.Label>Código Postal</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="postalCode"
-                          placeholder="Ingrese el código postal"
-                          value={registerData.postalCode}
-                          onChange={handleRegisterChange}
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </Col> */}
-                    {/* <Col md={6}>
-                      <Form.Group className="mb-3" controlId="registerPhone">
-                        <Form.Label>Teléfono</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="phone"
-                          placeholder="Ingrese su teléfono"
-                          value={registerData.phone}
-                          onChange={handleRegisterChange}
-                          disabled={isRegisterLoading}
-                        />
-                      </Form.Group>
-                    </Col> */}
                   </Row>
 
                   <Row>
