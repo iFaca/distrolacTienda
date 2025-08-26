@@ -1,4 +1,4 @@
-import React, { useState /*, useEffect, useRef*/ } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
@@ -12,16 +12,12 @@ import {
   Tab,
   Tabs,
   Modal,
-  InputGroup,
 } from "react-bootstrap";
-/* ===== GOOGLE MAPS REMOVIDO (COMENTADO)
-import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
-===== */
+// Asegúrate que Autocomplete esté importado
+import { Autocomplete } from "@react-google-maps/api";
 import { useLoginMutation, useRegisterMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import "./Login.css";
-import BackIcon from "@mui/icons-material/ArrowBack";
-import Logo from "../../assets/logotienda.png";
 
 interface LoginFormData {
   email: string;
@@ -36,9 +32,11 @@ interface RegisterFormData {
   password: string;
   confirmPassword: string;
   address: string;
+  // Mantenemos estos campos comentados para referencia futura
+  // street: string;
+  // streetNumber: string;
+  // postalCode: string;
   phone: string;
-  dni: string;
-  alias: string;
 }
 
 const Login: React.FC = () => {
@@ -59,15 +57,12 @@ const Login: React.FC = () => {
     confirmPassword: "",
     address: "",
     phone: "",
-    dni: "",
-    alias: "",
   });
   const [showRegisterPassword, setShowRegisterPassword] =
     useState<boolean>(false);
   const [registerValidated, setRegisterValidated] = useState<boolean>(false);
   const [registerError, setRegisterError] = useState<string>("");
 
-  /* ===== GOOGLE MAPS REMOVIDO (COMENTADO)
   // Estados para el Mapa y Autocomplete
   const [showMapModal, setShowMapModal] = useState<boolean>(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -75,33 +70,9 @@ const Login: React.FC = () => {
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null); // Autocomplete del formulario principal
+  // --- NUEVO ESTADO PARA AUTOCOMPLETE DEL MODAL ---
   const [modalAutocomplete, setModalAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null); // Autocomplete dentro del modal
-
-  // Loader de Google Maps (usar variable de entorno)
-  const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = [
-    "places",
-  ];
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-maps-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
-    libraries,
-  });
-
-  // Efecto para inicializar el mapa cuando el modal se muestra (y la API ya cargó)
-  useEffect(() => { ... }, [showMapModal, isLoaded, registerData.address]);
-
-  // HANDLERS PARA AUTOCOMPLETE DEL FORMULARIO PRINCIPAL
-  const onLoadAutocomplete = (...) => { ... };
-  const onPlaceChanged = () => { ... };
-
-  // HANDLERS PARA AUTOCOMPLETE DEL MODAL
-  const onLoadModalAutocomplete = (...) => { ... };
-  const onModalPlaceChanged = () => { ... };
-
-  // Función para cerrar el modal y actualizar la dirección desde el marcador
-  const handleCloseMapModal = () => { ... };
-  ===== */
 
   // Hooks
   const navigate = useNavigate();
@@ -109,10 +80,181 @@ const Login: React.FC = () => {
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [register, { isLoading: isRegisterLoading }] = useRegisterMutation();
 
-  const [showRegister, setShowRegister] = useState(false);
-  const [showLogin, setShowLogin] = useState(true);
+  // Efecto para inicializar el mapa cuando el modal se muestra
+  useEffect(() => {
+    if (showMapModal && mapRef.current && window.google) {
+      // Crear el mapa
+      const mapInstance = new window.google.maps.Map(mapRef.current, {
+        zoom: 15,
+        center: { lat: -32.8894, lng: -68.8458 }, // Coordenadas por defecto de Mendoza
+        mapTypeControl: false,
+        streetViewControl: false,
+      });
 
-  // MANEJADORES DE FORMULARIOS
+      // Crear el marcador
+      const markerInstance = new window.google.maps.Marker({
+        map: mapInstance,
+        draggable: true,
+        animation: window.google.maps.Animation.DROP,
+      });
+
+      setMap(mapInstance);
+      setMarker(markerInstance);
+
+      // Si hay una dirección existente, geocodificarla y centrar el mapa
+      if (registerData.address) {
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode(
+          { address: registerData.address },
+          (results, status) => {
+            if (
+              status === "OK" &&
+              results &&
+              results[0] &&
+              results[0].geometry
+            ) {
+              const location = results[0].geometry.location;
+              mapInstance.setCenter(location);
+              markerInstance.setPosition(location);
+            } else {
+              // Si falla la geocodificación, usar geolocalización
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    const pos = {
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude,
+                    };
+                    mapInstance.setCenter(pos);
+                    markerInstance.setPosition(pos);
+                  },
+                  () => {
+                    // Si falla la geolocalización, usar coordenadas por defecto
+                    const defaultPos = { lat: -32.8894, lng: -68.8458 };
+                    mapInstance.setCenter(defaultPos);
+                    markerInstance.setPosition(defaultPos);
+                  }
+                );
+              }
+            }
+          }
+        );
+      } else {
+        // Si no hay dirección, intentar usar geolocalización
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              };
+              mapInstance.setCenter(pos);
+              markerInstance.setPosition(pos);
+            },
+            () => {
+              // Si falla la geolocalización, usar coordenadas por defecto
+              const defaultPos = { lat: -32.8894, lng: -68.8458 };
+              mapInstance.setCenter(defaultPos);
+              markerInstance.setPosition(defaultPos);
+            }
+          );
+        }
+      }
+
+      // Listener para actualizar la dirección cuando se arrastra el marcador
+      markerInstance.addListener("dragend", () => {
+        const position = markerInstance.getPosition();
+        if (position) {
+          const geocoder = new window.google.maps.Geocoder();
+          geocoder.geocode({ location: position }, (results, status) => {
+            if (status === "OK" && results && results[0]) {
+              setRegisterData((prev) => ({
+                ...prev,
+                address: results[0].formatted_address,
+              }));
+            }
+          });
+        }
+      });
+
+      // Cleanup function
+      return () => {
+        if (marker) {
+          marker.setMap(null);
+        }
+        setMap(null);
+        setMarker(null);
+      };
+    }
+  }, [showMapModal, registerData.address]); // Incluir 'map' aquí asegura que listeners se añadan si el mapa cambia
+
+  // --- HANDLERS PARA AUTOCOMPLETE DEL FORMULARIO PRINCIPAL ---
+  const onLoadAutocomplete = (
+    autocompleteInstance: google.maps.places.Autocomplete
+  ) => {
+    setAutocomplete(autocompleteInstance);
+  };
+
+  const onPlaceChanged = () => {
+    if (autocomplete !== null) {
+      const place = autocomplete.getPlace();
+      if (place.formatted_address) {
+        setRegisterData((prev) => ({
+          ...prev,
+          address: place.formatted_address,
+        }));
+      }
+    }
+  };
+
+  // --- NUEVOS HANDLERS PARA AUTOCOMPLETE DEL MODAL ---
+  const onLoadModalAutocomplete = (
+    autocompleteInstance: google.maps.places.Autocomplete
+  ) => {
+    autocompleteInstance.setFields([
+      "address_components",
+      "geometry",
+      "name",
+      "formatted_address",
+    ]);
+    setModalAutocomplete(autocompleteInstance);
+  };
+
+  const onModalPlaceChanged = () => {
+    if (!modalAutocomplete) return;
+
+    try {
+      const place = modalAutocomplete.getPlace();
+
+      if (!place.geometry || !place.geometry.location) {
+        console.warn("No se encontró geometría para el lugar seleccionado");
+        return;
+      }
+
+      // Actualizar el mapa
+      if (map && marker) {
+        const location = place.geometry.location;
+
+        // Centrar el mapa en la ubicación
+        map.setCenter(location);
+        map.setZoom(17);
+
+        // Mover el marcador
+        marker.setPosition(location);
+
+        // Actualizar el campo de dirección
+        if (place.formatted_address) {
+          setRegisterData((prev) => ({
+            ...prev,
+            address: place.formatted_address,
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("Error al procesar el lugar seleccionado:", error);
+    }
+  };
+  // --- MANEJADORES DE FORMULARIOS ---
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
@@ -140,8 +282,11 @@ const Login: React.FC = () => {
     setRegisterError("");
     const form = event.currentTarget;
 
-    // Validación específica para la dirección (ahora solo input plano)
+    console.log("Datos del formulario antes de validar:", registerData);
+
+    // Validación específica para la dirección
     if (!registerData.address || registerData.address.trim() === "") {
+      console.error("Error: La dirección está vacía");
       setRegisterError("La dirección es requerida");
       return;
     }
@@ -165,18 +310,26 @@ const Login: React.FC = () => {
     }
 
     try {
-      // Tomamos la dirección directamente del estado (no hay Autocomplete)
+      // Obtener el valor de la dirección directamente del input
+      const addressInput = document.getElementById(
+        "address-input"
+      ) as HTMLInputElement;
+      const addressValue = addressInput
+        ? addressInput.value
+        : registerData.address;
+
+      // Crear un objeto nuevo para enviar, no usar spreading para asegurar que todos los campos estén explícitos
       const dataToSend = {
         username: registerData.username,
         firstName: registerData.firstName,
         lastName: registerData.lastName,
         email: registerData.email,
         password: registerData.password,
-        address: registerData.address.trim(),
-        phone: registerData.phone,
-        dni: registerData.dni,
-        alias: registerData.alias,
+        address: addressValue.trim(),
+        phone: registerData.phone, // Usar el valor recuperado del input o del estado
       };
+
+      console.log("Datos que se enviarán:", JSON.stringify(dataToSend));
 
       const res = await register(dataToSend).unwrap();
       dispatch(setCredentials({ ...res }));
@@ -188,20 +341,12 @@ const Login: React.FC = () => {
       );
     }
   };
-
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setRegisterData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    if (name === "dni") {
-      const autoGeneratedAlias = value + ".distrolac";
-      setRegisterData((prev) => ({
-        ...prev,
-        alias: autoGeneratedAlias,
-      }));
-    }
     // Limpiar error de coincidencia si se modifica alguna contraseña
     if (name === "password" || name === "confirmPassword") {
       const form = e.target.form;
@@ -216,421 +361,509 @@ const Login: React.FC = () => {
       if (name === "confirmPassword" && registerData.password !== value) {
         setRegisterError("Las contraseñas no coinciden");
       } else {
-        setRegisterError("");
+        setRegisterError(""); // Limpiar error si ahora coinciden o si se edita la primera
       }
     }
   };
 
-  /* ===== GOOGLE MAPS REMOVIDO (COMENTADO)
-  if (loadError) {
-    return (
-      <div className="login-page">
-        <Alert variant="danger">
-          Error cargando Google Maps: {String(loadError)}
-        </Alert>
-      </div>
-    );
-  }
-  ===== */
+  // Función para cerrar el modal y actualizar la dirección desde el marcador
+  const handleCloseMapModal = () => {
+    // Asegurarse de que la dirección se actualice con la última posición del marcador
+    if (marker) {
+      const position = marker.getPosition();
+      if (position) {
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: position }, (results, status) => {
+          if (status === "OK" && results && results[0]) {
+            setRegisterData((prev) => ({
+              ...prev,
+              address: results[0].formatted_address,
+            }));
+          }
+        });
+      }
+    }
+    setShowMapModal(false);
+  };
 
   return (
-    <div className="login-page">
-      <div className={showRegister ? "left-container" : "hidden-register"}>
-        <div>
-          <div className="logo-container">
-            <img
-              src={Logo}
-              alt="Distrolac Logo"
-              className="distro-logo-login"
-            />
-          </div>
-          <div className="div-register-container">
-            <h1 className="title-auth">Registrarse</h1>
-            <hr className="red-line-login" />
-            {registerError && <Alert variant="danger">{registerError}</Alert>}
-            <Form
-              noValidate
-              validated={registerValidated}
-              onSubmit={handleRegister}
-              className="register-form "
-            >
-              {/* Campos de Registro */}
-              <div>
-                <Form.Group controlId="registerEmail">
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={registerData.email}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    aria-describedby="registerEmailFeedback"
-                    className="input-form"
-                  />
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerEmailFeedback"
-                  >
-                    Ingrese un email válido.
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-              <div>
-                <Form.Group controlId="registerUsername">
-                  <Form.Control
-                    type="text"
-                    name="username"
-                    placeholder="Nombre de usuario"
-                    value={registerData.username}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    aria-describedby="registerUsernameFeedback"
-                    className="input-form"
-                  />
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerUsernameFeedback"
-                  >
-                    Elija un nombre de usuario.
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-              <div>
-                <Form.Group controlId="registerDNI">
-                  <Form.Control
-                    type="text"
-                    name="dni"
-                    placeholder="DNI"
-                    value={registerData.dni}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    aria-describedby="registerDNIFeedback"
-                    className="input-form"
-                    minLength={8}
-                  />
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerDNIFeedback"
-                  >
-                    Ingrese un DNI válido.
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-              <div>
-                <Form.Group controlId="registerPassword">
-                  <Form.Control
-                    type={showRegisterPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Contraseña"
-                    value={registerData.password}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    aria-describedby="registerPasswordFeedback"
-                    minLength={6}
-                    className="input-form"
-                  />
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerPasswordFeedback"
-                  >
-                    Elija una contraseña (mínimo 6 caracteres).
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-              <div>
-                <Form.Group controlId="registerConfirmPassword">
-                  <Form.Control
-                    type={showRegisterPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    placeholder="Confirmar contraseña"
-                    value={registerData.confirmPassword}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    aria-describedby="registerConfirmPasswordFeedback"
-                    pattern={registerData.password.replace(
-                      /[.*+?^${}()|[\]\\]/g,
-                      "\\$&"
-                    )}
-                    className="input-form"
-                  />
-                  {/* Escapar caracteres especiales para pattern */}
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerConfirmPasswordFeedback"
-                  >
-                    Las contraseñas no coinciden.
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-              <Form.Group controlId="registerShowPassword">
-                <Form.Check
-                  type="checkbox"
-                  label="Mostrar contraseña"
-                  checked={showRegisterPassword}
-                  onChange={(e) => setShowRegisterPassword(e.target.checked)}
-                  disabled={isRegisterLoading}
-                />
-              </Form.Group>
+    <Container className="login-page">
+      <Row className="justify-content-md-center align-items-center min-vh-100">
+        <Col xs={12} md={8} lg={6} xl={5}>
+          <div className="login-container p-4 p-md-5 border rounded bg-white shadow-sm">
+            <div className="login-logo text-center mb-4">
+              <img
+                src="/logo.png"
+                alt="Distrolac Logo"
+                style={{ maxWidth: "150px", height: "auto" }}
+              />
+            </div>
 
-              <div className="delivery-auth">
-                <h1 className="title-auth">Datos del envío</h1>
-                <div className="name-lastname-auth">
-                  <div>
-                    <Form.Group controlId="registerFirstName">
-                      <Form.Control
-                        type="text"
-                        name="firstName"
-                        placeholder="Nombre"
-                        value={registerData.firstName}
-                        onChange={handleRegisterChange}
-                        required
-                        disabled={isRegisterLoading}
-                        aria-describedby="registerFirstNameFeedback"
-                        className="input-form"
-                      />
-                      <Form.Control.Feedback
-                        type="invalid"
-                        id="registerFirstNameFeedback"
-                      >
-                        Ingrese su nombre.
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </div>
-                  <div>
-                    <Form.Group controlId="registerLastName">
-                      <Form.Control
-                        type="text"
-                        name="lastName"
-                        placeholder="Apellido"
-                        value={registerData.lastName}
-                        onChange={handleRegisterChange}
-                        required
-                        disabled={isRegisterLoading}
-                        aria-describedby="registerLastNameFeedback"
-                        className="input-form"
-                      />
-                      <Form.Control.Feedback
-                        type="invalid"
-                        id="registerLastNameFeedback"
-                      >
-                        Ingrese su apellido.
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </div>
-                </div>
-                <div>
-                  <Form.Group controlId="registerPhone">
+            <Tabs
+              defaultActiveKey="login"
+              id="login-register-tabs"
+              className="mb-4"
+              justify
+            >
+              {/* === Tab de Login === */}
+              <Tab eventKey="login" title="Iniciar Sesión">
+                {error && (
+                  <Alert variant="danger" className="mt-3">
+                    {error}
+                  </Alert>
+                )}
+                <Form
+                  noValidate
+                  validated={validated}
+                  onSubmit={handleLogin}
+                  className="login-form mt-3"
+                >
+                  {/* Campos de Login ... (sin cambios) */}
+                  <Form.Group className="mb-3" controlId="loginEmail">
+                    <Form.Label>Email</Form.Label>
                     <Form.Control
-                      type="text"
-                      name="phone"
-                      placeholder="Ingrese su teléfono"
-                      value={registerData.phone}
-                      onChange={handleRegisterChange}
+                      type="email"
+                      placeholder="Ingrese su email"
+                      value={usernameOrEmail}
+                      onChange={(e) => setUsernameOrEmail(e.target.value)}
                       required
-                      disabled={isRegisterLoading}
-                      className="input-form"
+                      disabled={isLoginLoading}
+                      aria-describedby="loginEmailFeedback"
+                    />
+                    <Form.Control.Feedback
+                      type="invalid"
+                      id="loginEmailFeedback"
+                    >
+                      Ingrese un email válido.
+                    </Form.Control.Feedback>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3" controlId="loginPassword">
+                    <Form.Label>Contraseña</Form.Label>
+                    <Form.Control
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Contraseña"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={isLoginLoading}
+                      aria-describedby="loginPasswordFeedback"
+                    />
+                    <Form.Control.Feedback
+                      type="invalid"
+                      id="loginPasswordFeedback"
+                    >
+                      Ingrese su contraseña.
+                    </Form.Control.Feedback>
+                  </Form.Group>
+
+                  <Form.Group className="mb-4" controlId="loginShowPassword">
+                    <Form.Check
+                      type="checkbox"
+                      label="Mostrar contraseña"
+                      checked={showPassword}
+                      onChange={(e) => setShowPassword(e.target.checked)}
+                      disabled={isLoginLoading}
                     />
                   </Form.Group>
-                </div>
-                <div>
-                  <div>
-                    <Form.Group controlId="registerAddress">
-                      {/* ===== INPUT PLANO SIN GOOGLE MAPS ===== */}
-                      <InputGroup className="adress-group">
+
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    className="w-100"
+                    disabled={isLoginLoading}
+                  >
+                    {isLoginLoading ? (
+                      <>
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                          className="me-2"
+                        />
+                        Iniciando sesión...
+                      </>
+                    ) : (
+                      "Iniciar Sesión"
+                    )}
+                  </Button>
+                </Form>
+              </Tab>
+
+              {/* === Tab de Registro === */}
+              <Tab eventKey="register" title="Crear Cuenta">
+                {registerError && (
+                  <Alert variant="danger" className="mt-3">
+                    {registerError}
+                  </Alert>
+                )}
+                <Form
+                  noValidate
+                  validated={registerValidated}
+                  onSubmit={handleRegister}
+                  className="register-form mt-3"
+                >
+                  {/* Campos de Registro ... (mejoras en validación de contraseña) */}
+                  <Row>
+                    <Col md={12}>
+                      <Form.Group className="mb-3" controlId="registerUsername">
+                        <Form.Label>Nombre de Usuario</Form.Label>
                         <Form.Control
                           type="text"
-                          name="address"
-                          id="address-input"
-                          placeholder="Ingresa tu dirección"
-                          value={registerData.address}
+                          name="username"
+                          placeholder="Elija un nombre de usuario"
+                          value={registerData.username}
                           onChange={handleRegisterChange}
                           required
                           disabled={isRegisterLoading}
-                          aria-describedby="registerAddressFeedback"
-                          className="input-form adress-input"
+                          aria-describedby="registerUsernameFeedback"
                         />
-                        {/* Botón Mapa removido (comentado)
-                        <Button
-                          variant="outline-secondary"
-                          onClick={() => setShowMapModal(true)}
-                          disabled={isRegisterLoading}
-                          title="Abrir mapa para seleccionar ubicación"
-                          style={{ whiteSpace: "nowrap" }}
-                          className="input-form"
+                        <Form.Control.Feedback
+                          type="invalid"
+                          id="registerUsernameFeedback"
                         >
-                          Mapa
-                        </Button>
-                        */}
-                      </InputGroup>
-                      <Form.Control.Feedback
-                        type="invalid"
-                        id="registerAddressFeedback"
+                          Elija un nombre de usuario.
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group
+                        className="mb-3"
+                        controlId="registerFirstName"
                       >
-                        Por favor ingresa tu dirección.
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </div>
-                </div>
-              </div>
+                        <Form.Label>Nombre</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="firstName"
+                          placeholder="Ingrese su nombre"
+                          value={registerData.firstName}
+                          onChange={handleRegisterChange}
+                          required
+                          disabled={isRegisterLoading}
+                          aria-describedby="registerFirstNameFeedback"
+                        />
+                        <Form.Control.Feedback
+                          type="invalid"
+                          id="registerFirstNameFeedback"
+                        >
+                          Ingrese su nombre.
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3" controlId="registerLastName">
+                        <Form.Label>Apellido</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="lastName"
+                          placeholder="Ingrese su apellido"
+                          value={registerData.lastName}
+                          onChange={handleRegisterChange}
+                          required
+                          disabled={isRegisterLoading}
+                          aria-describedby="registerLastNameFeedback"
+                        />
+                        <Form.Control.Feedback
+                          type="invalid"
+                          id="registerLastNameFeedback"
+                        >
+                          Ingrese su apellido.
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={12}>
+                      <Form.Group className="mb-3" controlId="registerEmail">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                          type="email"
+                          name="email"
+                          placeholder="Ingrese su email"
+                          value={registerData.email}
+                          onChange={handleRegisterChange}
+                          required
+                          disabled={isRegisterLoading}
+                          aria-describedby="registerEmailFeedback"
+                        />
+                        <Form.Control.Feedback
+                          type="invalid"
+                          id="registerEmailFeedback"
+                        >
+                          Ingrese un email válido.
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={12}>
+                      <Form.Group className="mb-3" controlId="registerPhone">
+                        <Form.Label>Teléfono</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="phone"
+                          placeholder="Ingrese su teléfono"
+                          value={registerData.phone}
+                          onChange={handleRegisterChange}
+                          required
+                          disabled={isRegisterLoading}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={12}>
+                      <Form.Group className="mb-3" controlId="registerAddress">
+                        <Form.Label>Dirección</Form.Label>
+                        <div className="input-group">
+                          <Autocomplete
+                            onLoad={(autocompleteInstance) => {
+                              console.log("Autocomplete cargado correctamente");
+                              setAutocomplete(autocompleteInstance);
+                            }}
+                            onPlaceChanged={() => {
+                              if (autocomplete) {
+                                const place = autocomplete.getPlace();
+                                if (place && place.formatted_address) {
+                                  console.log(
+                                    "Dirección seleccionada (autocomplete):",
+                                    place.formatted_address
+                                  );
 
-              {/* Campos comentados de referencia futura (conservados) */}
-              <div>{/* Street / Number placeholders */}</div>
-              <div>{/* PostalCode / Phone placeholders duplicados */}</div>
+                                  // Actualizar el estado de manera explícita con un callback
+                                  setRegisterData((prevData) => {
+                                    const newData = {
+                                      ...prevData,
+                                      address: place.formatted_address,
+                                    };
+                                    console.log(
+                                      "Estado actualizado con dirección:",
+                                      newData
+                                    );
+                                    return newData;
+                                  });
 
-              <div className="buttons-container">
-                <div
-                  onClick={() => {
-                    if (showLogin) {
-                      navigate(-1);
-                    } else {
-                      setShowRegister(false);
-                      setShowLogin(true);
-                    }
-                  }}
-                  className="back-btn"
-                >
-                  <p>
-                    <BackIcon /> Volver
-                  </p>
-                </div>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  disabled={isRegisterLoading}
-                  className="auth-btn"
-                >
-                  {isRegisterLoading ? (
-                    <>
-                      <Spinner
-                        as="span"
-                        animation="border"
-                        size="sm"
-                        role="status"
-                        aria-hidden="true"
-                        className="me-2"
-                      />
-                      Creando cuenta...
-                    </>
-                  ) : (
-                    "Crear Cuenta"
-                  )}
-                </Button>
-              </div>
-            </Form>
+                                  // Si el mapa está abierto, actualizar también su posición
+                                  if (
+                                    map &&
+                                    marker &&
+                                    place.geometry &&
+                                    place.geometry.location
+                                  ) {
+                                    const location = place.geometry.location;
+                                    map.panTo(location);
+                                    map.setZoom(17);
+                                    marker.setPosition(location);
+                                  }
+                                }
+                              }
+                            }}
+                          >
+                            <Form.Control
+                              type="text"
+                              name="address"
+                              id="address-input"
+                              placeholder="Ingresa o busca tu dirección"
+                              value={registerData.address}
+                              onChange={(e) => {
+                                const addressValue = e.target.value;
+                                handleRegisterChange(e);
+                                console.log(
+                                  "Dirección actualizada manualmente:",
+                                  addressValue
+                                );
+                              }}
+                              required
+                              disabled={isRegisterLoading}
+                              aria-describedby="registerAddressFeedback"
+                              style={{ marginRight: "8px" }}
+                            />
+                          </Autocomplete>
+                          <Button
+                            variant="outline-secondary"
+                            onClick={() => setShowMapModal(true)}
+                            disabled={isRegisterLoading}
+                            title="Abrir mapa para seleccionar ubicación"
+                          >
+                            Mapa
+                          </Button>
+                        </div>
+                        <Form.Control.Feedback
+                          type="invalid"
+                          id="registerAddressFeedback"
+                        >
+                          Por favor ingresa tu dirección.
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    {/* <Col md={8}>
+                      <Form.Group className="mb-3" controlId="registerStreet">
+                        <Form.Label>Calle</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="street"
+                          placeholder="Ingrese el nombre de la calle"
+                          value={registerData.street}
+                          onChange={handleRegisterChange}
+                          disabled={isRegisterLoading}
+                        />
+                      </Form.Group>
+                    </Col> */}
+                    {/* <Col md={4}>
+                      <Form.Group
+                        className="mb-3"
+                        controlId="registerStreetNumber"
+                      >
+                        <Form.Label>Número</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="streetNumber"
+                          placeholder="Número"
+                          value={registerData.streetNumber}
+                          onChange={handleRegisterChange}
+                          disabled={isRegisterLoading}
+                        />
+                      </Form.Group>
+                    </Col> */}
+                  </Row>
+
+                  {/* Campos para código postal y teléfono */}
+                  <Row>
+                    {/* <Col md={6}>
+                      <Form.Group
+                        className="mb-3"
+                        controlId="registerPostalCode"
+                      >
+                        <Form.Label>Código Postal</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="postalCode"
+                          placeholder="Ingrese el código postal"
+                          value={registerData.postalCode}
+                          onChange={handleRegisterChange}
+                          disabled={isRegisterLoading}
+                        />
+                      </Form.Group>
+                    </Col> */}
+                    {/* <Col md={6}>
+                      <Form.Group className="mb-3" controlId="registerPhone">
+                        <Form.Label>Teléfono</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="phone"
+                          placeholder="Ingrese su teléfono"
+                          value={registerData.phone}
+                          onChange={handleRegisterChange}
+                          disabled={isRegisterLoading}
+                        />
+                      </Form.Group>
+                    </Col> */}
+                  </Row>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3" controlId="registerPassword">
+                        <Form.Label>Contraseña</Form.Label>
+                        <Form.Control
+                          type={showRegisterPassword ? "text" : "password"}
+                          name="password"
+                          placeholder="Elija una contraseña"
+                          value={registerData.password}
+                          onChange={handleRegisterChange}
+                          required
+                          disabled={isRegisterLoading}
+                          aria-describedby="registerPasswordFeedback"
+                          minLength={6}
+                        />
+                        <Form.Control.Feedback
+                          type="invalid"
+                          id="registerPasswordFeedback"
+                        >
+                          Elija una contraseña (mínimo 6 caracteres).
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group
+                        className="mb-3"
+                        controlId="registerConfirmPassword"
+                      >
+                        <Form.Label>Confirmar Contraseña</Form.Label>
+                        <Form.Control
+                          type={showRegisterPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          placeholder="Confirme su contraseña"
+                          value={registerData.confirmPassword}
+                          onChange={handleRegisterChange}
+                          required
+                          disabled={isRegisterLoading}
+                          aria-describedby="registerConfirmPasswordFeedback"
+                          pattern={registerData.password.replace(
+                            /[.*+?^${}()|[\]\\]/g,
+                            "\\$&"
+                          )}
+                        />{" "}
+                        {/* Escapar caracteres especiales para pattern */}
+                        <Form.Control.Feedback
+                          type="invalid"
+                          id="registerConfirmPasswordFeedback"
+                        >
+                          Las contraseñas no coinciden.
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Form.Group className="mb-4" controlId="registerShowPassword">
+                    <Form.Check
+                      type="checkbox"
+                      label="Mostrar contraseña"
+                      checked={showRegisterPassword}
+                      onChange={(e) =>
+                        setShowRegisterPassword(e.target.checked)
+                      }
+                      disabled={isRegisterLoading}
+                    />
+                  </Form.Group>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    className="w-100"
+                    disabled={isRegisterLoading}
+                  >
+                    {isRegisterLoading ? (
+                      <>
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                          className="me-2"
+                        />
+                        Creando cuenta...
+                      </>
+                    ) : (
+                      "Crear Cuenta"
+                    )}
+                  </Button>
+                </Form>
+              </Tab>
+            </Tabs>
           </div>
-        </div>
-      </div>
+        </Col>
+      </Row>
 
-      <div className={showLogin ? "right-container" : "hidden-login"}>
-        <div id="login-register-div" className="login-register-div">
-          {/* === Tab de Login === */}
-          <div className="div-login-container">
-            <h1 className="title-auth">Acceder</h1>
-            <hr className="red-line-login" />
-            {error && <Alert variant="danger">{error}</Alert>}
-            <Form
-              noValidate
-              validated={validated}
-              onSubmit={handleLogin}
-              className="login-form "
-            >
-              {/* Campos de Login */}
-              <Form.Group controlId="loginEmail">
-                <Form.Control
-                  type="email"
-                  placeholder="Email"
-                  value={usernameOrEmail}
-                  onChange={(e) => setUsernameOrEmail(e.target.value)}
-                  required
-                  disabled={isLoginLoading}
-                  aria-describedby="loginEmailFeedback"
-                  className="input-form"
-                />
-                <Form.Control.Feedback type="invalid" id="loginEmailFeedback">
-                  Ingrese un email válido.
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group controlId="loginPassword">
-                <Form.Control
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoginLoading}
-                  aria-describedby="loginPasswordFeedback"
-                  className="input-form"
-                />
-                <Form.Control.Feedback
-                  type="invalid"
-                  id="loginPasswordFeedback"
-                >
-                  Ingrese su contraseña.
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group controlId="loginShowPassword">
-                <Form.Check
-                  type="checkbox"
-                  label="Mostrar contraseña"
-                  checked={showPassword}
-                  onChange={(e) => setShowPassword(e.target.checked)}
-                  disabled={isLoginLoading}
-                />
-              </Form.Group>
-              <div className="login-button-container">
-                <Button
-                  variant="primary"
-                  type="submit"
-                  disabled={isLoginLoading}
-                  className="auth-btn"
-                >
-                  {isLoginLoading ? (
-                    <>
-                      <Spinner
-                        as="span"
-                        animation="border"
-                        size="sm"
-                        role="status"
-                        aria-hidden="true"
-                        className="me-2"
-                      />
-                      Iniciando sesión...
-                    </>
-                  ) : (
-                    "Iniciar Sesión"
-                  )}
-                </Button>
-              </div>
-              <div className="button-register-container">
-                <hr className="red-line-login" />
-                <a
-                  onClick={() => {
-                    setShowRegister(true);
-                    setShowLogin(false);
-                  }}
-                  className="button-register"
-                >
-                  No tienes cuenta?, Regístrate
-                </a>
-              </div>
-            </Form>
-          </div>
-
-          {/* === Tab de Registro === */}
-        </div>
-      </div>
-
-      {/* === Modal para el mapa (REMOVIDO/COMENTADO) ===
+      {/* === Modal para el mapa (CORREGIDO) === */}
       <Modal
         show={showMapModal}
-        onHide={handleCloseMapModal}
+        onHide={handleCloseMapModal} // Usar handler personalizado para asegurar actualización de dirección
         size="lg"
         centered
         backdrop="static"
@@ -640,25 +873,45 @@ const Login: React.FC = () => {
           <Modal.Title>Selecciona tu ubicación</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {isLoaded ? (
-            <>
-              <Autocomplete ... />
-              <div ref={mapRef} style={{ height: "400px", width: "100%", backgroundColor: "#e0e0e0" }} />
-            </>
-          ) : (
-            <div style={{ height: 400 }} className="d-flex align-items-center justify-content-center">
-              <Spinner animation="border" />
-            </div>
-          )}
+          {/* --- INPUT DE BÚSQUEDA DENTRO DEL MODAL --- */}
+          <Autocomplete
+            onLoad={onLoadModalAutocomplete}
+            onPlaceChanged={onModalPlaceChanged}
+            options={{
+              componentRestrictions: { country: "ar" },
+              fields: [
+                "address_components",
+                "geometry",
+                "name",
+                "formatted_address",
+              ],
+              types: ["address"],
+            }}
+          >
+            <Form.Control
+              type="text"
+              placeholder="Buscar dirección en el mapa..."
+              className="mb-3"
+              style={{ width: "100%" }}
+            />
+          </Autocomplete>
+          <div
+            ref={mapRef}
+            style={{
+              height: "400px",
+              width: "100%",
+              backgroundColor: "#e0e0e0",
+            }}
+          ></div>
         </Modal.Body>
         <Modal.Footer>
+          {/* Botón para cerrar el modal (usará handleCloseMapModal) */}
           <Button variant="primary" onClick={handleCloseMapModal}>
             Confirmar Ubicación
           </Button>
         </Modal.Footer>
       </Modal>
-      */}
-    </div> // Cierre del Container principal
+    </Container> // Cierre del Container principal
   ); // Cierre del return
 }; // Cierre del componente Login
 
