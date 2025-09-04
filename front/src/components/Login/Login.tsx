@@ -186,13 +186,19 @@ const Login: React.FC = () => {
     } catch (err: any) {
       console.error("Error completo al registrar:", err);
 
-      // Buscar mensaje de error de validación de Mongoose
-      const mongooseError =
-        err?.data?.errors?.password?.message || err?.data?.message;
+      // Capturar mensaje claro desde backend
+      let errorMsg =
+        err?.data?.error || // "StoreUser validation failed: password: La contraseña debe..."
+        err?.data?.message || // "Error al crear usuario"
+        err?.error ||
+        "Error al crear la cuenta.";
 
-      setRegisterError(
-        mongooseError || err?.error || "Error al crear la cuenta."
-      );
+      // Si el error contiene "password:", recortar para mostrar solo lo importante
+      if (errorMsg.includes("password:")) {
+        errorMsg = errorMsg.split("password:")[1].trim();
+      }
+
+      setRegisterError(errorMsg);
     }
   };
 
