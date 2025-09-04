@@ -294,14 +294,16 @@ const Login: React.FC = () => {
                     required
                     disabled={isRegisterLoading}
                     aria-describedby="registerPasswordFeedback"
-                    minLength={6}
+                    minLength={8}
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$"
                     className="input-form"
                   />
                   <Form.Control.Feedback
                     type="invalid"
                     id="registerPasswordFeedback"
                   >
-                    Elija una contraseña (mínimo 6 caracteres).
+                    La contraseña debe tener mínimo 8 caracteres, incluir una
+                    mayúscula, una minúscula, un número y un símbolo.
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
