@@ -1,20 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  Form,
-  Button,
-  Spinner,
-  Alert,
-  Modal,
-  InputGroup,
-} from "react-bootstrap";
+import { useDispatch } from "react-redux";
+import { Form, Button, Alert, Modal, InputGroup } from "react-bootstrap";
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { useLoginMutation, useRegisterMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import "./Login.css";
 import BackIcon from "@mui/icons-material/ArrowBack";
-
+import Logo from "../../assets/logotienda.png";
 interface LoginFormData {
   email: string;
   password: string;
@@ -211,7 +204,7 @@ const Login: React.FC = () => {
         <div>
           <div className="logo-container">
             <img
-              src="src/assets/logotienda.png"
+              src={Logo}
               alt="Distrolac Logo"
               className="distro-logo-login"
             />
