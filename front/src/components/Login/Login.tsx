@@ -184,8 +184,14 @@ const Login: React.FC = () => {
       dispatch(setCredentials({ ...res }));
       navigate("/");
     } catch (err: any) {
+      console.error("Error completo al registrar:", err);
+
+      // Buscar mensaje de error de validación de Mongoose
+      const mongooseError =
+        err?.data?.errors?.password?.message || err?.data?.message;
+
       setRegisterError(
-        err?.data?.message || err?.error || "Error al crear la cuenta."
+        mongooseError || err?.error || "Error al crear la cuenta."
       );
     }
   };
