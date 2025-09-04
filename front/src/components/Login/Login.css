@@ -283,7 +283,7 @@
   margin-top: 20px;
 }
 
-.button-register{
+.button-register {
   color: #bf3939;
   display: flex;
   gap: 3px;
@@ -309,13 +309,13 @@
     max-width: 100%;
   }
 
-  .div-login-container{
+  .div-login-container {
     padding: 20px;
     justify-content: center;
     max-width: 100%;
   }
 
-  .button-register-container{
+  .button-register-container {
     display: flex;
     flex-direction: column;
   }
@@ -334,7 +334,7 @@
     width: 600px;
   }
 
-  .button-register-container{
+  .button-register-container {
     display: none;
   }
 }
