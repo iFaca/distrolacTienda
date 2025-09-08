@@ -161,7 +161,6 @@
 .product-list-items {
   width: 100%;
   margin-top: 20px;
-  margin-bottom: 50px;
 }
 
 .product-grid-items {
@@ -187,16 +186,21 @@
 
 .add-to-cart-btn {
   width: 100%;
-  border: none;
+  border: 1px solid #bf4a3f;
   border-radius: 15px;
-  background-color: #bf4a3f;
-  color: #fff;
-  padding: 5px;
+  background-color: #fff;
+  color: #bf4a3f;
+  padding: 7px;
   transition: all 300ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .add-to-cart-btn:hover {
-  background-color: #90372f;
+  background-color: #bf4a3f;
+  color: #fff;
 }
 
 .card-price {
