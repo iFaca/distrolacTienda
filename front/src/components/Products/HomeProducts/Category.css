@@ -15,7 +15,7 @@
 }
 
 .text-products-home{
-    width: 100%;
+    width: auto;
     text-align: start;
     display: flex;
     flex-direction: row;

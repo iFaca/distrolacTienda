@@ -49,11 +49,12 @@
 .header-products-list {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   text-align: start;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .back-btn {
@@ -186,10 +187,10 @@
 
 .add-to-cart-btn {
   width: 100%;
-  border: 1px solid #bf4a3f;
+  border: 1px solid #000;
   border-radius: 15px;
   background-color: #fff;
-  color: #bf4a3f;
+  color: #000;
   padding: 7px;
   transition: all 300ms ease;
   display: flex;
@@ -201,6 +202,7 @@
 .add-to-cart-btn:hover {
   background-color: #bf4a3f;
   color: #fff;
+  border: 1px solid #bf4a3f;
 }
 
 .card-price {
@@ -208,7 +210,7 @@
   text-align: start;
   font-size: 18px;
   font-weight: 500;
-  color: #bf4a3f;
+  color: #000;
 }
 
 .text-title-sub {
@@ -260,4 +262,49 @@
   gap: 30px;
   justify-content: center;
   width: 100% !important;
+}
+
+.search-input-products{
+  padding: 7px;
+  border-top: 1px solid #bf4a3f;
+  border-bottom: 1px solid #bf4a3f;
+  border-left: 1px solid #bf4a3f;
+  border-right: none;
+  border-radius: 5px 0px 0px 5px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0px;
+  transition: all 300ms ease;
+}
+
+.search-input-products:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(191, 74, 63, 0.5);
+  border: 1px solid #bf4a3f;
+}
+
+.search-bar-products{
+  display: flex;
+  flex-direction: row;
+  align-items: center; 
+}
+
+.search-icon-products {
+  background-color: #bf4a3f;
+  color: #fff;
+  border-radius: 0px 5px 5px 0px;
+  cursor: pointer;
+  height: 40px !important;
+  width: 100% !important;
+  padding: 3px;
+}
+.search-icon-products:hover {
+  background-color: #a63a33;
+}
+
+.search-icon-container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
 }

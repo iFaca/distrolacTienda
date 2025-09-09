@@ -4,9 +4,9 @@ import CategoryCard from "./CategoryCard";
 import "./ProductList.css";
 import ProductCard from "./ProductCard";
 import { useNavigate } from "react-router-dom";
-import BackIcon from "@mui/icons-material/ArrowBack";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Spinner from "../../Spinner/Spinner";
+import SearchIcon from "@mui/icons-material/Search";
 
 const BACKEND_URI = import.meta.env.VITE_BACK_APP_URI;
 
@@ -53,6 +53,25 @@ const ProductList: React.FC = () => {
   const [subCategories, setSubCategories] = useState<SubCategoryItem[]>([]);
   const [subCategoryItems, setSubCategoryItems] = useState<Product[]>([]); // Cambia el tipo aquí a Product
   const [itemSelected, setItemSelected] = useState("");
+  const [inputFilterProduct, setInputFilterProduct] = useState("");
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    try {
+      setLoading(true);
+      const fetchAllProducts = async () => {
+        const response = await axios.get(`${BACKEND_URI}/products`);
+        const allProducts: Product[] = response.data;
+        setAllProducts(allProducts);
+      };
+      fetchAllProducts();
+    } catch (error) {
+      console.error("Error al traer todos los productos:", error);
+      setError("No se pudieron cargar los productos.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Función para obtener todos los items
   const fetchAllItems = async () => {
@@ -89,10 +108,6 @@ const ProductList: React.FC = () => {
     console.log("Subcategoría seleccionada:", subCategory);
     try {
       setLoading(true);
-      // Hacer la solicitud GET para obtener todos los productos
-      const response = await axios.get(`${BACKEND_URI}/products`);
-      const allProducts: Product[] = response.data;
-
       // Filtrar los productos para encontrar los que coinciden con la subcategoría seleccionada
       const filteredProducts = allProducts.filter(
         (product) => product.category.name === subCategory.name // Comparar el name de la subcategoría con el name de la categoría del producto
@@ -151,16 +166,70 @@ const ProductList: React.FC = () => {
                   </div>
                   <h2>POR CATEGORIAS</h2>
                 </div>
+
+                <div className="search-bar-products">
+                  <input
+                    type="text"
+                    placeholder="Buscar productos..."
+                    value={inputFilterProduct}
+                    onChange={(e) => setInputFilterProduct(e.target.value)}
+                    className="search-input-products"
+                  />
+                  <div className="search-icon-container">
+                    <SearchIcon className="search-icon-products" />
+                  </div>
+                </div>
               </div>
 
-              {items.map((item) => (
-                <CategoryCard
-                  key={item._id}
-                  title={item.name}
-                  onClick={() => handleCategoryClick(item)} // Al hacer clic, obtener las subcategorías
-                  isSelected={false}
-                />
-              ))}
+              {inputFilterProduct === "" ? (
+                items.map((item) => (
+                  <CategoryCard
+                    key={item._id}
+                    title={item.name}
+                    onClick={() => handleCategoryClick(item)} // Al hacer clic, obtener las subcategorías
+                    isSelected={false}
+                  />
+                ))
+              ) : (
+                <div className="product-grid-items">
+                  {(() => {
+                    const filteredProducts = allProducts.filter((product) =>
+                      product.name
+                        .toLowerCase()
+                        .includes(inputFilterProduct.toLowerCase())
+                    );
+
+                    if (allProducts.length === 0) {
+                      return <p>No se encontraron productos.</p>;
+                    }
+
+                    if (filteredProducts.length === 0) {
+                      return (
+                        <p>
+                          No hay productos que coincidan con "
+                          {inputFilterProduct}".
+                        </p>
+                      );
+                    }
+
+                    return filteredProducts.map((product) => (
+                      <ProductCard
+                        key={product._id}
+                        id={product._id}
+                        title={product.name}
+                        price={
+                          product.priceLists?.length >= 5
+                            ? product.priceLists[4].salePrice
+                            : "N/A"
+                        }
+                        image={product.images[0]}
+                        description={product.description}
+                        categoryName={itemSelected || ""}
+                      />
+                    ));
+                  })()}
+                </div>
+              )}
             </div>
           </div>
         ) : (
