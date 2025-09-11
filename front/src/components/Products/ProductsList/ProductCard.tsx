@@ -22,7 +22,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   description,
   price,
   priceLists,
-  categoryName
+  categoryName,
 }) => {
   const navigate = useNavigate();
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -72,7 +72,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     setAlertMessage(message);
     setAlertStatus(status);
     setShowAlert(true);
-    setAlertEvent(prev => !prev);
+    setAlertEvent((prev) => !prev);
   };
 
   return (
@@ -105,7 +105,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         className="add-to-cart-btn"
         title="Añadir al carrito"
       >
-        <AddToCartIcon />
+        <AddToCartIcon /> Añadir al carrito
       </button>
     </div>
   );

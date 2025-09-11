@@ -63,7 +63,7 @@ const Offers: React.FC = () => {
 
   // 3. Reemplaza el return con esta nueva estructura JSX
   return (
-    <div className="products-container"> {/* Contenedor principal */}
+    <div className="products-container home-container"> {/* Contenedor principal */}
       <div className="product-container-2"> {/* Contenedor secundario */}
         
         {/* Estructura para el título, idéntica a ProductList */}

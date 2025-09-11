@@ -151,9 +151,9 @@
 }
 
 .cartdetail-buttons button {
-  background: #c04030;
-  color: #fff;
-  border: none;
+  background: #fff;
+  color: #bf4a3f;
+  border: 1px solid #bf4a3f;
   padding: 10px 20px;
   font-size: 16px;
   border-radius: 6px;
@@ -162,7 +162,8 @@
 }
 
 .cartdetail-buttons button:hover {
-  background: #a03528;
+  background: #bf4a3f;
+  color: #fff;
 }
 
 /* Right column */

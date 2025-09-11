@@ -90,15 +90,16 @@
 }
 
 .detail-button {
-  background-color: #c04030;
-  border-color: #c04030;
-  color: white;
+  background-color: #fff;
+  border: 1px solid #c04030;
+  color: #fff;
   transition: all 0.3s ease;
 }
 
 .detail-button:hover {
-  background-color: #a03528;
+  background-color: #bf4a3f !important;
   border-color: #a03528;
+  color: #fff;
   transform: translateY(-1px);
 }
 
@@ -179,8 +180,9 @@
 }
 
 .detail-button {
-  background-color: #c04030 !important;
-  border: none !important;
+  background-color: #fff !important;
+  border: 1px solid #bf4a3f !important;
+  color: #bf4a3f;
   height: 40px;
 }
 
