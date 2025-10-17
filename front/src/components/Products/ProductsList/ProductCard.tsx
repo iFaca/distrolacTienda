@@ -6,7 +6,7 @@ import Alert from "../../Alert/Alert";
 interface ProductCardProps {
   id: string;
   title: string;
-  image?: string; // puede venir indefinido
+  image?: string;
   description?: string;
   price?: number;
   priceLists?: Array<{ marginInPercentage?: number }>;
@@ -27,6 +27,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [alertMessage, setAlertMessage] = useState("");
   const [alertStatus, setAlertStatus] = useState("");
   const [alertEvent, setAlertEvent] = useState(false);
+  const [imageError, setImageError] = useState(false); // ⬅️ nuevo estado
 
   const handleCardClick = () => {
     if (id) {
@@ -52,7 +53,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       cartItems.push({
         id,
         title,
-        image: image || "/imagen-no-disponible.jpg", // usa la imagen fallback
+        image: image || "",
         quantity: 1,
         price: price || 0,
       });
@@ -70,10 +71,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
     setAlertEvent((prev) => !prev);
   };
 
-  // Fallback de imagen
-  const safeImage =
-    image && image.trim() !== "" ? image : "/imagen-no-disponible.jpg";
-
   return (
     <div className="card-product">
       <Alert
@@ -83,23 +80,48 @@ const ProductCard: React.FC<ProductCardProps> = ({
         show={showAlert}
         event={() => setAlertEvent(!alertEvent)}
       />
+
       <div
         onClick={handleCardClick}
-        style={{ cursor: "pointer", display: "flex", flexDirection: "column" }}
+        style={{
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
       >
-        <img
-          src={safeImage}
-          alt={title || "Producto sin nombre"}
-          style={{ width: "100%", height: "auto", borderRadius: "8px" }}
-          className="img-product"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            // Evita loop infinito: solo reemplaza si todavía no es la imagen fallback
-            if (!target.src.includes("imagen-no-disponible.jpg")) {
-              target.src = "/imagen-no-disponible.jpg";
-            }
-          }}
-        />
+        {!imageError && image ? (
+          <img
+            src={image}
+            alt={title || "Producto sin nombre"}
+            style={{
+              width: "100%",
+              height: "auto",
+              borderRadius: "8px",
+              objectFit: "cover",
+            }}
+            className="img-product"
+            onError={() => setImageError(true)} // ⬅️ si falla, muestra texto
+          />
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              height: "200px",
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#777",
+              fontSize: "14px",
+              backgroundColor: "#f5f5f5",
+            }}
+          >
+            Imagen no disponible
+          </div>
+        )}
+
         <hr />
         <div className="card-title-product">{title}</div>
       </div>
