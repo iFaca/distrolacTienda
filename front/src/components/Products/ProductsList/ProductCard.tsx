@@ -6,7 +6,7 @@ import Alert from "../../Alert/Alert";
 interface ProductCardProps {
   id: string;
   title: string;
-  image?: string; // ← puede venir indefinido
+  image?: string; // puede venir indefinido
   description?: string;
   price?: number;
   priceLists?: Array<{ marginInPercentage?: number }>;
@@ -52,7 +52,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       cartItems.push({
         id,
         title,
-        image: image || "/imagen-no-disponible.png", // ← protección total
+        image: image || "/imagen-no-disponible.jpg", // usa la imagen fallback
         quantity: 1,
         price: price || 0,
       });
@@ -72,7 +72,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   // Fallback de imagen
   const safeImage =
-    image && image.trim() !== "" ? image : "/imagen-no-disponible.png";
+    image && image.trim() !== "" ? image : "/imagen-no-disponible.jpg";
 
   return (
     <div className="card-product">
@@ -93,7 +93,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
           style={{ width: "100%", height: "auto", borderRadius: "8px" }}
           className="img-product"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = "/imagen-no-disponible.png";
+            const target = e.target as HTMLImageElement;
+            // Evita loop infinito: solo reemplaza si todavía no es la imagen fallback
+            if (!target.src.includes("imagen-no-disponible.jpg")) {
+              target.src = "/imagen-no-disponible.jpg";
+            }
           }}
         />
         <hr />
