@@ -10,11 +10,14 @@ import SearchIcon from "@mui/icons-material/Search";
 
 const BACKEND_URI = import.meta.env.VITE_BACK_APP_URI;
 
-// Define las interfaces para tus datos
+interface PriceList {
+  salePrice: number;
+}
+
 interface SubCategoryItem {
   _id: string;
   name: string;
-  item: string; // ID del item principal al que pertenece
+  item: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,7 +25,7 @@ interface SubCategoryItem {
 interface Item {
   _id: string;
   name: string;
-  categories: SubCategoryItem[]; // Array de subcategorías
+  categories: SubCategoryItem[];
   createdAt: string;
   updatedAt: string;
 }
@@ -30,13 +33,13 @@ interface Item {
 interface Product {
   _id: string;
   name: string;
-  images: string[];
-  category: { _id: string; name: string }; // Categoría del producto
-  details: string;
-  description: string;
-  currentStock: number;
-  purchasePrice: number;
-  priceLists: PriceList[];
+  images?: string[];
+  category?: { _id: string; name: string };
+  details?: string;
+  description?: string;
+  currentStock?: number;
+  purchasePrice?: number;
+  priceLists?: PriceList[];
   offer?: boolean;
 }
 
@@ -51,29 +54,30 @@ const ProductList: React.FC = () => {
     string | null
   >(null);
   const [subCategories, setSubCategories] = useState<SubCategoryItem[]>([]);
-  const [subCategoryItems, setSubCategoryItems] = useState<Product[]>([]); // Cambia el tipo aquí a Product
+  const [subCategoryItems, setSubCategoryItems] = useState<Product[]>([]);
   const [itemSelected, setItemSelected] = useState("");
   const [inputFilterProduct, setInputFilterProduct] = useState("");
   const [allProducts, setAllProducts] = useState<Product[]>([]);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    try {
-      setLoading(true);
-      const fetchAllProducts = async () => {
+    const fetchAllProducts = async () => {
+      try {
+        setLoading(true);
         const response = await axios.get(`${BACKEND_URI}/products`);
-        const allProducts: Product[] = response.data;
+        const allProducts: Product[] = response.data || [];
         setAllProducts(allProducts);
-      };
-      fetchAllProducts();
-    } catch (error) {
-      console.error("Error al traer todos los productos:", error);
-      setError("No se pudieron cargar los productos.");
-    } finally {
-      setLoading(false);
-    }
+      } catch (error) {
+        console.error("Error al traer todos los productos:", error);
+        setError("No se pudieron cargar los productos.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllProducts();
   }, []);
 
-  // Función para obtener todos los items
   const fetchAllItems = async () => {
     try {
       setLoading(true);
@@ -91,32 +95,24 @@ const ProductList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchAllItems(); // Llamar a la API al montar el componente
+    fetchAllItems();
   }, []);
 
   const handleCategoryClick = (item: Item) => {
-    console.log("Item seleccionado al hacer clic:", item);
     setSelectedCategoryId(item._id);
-    setSubCategories(item.categories); // Obtener subcategorías del item seleccionado
-    setSubCategoryItems([]); // Reiniciar items de subcategoría
+    setSubCategories(item.categories);
+    setSubCategoryItems([]);
     setSelectedCategoryName(item.name);
   };
 
-  const navigate = useNavigate();
-
   const handleSubCategoryClick = async (subCategory: SubCategoryItem) => {
-    console.log("Subcategoría seleccionada:", subCategory);
     try {
       setLoading(true);
-      // Filtrar los productos para encontrar los que coinciden con la subcategoría seleccionada
       const filteredProducts = allProducts.filter(
-        (product) => product.category.name === subCategory.name // Comparar el name de la subcategoría con el name de la categoría del producto
+        (product) => product.category?.name === subCategory.name
       );
-
-      console.log("Productos filtrados de la subcategoría:", filteredProducts);
-      setSubCategoryItems(filteredProducts); // Establecer los items de la subcategoría
+      setSubCategoryItems(filteredProducts);
       setItemSelected(subCategory.name);
-      console.log("ITEM SELECTED:", subCategory.name);
     } catch (error) {
       console.error("Error al traer los items de la subcategoría:", error);
       setError("Error al cargar los items de la subcategoría.");
@@ -128,7 +124,7 @@ const ProductList: React.FC = () => {
   const handleBackToCategories = () => {
     setSelectedCategoryId(null);
     setSubCategories([]);
-    setSubCategoryItems([]); // Reiniciar items de subcategoría
+    setSubCategoryItems([]);
     setItemSelected("");
   };
 
@@ -138,12 +134,11 @@ const ProductList: React.FC = () => {
     <div className="products-container">
       {loading && <Spinner />}
       <div className="product-container-2">
-        {selectedCategoryId === null ? (
-          <div className="breadcrum-container">
+        {/* Breadcrumbs */}
+        <div className="breadcrum-container">
+          {selectedCategoryId === null ? (
             <Breadcrums items={[{ label: "Productos" }]} />
-          </div>
-        ) : (
-          <div className="breadcrum-container">
+          ) : (
             <Breadcrums
               items={[
                 {
@@ -154,8 +149,10 @@ const ProductList: React.FC = () => {
                 { label: selectedCategoryName || "" },
               ]}
             />
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Si no hay categoría seleccionada: mostrar items */}
         {selectedCategoryId === null ? (
           <div className="categories-container">
             <div className="product-grid-2">
@@ -164,7 +161,7 @@ const ProductList: React.FC = () => {
                   <div className="h2-container">
                     <h2>PRODUCTOS</h2>
                   </div>
-                  <h2>POR CATEGORIAS</h2>
+                  <h2>POR CATEGORÍAS</h2>
                 </div>
 
                 <div className="search-bar-products">
@@ -186,7 +183,7 @@ const ProductList: React.FC = () => {
                   <CategoryCard
                     key={item._id}
                     title={item.name}
-                    onClick={() => handleCategoryClick(item)} // Al hacer clic, obtener las subcategorías
+                    onClick={() => handleCategoryClick(item)}
                     isSelected={false}
                   />
                 ))
@@ -199,18 +196,16 @@ const ProductList: React.FC = () => {
                         .includes(inputFilterProduct.toLowerCase())
                     );
 
-                    if (allProducts.length === 0) {
+                    if (allProducts.length === 0)
                       return <p>No se encontraron productos.</p>;
-                    }
 
-                    if (filteredProducts.length === 0) {
+                    if (filteredProducts.length === 0)
                       return (
                         <p>
                           No hay productos que coincidan con "
                           {inputFilterProduct}".
                         </p>
                       );
-                    }
 
                     return filteredProducts.map((product) => (
                       <ProductCard
@@ -218,12 +213,17 @@ const ProductList: React.FC = () => {
                         id={product._id}
                         title={product.name}
                         price={
-                          product.priceLists?.length >= 5
-                            ? product.priceLists[4].salePrice
+                          product.priceLists?.length &&
+                          product.priceLists[product.priceLists.length - 1]
+                            ?.salePrice
+                            ? product.priceLists[product.priceLists.length - 1]
+                                ?.salePrice
                             : "N/A"
                         }
-                        image={product.images[0]}
-                        description={product.description}
+                        image={
+                          product.images?.[0] || "/imagen-no-disponible.png"
+                        }
+                        description={product.description || ""}
                         categoryName={itemSelected || ""}
                       />
                     ));
@@ -242,6 +242,8 @@ const ProductList: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Subcategorías */}
               <div className="product-grid">
                 {subCategories.length > 0 ? (
                   subCategories.map((subCategory) => (
@@ -249,9 +251,7 @@ const ProductList: React.FC = () => {
                       key={subCategory._id}
                       title={subCategory.name}
                       onClick={() => handleSubCategoryClick(subCategory)}
-                      isSelected={
-                        itemSelected === subCategory.name ? true : false
-                      } // Llamar a la función para obtener items de la subcategoría
+                      isSelected={itemSelected === subCategory.name}
                     />
                   ))
                 ) : (
@@ -259,6 +259,7 @@ const ProductList: React.FC = () => {
                 )}
               </div>
 
+              {/* Productos de subcategoría */}
               {subCategoryItems.length > 0 && (
                 <div className="product-list-items">
                   <div className="text-title-sub">
@@ -273,12 +274,17 @@ const ProductList: React.FC = () => {
                         id={product._id}
                         title={product.name}
                         price={
-                          product.priceLists && product.priceLists.length >= 5
-                            ? product.priceLists[4].salePrice
+                          product.priceLists?.length &&
+                          product.priceLists[product.priceLists.length - 1]
+                            ?.salePrice
+                            ? product.priceLists[product.priceLists.length - 1]
+                                ?.salePrice
                             : "N/A"
                         }
-                        image={product.images[0]} // Mostrar la primera imagen del producto
-                        description={product.description} // Asegúrate de pasar la descripción
+                        image={
+                          product.images?.[0] || "/imagen-no-disponible.png"
+                        }
+                        description={product.description || ""}
                         categoryName={itemSelected || ""}
                       />
                     ))}
