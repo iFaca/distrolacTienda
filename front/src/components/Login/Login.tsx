@@ -77,28 +77,27 @@ const Login: React.FC = () => {
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   useEffect(() => {
-    if (!isLoaded) return; // ⬅ CLAVE
-    if (!showMapModal) return;
-    if (!mapRef.current) return;
+    if (!isLoaded || !showMapModal || !mapRef.current) return;
 
-    const mapInstance = new window.google.maps.Map(mapRef.current, {
+    const mapInstance = new google.maps.Map(mapRef.current, {
       zoom: 15,
       center: { lat: -32.8894, lng: -68.8458 },
       mapTypeControl: false,
       streetViewControl: false,
     });
 
-    const markerInstance = new window.google.maps.Marker({
+    const markerInstance = new google.maps.Marker({
       map: mapInstance,
       draggable: true,
-      animation: window.google.maps.Animation.DROP,
+      animation: google.maps.Animation.DROP,
     });
 
     setMap(mapInstance);
     setMarker(markerInstance);
 
+    // Si ya hay una dirección previa:
     if (registerData.address) {
-      const geocoder = new window.google.maps.Geocoder();
+      const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ address: registerData.address }, (results, status) => {
         if (status === "OK" && results && results[0]) {
           const location = results[0].geometry.location;
@@ -110,17 +109,17 @@ const Login: React.FC = () => {
 
     markerInstance.addListener("dragend", () => {
       const position = markerInstance.getPosition();
-      if (position) {
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode({ location: position }, (results, status) => {
-          if (status === "OK" && results && results[0]) {
-            setRegisterData((prev) => ({
-              ...prev,
-              address: results[0].formatted_address,
-            }));
-          }
-        });
-      }
+      if (!position) return;
+
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: position }, (results, status) => {
+        if (status === "OK" && results && results[0]) {
+          setRegisterData((prev) => ({
+            ...prev,
+            address: results[0].formatted_address,
+          }));
+        }
+      });
     });
 
     return () => {
@@ -128,7 +127,7 @@ const Login: React.FC = () => {
       setMap(null);
       setMarker(null);
     };
-  }, [isLoaded, showMapModal, registerData.address]);
+  }, [isLoaded, showMapModal]);
 
   // --- HANDLERS LOGIN ---
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
