@@ -92,14 +92,14 @@
 .detail-button {
   background-color: #fff;
   border: 1px solid #c04030;
-  color: #fff;
+  color: #c04030 !important;
   transition: all 0.3s ease;
 }
 
 .detail-button:hover {
   background-color: #bf4a3f !important;
   border-color: #a03528;
-  color: #fff;
+  color: #fff !important;
   transform: translateY(-1px);
 }
 
