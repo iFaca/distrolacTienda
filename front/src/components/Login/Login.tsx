@@ -77,59 +77,58 @@ const Login: React.FC = () => {
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   useEffect(() => {
-    if (showMapModal && mapRef.current && window.google) {
-      const mapInstance = new window.google.maps.Map(mapRef.current, {
-        zoom: 15,
-        center: { lat: -32.8894, lng: -68.8458 },
-        mapTypeControl: false,
-        streetViewControl: false,
-      });
+    if (!isLoaded) return; // ⬅ CLAVE
+    if (!showMapModal) return;
+    if (!mapRef.current) return;
 
-      const markerInstance = new window.google.maps.Marker({
-        map: mapInstance,
-        draggable: true,
-        animation: window.google.maps.Animation.DROP,
-      });
+    const mapInstance = new window.google.maps.Map(mapRef.current, {
+      zoom: 15,
+      center: { lat: -32.8894, lng: -68.8458 },
+      mapTypeControl: false,
+      streetViewControl: false,
+    });
 
-      setMap(mapInstance);
-      setMarker(markerInstance);
+    const markerInstance = new window.google.maps.Marker({
+      map: mapInstance,
+      draggable: true,
+      animation: window.google.maps.Animation.DROP,
+    });
 
-      if (registerData.address) {
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode(
-          { address: registerData.address },
-          (results, status) => {
-            if (status === "OK" && results && results[0]) {
-              const location = results[0].geometry.location;
-              mapInstance.setCenter(location);
-              markerInstance.setPosition(location);
-            }
-          }
-        );
-      }
+    setMap(mapInstance);
+    setMarker(markerInstance);
 
-      markerInstance.addListener("dragend", () => {
-        const position = markerInstance.getPosition();
-        if (position) {
-          const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode({ location: position }, (results, status) => {
-            if (status === "OK" && results && results[0]) {
-              setRegisterData((prev) => ({
-                ...prev,
-                address: results[0].formatted_address,
-              }));
-            }
-          });
+    if (registerData.address) {
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ address: registerData.address }, (results, status) => {
+        if (status === "OK" && results && results[0]) {
+          const location = results[0].geometry.location;
+          mapInstance.setCenter(location);
+          markerInstance.setPosition(location);
         }
       });
-
-      return () => {
-        markerInstance.setMap(null);
-        setMap(null);
-        setMarker(null);
-      };
     }
-  }, [showMapModal, registerData.address]);
+
+    markerInstance.addListener("dragend", () => {
+      const position = markerInstance.getPosition();
+      if (position) {
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: position }, (results, status) => {
+          if (status === "OK" && results && results[0]) {
+            setRegisterData((prev) => ({
+              ...prev,
+              address: results[0].formatted_address,
+            }));
+          }
+        });
+      }
+    });
+
+    return () => {
+      markerInstance.setMap(null);
+      setMap(null);
+      setMarker(null);
+    };
+  }, [isLoaded, showMapModal, registerData.address]);
 
   // --- HANDLERS LOGIN ---
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
