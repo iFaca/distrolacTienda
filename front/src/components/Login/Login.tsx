@@ -396,42 +396,52 @@ const Login: React.FC = () => {
                 <div>
                   <Form.Group controlId="registerAddress">
                     <InputGroup className="adress-group">
-                      <Autocomplete
-                        onLoad={(instance) => setAutocomplete(instance)}
-                        onPlaceChanged={() => {
-                          if (autocomplete) {
-                            const place = autocomplete.getPlace();
-                            if (place && place.formatted_address) {
-                              setRegisterData((prev) => ({
-                                ...prev,
-                                address: place.formatted_address,
-                              }));
-                              if (
-                                map &&
-                                marker &&
-                                place.geometry &&
-                                place.geometry.location
-                              ) {
-                                map.panTo(place.geometry.location);
-                                map.setZoom(17);
-                                marker.setPosition(place.geometry.location);
+                      {isLoaded ? (
+                        <Autocomplete
+                          onLoad={(instance) => setAutocomplete(instance)}
+                          onPlaceChanged={() => {
+                            if (autocomplete) {
+                              const place = autocomplete.getPlace();
+                              if (place && place.formatted_address) {
+                                setRegisterData((prev) => ({
+                                  ...prev,
+                                  address: place.formatted_address,
+                                }));
+                                if (
+                                  map &&
+                                  marker &&
+                                  place.geometry &&
+                                  place.geometry.location
+                                ) {
+                                  map.panTo(place.geometry.location);
+                                  map.setZoom(17);
+                                  marker.setPosition(place.geometry.location);
+                                }
                               }
                             }
-                          }
-                        }}
-                      >
+                          }}
+                        >
+                          <Form.Control
+                            type="text"
+                            name="address"
+                            id="address-input"
+                            placeholder="Ingresa o busca tu dirección"
+                            value={registerData.address}
+                            onChange={handleRegisterChange}
+                            required
+                            disabled={isRegisterLoading}
+                            className="input-form adress-input"
+                          />
+                        </Autocomplete>
+                      ) : (
                         <Form.Control
                           type="text"
-                          name="address"
-                          id="address-input"
-                          placeholder="Ingresa o busca tu dirección"
-                          value={registerData.address}
-                          onChange={handleRegisterChange}
-                          required
-                          disabled={isRegisterLoading}
+                          placeholder="Cargando Google Maps..."
+                          disabled
                           className="input-form adress-input"
                         />
-                      </Autocomplete>
+                      )}
+
                       <Button
                         variant="outline-secondary"
                         onClick={() => setShowMapModal(true)}
