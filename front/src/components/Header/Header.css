@@ -1,59 +1,49 @@
+/* Fuerza el slider a romper cualquier contenedor con max-width */
 .swiper-container {
-  height: 60vh;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Contenedor interno */
+.swiper-img-container {
   width: 100%;
+  height: 35vw; /* altura dinámica según ancho */
+  min-height: 300px; /* para que en mobile no sea muy chico */
+  max-height: 650px; /* para pantallas grandes */
   position: relative;
 }
 
+/* Imagen del banner */
 .swiper-img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Evita que la imagen se estire */
+  object-fit: cover; /* muestra bien banners ultrapanorámicos */
   object-position: center;
   display: block;
-  position: relative;
-  background-color: transparent;
 }
-
-.swiper-img-container{
-  width: 100%;
-  height: 100%;
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  color: #000000 !important; /* color azul */
+  font-weight: bold;
 }
-
-/* Degradé vertical a blanco */
-.swiper-img-container::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.014) 60%, #ffffff 100%);
-  /* Ajusta el 60% para controlar dónde empieza el degradé */
+/* Mobile: darle más altura para mostrar más contenido del banner */
+@media (max-width: 600px) {
+  .swiper-img-container {
+    height: 65vw; /* más alto en mobile */
+    min-height: 260px;
+  }
 }
-
-.swiper-button-next,
-.swiper-button-prev {
-  color: #3f61bf !important;
-  transition: all 300ms ease;
-}
-
-.swiper-button-next {
-  right: 15px !important;
-}
-
-.swiper-button-prev {
-  left: 15px !important;
-}
-
-.swiper-button-next:hover,
-.swiper-button-prev:hover {
-  transform: scale(0.8);
-  color: #2d468a !important;
-}
-
 @media (max-width: 768px) {
-  .swiper-container {
-    height: 350px;
+  .swiper-img-container {
+    height: 250px; /* Ajustá 220 / 250 / 300 según cómo lo quieras */
+  }
+
+  .swiper-img {
+    object-position: top; /* Muestra la parte importante arriba */
   }
 }
