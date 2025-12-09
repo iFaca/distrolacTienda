@@ -74,7 +74,7 @@
   .swiper-img-container {
     height: 50vw; /* Vista completa del banner */
     min-height: 130px !important;
-    max-height: 140px;
+    max-height: 150px;
   }
 
   .swiper-img {
