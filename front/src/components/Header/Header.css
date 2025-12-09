@@ -1,49 +1,91 @@
-/* Fuerza el slider a romper cualquier contenedor con max-width */
+/* ================================
+   SLIDER FULL WIDTH
+================================ */
 .swiper-container {
   width: 100vw !important;
   max-width: 100vw !important;
   margin-left: calc(50% - 50vw) !important;
   margin-right: calc(50% - 50vw) !important;
-
-  padding: 0;
   overflow: hidden;
 }
 
-/* Contenedor interno */
+/* -------- DESKTOP ≥ 1400px -------- */
 .swiper-img-container {
   width: 100%;
-  height: 35vw; /* altura dinámica según ancho */
-  min-height: 300px; /* para que en mobile no sea muy chico */
-  max-height: 650px; /* para pantallas grandes */
+  height: 28vw; /* banner panorámico */
+  min-height: 380px;
+  max-height: 560px;
   position: relative;
 }
 
-/* Imagen del banner */
 .swiper-img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* muestra bien banners ultrapanorámicos */
+  object-fit: cover;
   object-position: center;
-  display: block;
 }
-.swiper-button-next::after,
-.swiper-button-prev::after {
-  color: #000000 !important; /* color azul */
-  font-weight: bold;
-}
-/* Mobile: darle más altura para mostrar más contenido del banner */
-@media (max-width: 600px) {
+
+/* -------- LAPTOP 1024–1399px -------- */
+@media (max-width: 1399px) {
   .swiper-img-container {
-    height: 65vw; /* más alto en mobile */
-    min-height: 260px;
+    height: 35vw;
+    min-height: 360px; /* antes muy bajo → recortaba mucho */
   }
 }
-@media (max-width: 768px) {
+
+/* -------- TABLET HORIZONTAL 900–1023px -------- */
+@media (max-width: 1023px) {
   .swiper-img-container {
-    height: 250px; /* Ajustá 220 / 250 / 300 según cómo lo quieras */
+    height: 45vw;
+    min-height: 330px;
   }
 
   .swiper-img {
-    object-position: top; /* Muestra la parte importante arriba */
+    object-position: center top; /* muestra más contenido */
   }
+}
+
+/* -------- TABLET VERTICAL 600–899px -------- */
+@media (max-width: 899px) {
+  .swiper-img-container {
+    height: 60vw; /* más alto → se ve CASI todo */
+    min-height: 300px;
+  }
+
+  .swiper-img {
+    object-position: top center;
+  }
+}
+
+/* -------- MOBILE GRANDE 480–599px -------- */
+@media (max-width: 599px) {
+  .swiper-img-container {
+    height: 80vw;
+    min-height: 330px;
+  }
+
+  .swiper-img {
+    object-position: top center;
+  }
+}
+
+/* -------- MOBILE PEQUEÑO ≤ 480px -------- */
+@media (max-width: 480px) {
+  .swiper-img-container {
+    height: 50vw; /* Vista completa del banner */
+    min-height: 130px !important;
+    max-height: 140px;
+  }
+
+  .swiper-img {
+    object-fit: cover;
+    object-position: top;
+  }
+}
+
+/* Flechas */
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  color: #000 !important;
+  font-size: 25px !important;
 }
