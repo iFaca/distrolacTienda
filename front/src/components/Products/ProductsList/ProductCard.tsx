@@ -90,39 +90,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
           alignItems: "center",
         }}
       >
-        {!imageError && image ? (
-          <img
-            src={image}
-            alt={title || "Producto sin nombre"}
-            style={{
-              width: "100%",
-              height: "auto",
-              borderRadius: "8px",
-              objectFit: "cover",
-            }}
-            className="img-product"
-            onError={() => setImageError(true)} // ⬅️ si falla, muestra texto
-          />
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "200px",
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#777",
-              fontSize: "14px",
-              backgroundColor: "#f5f5f5",
-            }}
-          >
-            Imagen no disponible
-          </div>
-        )}
+        <div className="img-wrapper">
+          {!imageError && image ? (
+            <img
+              src={image}
+              alt={title || "Producto sin nombre"}
+              className="img-product"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="img-fallback">Imagen no disponible</div>
+          )}
+        </div>
 
-        <hr />
         <div className="card-title-product">{title}</div>
       </div>
 
@@ -131,7 +111,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
       )}
 
       <button
-        onClick={handleAddToCart}
+        onClick={(e) => {
+          e.stopPropagation(); // ⛔ evita que se dispare handleCardClick
+          handleAddToCart();
+        }}
         className="add-to-cart-btn"
         title="Añadir al carrito"
       >

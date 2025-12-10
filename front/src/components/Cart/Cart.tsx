@@ -161,7 +161,6 @@ export default function Cart() {
                   <p>
                     Sub-total <span>${calculateTotal()}</span>
                   </p>
-                  <p className="cart-summary-cost">No incluye costo de envío</p>
                 </div>
                 <button className="detail-button" onClick={handleViewDetails}>
                   Ver detalle
