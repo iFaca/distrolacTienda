@@ -35,12 +35,13 @@ interface Product {
   name: string;
   images?: string[];
   category?: { _id: string; name: string };
-  details?: string;
   description?: string;
-  currentStock?: number;
-  purchasePrice?: number;
   priceLists?: PriceList[];
   offer?: boolean;
+
+  // 🔥 CLAVE PARA PESADOS
+  typeOfFractionation?: "No" | "Unitario" | "Pesado";
+  cap?: number;
 }
 
 const ProductList: React.FC = () => {
@@ -48,7 +49,7 @@ const ProductList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null
+    null,
   );
   const [selectedCategoryName, setSelectedCategoryName] = useState<
     string | null
@@ -66,15 +67,15 @@ const ProductList: React.FC = () => {
       try {
         setLoading(true);
         const response = await axios.get(`${BACKEND_URI}/products`);
-        const allProducts: Product[] = response.data || [];
-        setAllProducts(allProducts);
+        setAllProducts(response.data || []);
       } catch (error) {
-        console.error("Error al traer todos los productos:", error);
+        console.error("Error al traer productos:", error);
         setError("No se pudieron cargar los productos.");
       } finally {
         setLoading(false);
       }
     };
+
     fetchAllProducts();
   }, []);
 
@@ -82,13 +83,10 @@ const ProductList: React.FC = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${BACKEND_URI}/items`);
-      console.log("Datos de items de la API:", response.data);
       setItems(response.data);
     } catch (error) {
-      console.error("Error al traer los items:", error);
-      setError(
-        "Error al traer los items. Verifica la consola para más detalles."
-      );
+      console.error("Error al traer items:", error);
+      setError("Error al traer categorías.");
     } finally {
       setLoading(false);
     }
@@ -109,13 +107,13 @@ const ProductList: React.FC = () => {
     try {
       setLoading(true);
       const filteredProducts = allProducts.filter(
-        (product) => product.category?.name === subCategory.name
+        (product) => product.category?.name === subCategory.name,
       );
       setSubCategoryItems(filteredProducts);
       setItemSelected(subCategory.name);
     } catch (error) {
-      console.error("Error al traer los items de la subcategoría:", error);
-      setError("Error al cargar los items de la subcategoría.");
+      console.error(error);
+      setError("Error al cargar productos.");
     } finally {
       setLoading(false);
     }
@@ -133,8 +131,8 @@ const ProductList: React.FC = () => {
   return (
     <div className="products-container">
       {loading && <Spinner />}
+
       <div className="product-container-2">
-        {/* Breadcrumbs */}
         <div className="breadcrum-container">
           {selectedCategoryId === null ? (
             <Breadcrums items={[{ label: "Productos" }]} />
@@ -152,7 +150,6 @@ const ProductList: React.FC = () => {
           )}
         </div>
 
-        {/* Si no hay categoría seleccionada: mostrar items */}
         {selectedCategoryId === null ? (
           <div className="categories-container">
             <div className="product-grid-2">
@@ -189,45 +186,33 @@ const ProductList: React.FC = () => {
                 ))
               ) : (
                 <div className="product-grid-items">
-                  {(() => {
-                    const filteredProducts = allProducts.filter((product) =>
+                  {allProducts
+                    .filter((product) =>
                       product.name
                         .toLowerCase()
-                        .includes(inputFilterProduct.toLowerCase())
-                    );
+                        .includes(inputFilterProduct.toLowerCase()),
+                    )
+                    .map((product) => {
+                      const salePrice =
+                        product.priceLists?.at(-1)?.salePrice || 0;
 
-                    if (allProducts.length === 0)
-                      return <p>No se encontraron productos.</p>;
-
-                    if (filteredProducts.length === 0)
                       return (
-                        <p>
-                          No hay productos que coincidan con "
-                          {inputFilterProduct}".
-                        </p>
+                        <ProductCard
+                          key={product._id}
+                          id={product._id}
+                          title={product.name}
+                          price={salePrice}
+                          image={
+                            product.images?.[0] || "/imagen-no-disponible.png"
+                          }
+                          description={product.description || ""}
+                          categoryName={itemSelected || ""}
+                          // 🔥 FIX DEFINITIVO
+                          typeOfFractionation={product.typeOfFractionation}
+                          cap={product.cap}
+                        />
                       );
-
-                    return filteredProducts.map((product) => (
-                      <ProductCard
-                        key={product._id}
-                        id={product._id}
-                        title={product.name}
-                        price={
-                          product.priceLists?.length &&
-                          product.priceLists[product.priceLists.length - 1]
-                            ?.salePrice
-                            ? product.priceLists[product.priceLists.length - 1]
-                                ?.salePrice
-                            : "N/A"
-                        }
-                        image={
-                          product.images?.[0] || "/imagen-no-disponible.png"
-                        }
-                        description={product.description || ""}
-                        categoryName={itemSelected || ""}
-                      />
-                    ));
-                  })()}
+                    })}
                 </div>
               )}
             </div>
@@ -235,60 +220,38 @@ const ProductList: React.FC = () => {
         ) : (
           <div className="subcategories-container">
             <div className="product-grid">
-              <div className="header-products-list">
-                <div className="text-products-home">
-                  <div className="h2-container">
-                    <h2>{selectedCategoryName}</h2>
-                  </div>
-                </div>
-              </div>
+              {subCategories.map((subCategory) => (
+                <CategoryCard
+                  key={subCategory._id}
+                  title={subCategory.name}
+                  onClick={() => handleSubCategoryClick(subCategory)}
+                  isSelected={itemSelected === subCategory.name}
+                />
+              ))}
 
-              {/* Subcategorías */}
-              <div className="product-grid">
-                {subCategories.length > 0 ? (
-                  subCategories.map((subCategory) => (
-                    <CategoryCard
-                      key={subCategory._id}
-                      title={subCategory.name}
-                      onClick={() => handleSubCategoryClick(subCategory)}
-                      isSelected={itemSelected === subCategory.name}
-                    />
-                  ))
-                ) : (
-                  <p>No hay subcategorías disponibles.</p>
-                )}
-              </div>
-
-              {/* Productos de subcategoría */}
               {subCategoryItems.length > 0 && (
-                <div className="product-list-items">
-                  <div className="text-title-sub">
-                    <h5>Productos de la Subcategoría </h5>
-                    <h5 className="item-h5">{itemSelected}</h5>
-                  </div>
-                  <hr />
-                  <div className="product-grid-items">
-                    {subCategoryItems.map((product) => (
+                <div className="product-grid-items">
+                  {subCategoryItems.map((product) => {
+                    const salePrice =
+                      product.priceLists?.at(-1)?.salePrice || 0;
+
+                    return (
                       <ProductCard
                         key={product._id}
                         id={product._id}
                         title={product.name}
-                        price={
-                          product.priceLists?.length &&
-                          product.priceLists[product.priceLists.length - 1]
-                            ?.salePrice
-                            ? product.priceLists[product.priceLists.length - 1]
-                                ?.salePrice
-                            : "N/A"
-                        }
+                        price={salePrice}
                         image={
                           product.images?.[0] || "/imagen-no-disponible.png"
                         }
                         description={product.description || ""}
                         categoryName={itemSelected || ""}
+                        // 🔥 FIX DEFINITIVO
+                        typeOfFractionation={product.typeOfFractionation}
+                        cap={product.cap}
                       />
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -60,7 +60,7 @@ export default function ShippingDetail() {
     address: "", // Campo unificado de dirección
     phone: "",
     comments: "",
-    alias: "", // Asegurarse de que alias esté presente 
+    alias: "", // Asegurarse de que alias esté presente
     dni: "", // Asegurarse de que dni esté presente
   });
 
@@ -163,7 +163,7 @@ export default function ShippingDetail() {
           if (profileData) {
             console.log(
               "Perfil obtenido directamente del backend:",
-              profileData
+              profileData,
             );
 
             // Actualizar con los datos obtenidos
@@ -182,7 +182,7 @@ export default function ShippingDetail() {
               JSON.stringify({
                 address: profileData.address || "",
                 phone: profileData.phone || "",
-              })
+              }),
             );
           }
         } catch (error) {
@@ -206,7 +206,7 @@ export default function ShippingDetail() {
       Precio unitario: $${Number(item.price).toFixed(2)}
       Subtotal: $${(item.quantity * item.price).toFixed(2)}
       ------------------------
-    `
+    `,
       )
       .join("\n");
   };
@@ -230,7 +230,7 @@ export default function ShippingDetail() {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.message || "Error al obtener el vendedor de tienda"
+          errorData.message || "Error al obtener el vendedor de tienda",
         );
       }
 
@@ -251,18 +251,18 @@ export default function ShippingDetail() {
             Authorization: `Bearer ${userInfo?.token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!response.ok) {
         throw new Error(
-          `Error al obtener las listas de precios: ${response.status}`
+          `Error al obtener las listas de precios: ${response.status}`,
         );
       }
 
       const priceLists = await response.json();
       const storePriceList = priceLists.find(
-        (list: PriceList) => list.name === "Lista Tienda Online"
+        (list: PriceList) => list.name === "Lista Tienda Online",
       );
 
       if (!storePriceList) {
@@ -295,10 +295,10 @@ export default function ShippingDetail() {
       if (!cartItems.every(validateCartItem)) {
         handleShowAlert(
           "Algunos productos no tienen todos los campos requeridos",
-          "error"
+          "error",
         );
         throw new Error(
-          "Algunos productos no tienen todos los campos requeridos"
+          "Algunos productos no tienen todos los campos requeridos",
         );
       }
 
@@ -337,7 +337,7 @@ export default function ShippingDetail() {
             street: street, // Para compatibilidad
             streetNumber: streetNumber, // Para compatibilidad
             fullName: `${shippingData.firstName} ${shippingData.lastName}`,
-            dni: shippingData.dni || "", 
+            dni: shippingData.dni || "",
             alias: shippingData.alias || "",
           },
           orderItems: cartItems.map((item) => ({
@@ -397,7 +397,7 @@ export default function ShippingDetail() {
             Authorization: `Bearer ${userInfo?.token}`,
           },
           body: JSON.stringify(orderData),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -409,13 +409,13 @@ export default function ShippingDetail() {
           handleShowAlert("Ya existe un registro similar", "error");
           throw new Error(
             `Ya existe un registro similar: ${errorData.duplicateFields.join(
-              ", "
-            )}`
+              ", ",
+            )}`,
           );
         }
         handleShowAlert("Error al crear la orden", "error");
         throw new Error(
-          `Error al crear la orden: ${errorData.message || response.statusText}`
+          `Error al crear la orden: ${errorData.message || response.statusText}`,
         );
       }
 
@@ -441,7 +441,7 @@ export default function ShippingDetail() {
           ...commonTemplateParams,
           to_email: shippingData.email,
         },
-        EMAIL_PUBLIC_KEY
+        EMAIL_PUBLIC_KEY,
       );
 
       await emailjs.send(
@@ -452,7 +452,7 @@ export default function ShippingDetail() {
           to_email: ADMIN_EMAIL,
           customer_email: shippingData.email,
         },
-        EMAIL_PUBLIC_KEY
+        EMAIL_PUBLIC_KEY,
       );
 
       localStorage.removeItem("cart");
@@ -470,7 +470,7 @@ export default function ShippingDetail() {
       console.error("Error detallado:", error);
       handleShowAlert(
         "Error al procesar el pedido. Por favor, inténtalo de nuevo más tarde.",
-        "error"
+        "error",
       );
     } finally {
       setIsSubmitting(false);
@@ -576,10 +576,10 @@ export default function ShippingDetail() {
                 {isSubmitting
                   ? "Procesando..."
                   : isLoadingProfile
-                  ? "Cargando datos..."
-                  : showConfirmation
-                  ? "Procesado"
-                  : "Confirmar pedido"}
+                    ? "Cargando datos..."
+                    : showConfirmation
+                      ? "Procesado"
+                      : "Confirmar pedido"}
               </button>
             </div>
           </div>
@@ -591,7 +591,7 @@ export default function ShippingDetail() {
                   <img src={item.image} alt={item.title} />
                   <div>
                     <h3 className="title-item-detail">{item.title}</h3>
-                    <p>${Number(item.price).toFixed(2)}</p>
+                    {/* <p>${Number(item.price).toFixed(2)}</p> */}
                   </div>
                   <span>x{item.quantity}</span>
                 </li>
