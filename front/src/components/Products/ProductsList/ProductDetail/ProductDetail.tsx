@@ -1,141 +1,158 @@
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import BackIcon from "@mui/icons-material/ArrowBack"; // Import a back icon from react-icons
 import "./ProductDetail.css";
 import Alert from "../../../Alert/Alert";
 import Breadcrums from "../../../Breadcrumbs/Breadcrums";
 
-const ProductDetail: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [showAlert, setShowAlert] = useState<boolean>(false);
-  const [alertMessage, setAlertMessage] = useState<string>("");
-  const [alertStatus, setAlertStatus] = useState<string>("");
-  const [alertEvent, setAlertEvent] = useState<boolean>(false);
-
-  const product = location.state as {
-    id: string;
-    title: string;
-    image: string;
-    description: string;
-    price?: number;
-    priceLists?: Array<{
-      marginInPercentage?: number;
-    }>;
-    categoryName?: string;
+interface Product {
+  _id: string;
+  name: string;
+  description?: string;
+  images: string[];
+  price?: number; // PRECIO POR KG si es pesado
+  category?: {
+    name?: string;
   };
+  typeOfFractionation?: "No" | "Unitario" | "Pesado";
+  cap?: number; // KG POR HORMA
+}
 
-  const price = product.price;
+const ProductDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
 
-  console.log({
-    ...product,
-    categoryName: product.categoryName,
-  });
-
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
-  const handleIncrement = () => {
-    setQuantity((prevQuantity) => prevQuantity + 1);
-  };
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertStatus, setAlertStatus] = useState("");
 
-  const handleDecrement = () => {
-    setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 1));
-  };
+  const isPesado =
+    product?.typeOfFractionation === "Pesado" &&
+    typeof product.cap === "number";
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`/api/products/${id}`);
+        if (!res.ok) throw new Error("Error al traer el producto");
+        const data = await res.json();
+
+        // ⚠️ IMPORTANTE: aseguramos que price exista
+        const derivedPrice =
+          typeof data.price === "number"
+            ? data.price
+            : typeof data.priceLists?.[0]?.salePrice === "number"
+              ? data.priceLists[0].salePrice
+              : 0;
+
+        setProduct({ ...data, price: derivedPrice });
+      } catch (error) {
+        console.error(error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
 
   const handleAddToCart = () => {
+    if (!product) return;
+
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-    const existingProductIndex = cart.findIndex(
-      (item: { id: string }) => item.id === product.id
+    const existingIndex = cart.findIndex(
+      (item: any) => item.id === product._id,
     );
 
-    if (existingProductIndex >= 0) {
-      // Si el producto ya está en el carrito, actualizamos la cantidad
-      cart[existingProductIndex].quantity += quantity;
+    if (existingIndex >= 0) {
+      cart[existingIndex].quantity += quantity;
     } else {
-      // Si el producto no está en el carrito, lo agregamos
       cart.push({
-        id: product.id,
-        title: product.title,
-        image: product.image,
-        quantity: quantity,
-        price: price || 0, // Usamos el precio pasado
+        id: product._id,
+        title: product.name,
+        image: product.images?.[0],
+        quantity, // hormas o unidades
+        price: product.price || 0, // PRECIO POR KG SI ES PESADO
+        cap: product.cap, // KG POR HORMA
+        typeOfFractionation: product.typeOfFractionation,
       });
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
-    setQuantity(1); // Reiniciar cantidad después de agregar al carrito
-    handleShowAlert("Producto agregado al carrito!", "success");
+    setQuantity(1);
+    setAlertMessage("Producto agregado al carrito");
+    setAlertStatus("success");
+    setShowAlert(true);
     window.dispatchEvent(new Event("storage"));
   };
 
-  const handleShowAlert = (message: string, status: string) => {
-    setAlertMessage(message);
-    setAlertStatus(status);
-    setShowAlert(true);
-    setAlertEvent((prev) => !prev);
-  };
-
-  if (!product) {
-    return <div>Producto no encontrado</div>;
-  }
+  if (loading) return <div>Cargando producto...</div>;
+  if (!product) return <div>Producto no encontrado</div>;
 
   return (
     <div className="productdetail-container">
       <Alert
         message={alertMessage}
         status={alertStatus}
-        onClose={() => setShowAlert(false)}
         show={showAlert}
-        event={() => setAlertEvent(!alertEvent)}
+        onClose={() => setShowAlert(false)}
       />
+
       <div className="productdetail-details">
         <div className="breadcrum-container">
           <Breadcrums
             items={[
-              {
-                label: "Productos",
-                to: "/productos",
-              },
-              {
-                label: product.categoryName || "",
-                to: "/productos",
-              },
-              { label: product.title || "" },
+              { label: "Productos", to: "/productos" },
+              { label: product.category?.name || "", to: "/productos" },
+              { label: product.name },
             ]}
           />
         </div>
+
         <div className="productdetail-image-border">
-          <img
-            src={product.image}
-            alt={product.title}
-            style={{ width: "90%", height: "auto" }}
-          />
+          <img src={product.images?.[0]} alt={product.name} />
         </div>
+
         <div className="product-info-container">
-          <h2>{product.title}</h2>
+          <h2>{product.name}</h2>
+
           <h3>
-            {price !== undefined ? `$${price.toFixed(2)}` : "No disponible"}
+            ${product.price?.toFixed(2)}
+            {isPesado && " / kg"}
           </h3>
-          <div className="productdetail-line"></div>
+
+          {isPesado && (
+            <p style={{ fontSize: 14, opacity: 0.8 }}>
+              Cada horma pesa aprox. {product.cap} kg
+            </p>
+          )}
+
           <div className="productdetail-buttons-container">
             <div>
-              <p>Cantidad</p>
+              <p>Cantidad ({isPesado ? "Hormas" : "Unidades"})</p>
               <div className="productdetail-quantityline">
-                <button onClick={handleDecrement}>-</button>
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+                  -
+                </button>
                 <p>{quantity}</p>
-                <button onClick={handleIncrement}>+</button>
+                <button onClick={() => setQuantity(quantity + 1)}>+</button>
               </div>
+
+              {isPesado && (
+                <p style={{ fontSize: 13 }}>
+                  Total aprox: {(quantity * product.cap!).toFixed(2)} kg
+                </p>
+              )}
             </div>
+
             <button className="productdetail-addbtn" onClick={handleAddToCart}>
               + AÑADIR AL CARRITO
             </button>
           </div>
-          {product.description && (
-            <div className="productdetail-description">
-              <p>Descripción: {product.description}</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

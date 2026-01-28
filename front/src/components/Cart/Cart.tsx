@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Cart.css";
 import { Link, useNavigate } from "react-router-dom";
-import BackIcon from "@mui/icons-material/ArrowBack";
 import CartEmpty from "@mui/icons-material/AddShoppingCart";
 import CartLogo from "@mui/icons-material/ShoppingCart";
 import Breadcrums from "../Breadcrumbs/Breadcrums";
@@ -10,8 +9,10 @@ interface CartItem {
   id: string;
   title: string;
   image: string;
-  quantity: number;
-  price: number;
+  quantity: number; // hormas o unidades
+  price: number; // precio unitario o precio por kg
+  typeOfFractionation?: "No" | "Unitario" | "Pesado";
+  cap?: number; // kg por horma
 }
 
 export default function Cart() {
@@ -25,9 +26,6 @@ export default function Cart() {
         const parsedCart = JSON.parse(cartData);
         if (Array.isArray(parsedCart)) {
           setCartItems(parsedCart);
-        } else {
-          console.warn("Datos inválidos en el carrito.");
-          localStorage.removeItem("cart");
         }
       }
     } catch (error) {
@@ -36,12 +34,20 @@ export default function Cart() {
     }
   }, []);
 
+  // 👉 TOTAL POR ITEM (LOGICA CORRECTA)
+  const getItemTotal = (item: CartItem) => {
+    const isPesado = item.typeOfFractionation === "Pesado";
+    const cap = Number(item.cap) || 0;
+
+    return isPesado
+      ? item.price * item.quantity * cap
+      : item.price * item.quantity;
+  };
+
+  // 👉 SUBTOTAL
   const calculateTotal = () => {
-    const total = cartItems.reduce(
-      (acc, item) => acc + item.price * (item.quantity || 1),
-      0
-    );
-    localStorage.setItem("total", total.toString()); // Guardar sin redondeo
+    const total = cartItems.reduce((acc, item) => acc + getItemTotal(item), 0);
+    localStorage.setItem("total", total.toString());
     return total.toFixed(2);
   };
 
@@ -55,19 +61,15 @@ export default function Cart() {
   const updateQuantity = (id: string, amount: number) => {
     const updatedCart = cartItems.map((item) =>
       item.id === id
-        ? { ...item, quantity: Math.max(1, (item.quantity || 1) + amount) }
-        : item
+        ? { ...item, quantity: Math.max(1, item.quantity + amount) }
+        : item,
     );
     setCartItems(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
   const handleViewDetails = () => {
-    try {
-      navigate("/detalledepedido");
-    } catch (error) {
-      console.error("Error al navegar a los detalles del pedido:", error);
-    }
+    navigate("/detalledepedido");
   };
 
   return (
@@ -76,6 +78,7 @@ export default function Cart() {
         <div className="breadcrum-container">
           <Breadcrums items={[{ label: "Mi carrito" }]} />
         </div>
+
         <div className="cart-container">
           <div className="cart-header-container">
             <div className="red-underline">
@@ -87,6 +90,7 @@ export default function Cart() {
               <h3 className="continue-shopping">Seguir comprando</h3>
             </Link>
           </div>
+
           {cartItems.length === 0 ? (
             <div className="cart-empty-container">
               <h2>El carrito está vacío</h2>
@@ -101,61 +105,85 @@ export default function Cart() {
           ) : (
             <>
               <div className="cart-line"></div>
+
               <div className="cart-list-container">
                 <div className="cart-line"></div>
+
                 <div className="cart-list-headers">
                   <span style={{ flex: 3 }}>Producto</span>
                   <span style={{ flex: 1, textAlign: "center" }}>Precio</span>
                   <span style={{ flex: 1, textAlign: "center" }}>Cantidad</span>
                   <span style={{ flex: 1, textAlign: "right" }}>Total</span>
                 </div>
+
                 <ul>
-                  {cartItems.map((item) => (
-                    <li key={item.id} className="product-cart-container-full">
-                      <div className="cart-product-container">
-                        <div className="cart-image-container">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            style={{ width: "100%" }}
-                          />
-                        </div>
-                        <div className="cart-product-details">
-                          <h3>{item.title}</h3>
-                          <button
-                            className="remove-button"
-                            onClick={() => removeItem(item.id)}
-                          >
-                            Borrar
-                          </button>
-                        </div>
-                      </div>
+                  {cartItems.map((item) => {
+                    const isPesado = item.typeOfFractionation === "Pesado";
+                    const cap = Number(item.cap) || 0;
+                    const realKg = isPesado
+                      ? item.quantity * cap
+                      : item.quantity;
 
-                      <p className="price">
-                        ${!isNaN(item.price) ? item.price.toFixed(2) : "0.00"}
-                      </p>
-                      <div className="quantity-container">
-                        <div>
-                          <button onClick={() => updateQuantity(item.id, -1)}>
-                            -
-                          </button>
-                          <span>{item.quantity || 1}</span>
-                          <button onClick={() => updateQuantity(item.id, 1)}>
-                            +
-                          </button>
-                        </div>
-                      </div>
+                    return (
+                      <li key={item.id} className="product-cart-container-full">
+                        <div className="cart-product-container">
+                          <div className="cart-image-container">
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              style={{ width: "100%" }}
+                            />
+                          </div>
 
-                      <p className="total">
-                        $
-                        {!isNaN(item.price * item.quantity)
-                          ? (item.price * item.quantity).toFixed(2)
-                          : "0.00"}
-                      </p>
-                    </li>
-                  ))}
+                          <div className="cart-product-details">
+                            <h3>{item.title}</h3>
+
+                            {/* 👇 ACA MOSTRAMOS HORMAS / KG SIN ROMPER CSS */}
+                            <p style={{ fontSize: 13, opacity: 0.8 }}>
+                              {item.quantity} {isPesado ? "Hormas" : "Unidades"}
+                              {isPesado && cap > 0 && (
+                                <> (≈ {realKg.toFixed(2)} kg)</>
+                              )}
+                            </p>
+
+                            <button
+                              className="remove-button"
+                              onClick={() => removeItem(item.id)}
+                            >
+                              Borrar
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* PRECIO */}
+                        <p className="price">
+                          ${item.price.toFixed(2)}
+                          {isPesado && " / kg"}
+                        </p>
+
+                        {/* CANTIDAD */}
+                        <div className="quantity-container">
+                          <div>
+                            <button onClick={() => updateQuantity(item.id, -1)}>
+                              -
+                            </button>
+                            <span>{item.quantity}</span>
+                            <button onClick={() => updateQuantity(item.id, 1)}>
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* TOTAL */}
+                        <p className="total">
+                          ${getItemTotal(item).toFixed(2)}
+                        </p>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
+
               <div className="cart-summary">
                 <div className="cart-summary-subcont">
                   <p>

@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../types";
 import { Alert } from "react-bootstrap";
 import "./CartDetail.css";
-import BackIcon from "@mui/icons-material/ArrowBack";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 
 interface CartItem {
@@ -13,6 +12,8 @@ interface CartItem {
   image: string;
   quantity: number;
   price: number;
+  cap?: number;
+  typeOfFractionation?: "Unitario" | "Pesado" | "No";
 }
 
 interface ShippingData {
@@ -20,11 +21,11 @@ interface ShippingData {
   firstName: string;
   lastName: string;
   email: string;
-  address: string; // Usando solo address
+  address: string;
   phone: string;
   comments?: string;
-  dni?: string; // Agregado para DNI
-  alias?: string; // Agregado para alias
+  dni?: string;
+  alias?: string;
 }
 
 export default function CartDetail() {
@@ -32,7 +33,6 @@ export default function CartDetail() {
   const { userInfo } = useSelector((state: RootState) => state.auth);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [total, setTotal] = useState("0");
   const [error, setError] = useState("");
 
   const [shippingData, setShippingData] = useState<ShippingData>({
@@ -43,71 +43,45 @@ export default function CartDetail() {
     address: "",
     phone: "",
     comments: "",
-    dni: "", // Inicializado como vacío
-    alias: "", // Inicializado como vacío
+    dni: "",
+    alias: "",
   });
 
   useEffect(() => {
     const cartData = localStorage.getItem("cart");
-    const totalData = localStorage.getItem("total");
-
     if (cartData) setCartItems(JSON.parse(cartData));
-    if (totalData) setTotal(totalData);
 
     if (userInfo) {
-      console.log("UserInfo:", userInfo);
-
-      // Intenta obtener la dirección de diferentes maneras
-      let addressValue = "";
-
-      if (userInfo.address) {
-        // Si existe directamente en userInfo
-        addressValue = userInfo.address;
-      } else if (userInfo._id) {
-        // Si tenemos un ID de usuario, podríamos intentar obtener los datos actualizados
-        // desde el backend (esto requeriría una API adicional)
-        console.log("El campo address no está disponible en userInfo");
-
-        // Alternativa: intentar recuperarlo del localStorage si se guardó previamente
-        const savedShippingData = localStorage.getItem("shippingData");
-        if (savedShippingData) {
-          try {
-            const parsedData = JSON.parse(savedShippingData);
-            if (parsedData.address) {
-              addressValue = parsedData.address;
-              console.log(
-                "Usando dirección guardada previamente:",
-                addressValue
-              );
-            }
-          } catch (err) {
-            console.error("Error al parsear shippingData guardado:", err);
-          }
-        }
-      }
-
       setShippingData({
         username: userInfo.username || "",
         firstName: userInfo.firstName || "",
         lastName: userInfo.lastName || "",
         email: userInfo.email || "",
-        address: addressValue,
+        address: userInfo.address || "",
         phone: userInfo.phone || "",
         comments: "",
-        dni: userInfo.dni || "", // Asignar el DNI si está disponible
-        alias: userInfo.alias || "", // Asignar el alias si está disponible
+        dni: userInfo.dni || "",
+        alias: userInfo.alias || "",
       });
     }
   }, [userInfo]);
 
+  const calculateSubtotal = () => {
+    return cartItems.reduce((acc, item) => {
+      if (item.typeOfFractionation === "Pesado" && item.cap) {
+        return acc + item.price * item.cap * item.quantity;
+      }
+      return acc + item.price * item.quantity;
+    }, 0);
+  };
+
+  const subtotal = calculateSubtotal().toFixed(2);
+
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setShippingData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setShippingData((prev) => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
@@ -121,31 +95,16 @@ export default function CartDetail() {
       setError("Por favor, complete todos los campos obligatorios");
       return false;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(shippingData.email)) {
-      setError("Por favor, ingrese un email válido");
-      return false;
-    }
-
-    const phoneRegex = /^\d{10,15}$/;
-    if (!phoneRegex.test(shippingData.phone.replace(/\D/g, ""))) {
-      setError("Por favor, ingrese un número de teléfono válido");
-      return false;
-    }
-
     return true;
   };
 
   const handleGoToShipping = () => {
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     localStorage.setItem("shippingData", JSON.stringify(shippingData));
+    localStorage.setItem("total", subtotal);
     navigate("/editarpedido");
   };
-  console.log("ShippingData:", shippingData);
+
   return (
     <div className="cart-detail-full-container">
       <div className="cartdetail-container-1">
@@ -157,9 +116,11 @@ export default function CartDetail() {
             ]}
           />
         </div>
+
         <div className="red-underline">
           <h1>DETALLES DEL PEDIDO</h1>
         </div>
+
         <div className="cartdetail-container">
           <div>
             <div className="cartdetail-leftcolumn">
@@ -173,16 +134,12 @@ export default function CartDetail() {
                   placeholder="Email"
                   value={shippingData.email}
                   onChange={handleInputChange}
-                  required
                 />
-                <label className="cartdetail-checkbox">
-                  <input type="checkbox" className="checkbox-input" />
-                  <span>Quiero recibir ofertas por email</span>
-                </label>
               </fieldset>
 
               <fieldset className="cartdetail-form">
                 <legend>Datos de envío</legend>
+
                 <div className="cartdetail-row">
                   <input
                     type="text"
@@ -190,7 +147,6 @@ export default function CartDetail() {
                     placeholder="Nombre"
                     value={shippingData.firstName}
                     onChange={handleInputChange}
-                    required
                   />
                   <input
                     type="text"
@@ -198,18 +154,15 @@ export default function CartDetail() {
                     placeholder="Apellido"
                     value={shippingData.lastName}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
 
-                {/* Único campo de dirección */}
                 <input
                   type="text"
                   name="address"
                   placeholder="Dirección completa"
                   value={shippingData.address}
                   onChange={handleInputChange}
-                  required
                 />
 
                 <input
@@ -218,8 +171,8 @@ export default function CartDetail() {
                   placeholder="Teléfono"
                   value={shippingData.phone}
                   onChange={handleInputChange}
-                  required
                 />
+
                 <input
                   type="text"
                   name="comments"
@@ -232,48 +185,72 @@ export default function CartDetail() {
 
             <div className="cartdetail-rightcolumn">
               <h2>Detalle del Pedido</h2>
+
               <ul className="cartdetail-items">
                 {cartItems.map((item) => {
-                  const price = parseFloat(item.price.toString());
-                  const formattedPrice = !isNaN(price)
-                    ? price.toFixed(2)
-                    : "0.00";
+                  const isPesado = item.typeOfFractionation === "Pesado";
+                  const kgTotales =
+                    isPesado && item.cap ? item.cap * item.quantity : null;
+
+                  const subtotalProducto =
+                    isPesado && kgTotales
+                      ? item.price * kgTotales
+                      : item.price * item.quantity;
+
                   return (
                     <li key={item.id} className="cartdetail-item">
                       <img src={item.image} alt={item.title} />
                       <div>
                         <h3>{item.title}</h3>
-                        <p>$ {formattedPrice}</p>
+
+                        {!isPesado && (
+                          <>
+                            <p>${item.price.toFixed(2)}</p>
+                            <p>
+                              {item.quantity} unidades · Subtotal $
+                              {subtotalProducto.toFixed(2)}
+                            </p>
+                          </>
+                        )}
+
+                        {isPesado && kgTotales && (
+                          <>
+                            <p>${item.price.toFixed(2)} / kg</p>
+                            <p>
+                              {item.quantity} horma
+                              {item.quantity > 1 && "s"} (~
+                              {kgTotales.toFixed(2)} kg)
+                            </p>
+                            <p>
+                              Subtotal producto: ${subtotalProducto.toFixed(2)}
+                            </p>
+                          </>
+                        )}
                       </div>
-                      <p className="cartdetail-quantity">x{item.quantity}</p>
                     </li>
                   );
                 })}
               </ul>
+
               <div className="cartdetail-summary">
-                <div className="cartdetail-coupon">
-                  <input type="text" placeholder="Cupón de descuento" />
-                  <button>Agregar código</button>
-                </div>
-                <hr className="red-line-login" />
                 <div className="cartdetail-totals">
                   <div>
                     <span>Subtotal</span>
-                    <span className="subtotal-span">${total}</span>
+                    <span className="subtotal-span">${subtotal}</span>
                   </div>
                   <div>
                     <span>Envío</span>
                     <span className="free-delivery">Gratis</span>
                   </div>
-                  <hr className="red-line-login" />
                   <div className="cartdetail-total-row">
                     <span>Total</span>
-                    <span>${total}</span>
+                    <span>${subtotal}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
           <div className="cartdetail-buttons">
             <button onClick={handleGoToShipping}>Continuar con el envío</button>
           </div>

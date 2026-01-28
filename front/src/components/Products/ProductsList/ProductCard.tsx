@@ -9,7 +9,11 @@ interface ProductCardProps {
   image?: string;
   description?: string;
   price?: number;
-  priceLists?: Array<{ marginInPercentage?: number }>;
+
+  // 🔥 CAMPOS CLAVE
+  typeOfFractionation?: "No" | "Unitario" | "Pesado";
+  cap?: number;
+
   categoryName: string;
 }
 
@@ -19,7 +23,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   image,
   description,
   price,
-  priceLists,
+  typeOfFractionation,
+  cap,
   categoryName,
 }) => {
   const navigate = useNavigate();
@@ -27,24 +32,31 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [alertMessage, setAlertMessage] = useState("");
   const [alertStatus, setAlertStatus] = useState("");
   const [alertEvent, setAlertEvent] = useState(false);
-  const [imageError, setImageError] = useState(false); // ⬅️ nuevo estado
+  const [imageError, setImageError] = useState(false);
 
   const handleCardClick = () => {
-    if (id) {
-      navigate(`/productos/${id}`, {
-        state: { id, title, image, description, price, categoryName },
-      });
-    } else {
-      console.error("ID del producto no está definido");
-    }
+    if (!id) return;
+
+    navigate(`/productos/${id}`, {
+      state: {
+        id,
+        title,
+        image,
+        description,
+        price,
+        categoryName,
+        typeOfFractionation,
+        cap,
+      },
+    });
   };
 
   const handleAddToCart = () => {
     const cart = localStorage.getItem("cart");
-    let cartItems = cart ? JSON.parse(cart) : [];
+    const cartItems = cart ? JSON.parse(cart) : [];
 
     const existingItemIndex = cartItems.findIndex(
-      (item: any) => item.id === id
+      (item: any) => item.id === id,
     );
 
     if (existingItemIndex !== -1) {
@@ -56,6 +68,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         image: image || "",
         quantity: 1,
         price: price || 0,
+
+        // 🔥 CLAVE PARA TODA LA APP
+        typeOfFractionation: typeOfFractionation || "Unitario",
+        cap: typeOfFractionation === "Pesado" ? Number(cap) || 0 : 1,
       });
     }
 
@@ -94,7 +110,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {!imageError && image ? (
             <img
               src={image}
-              alt={title || "Producto sin nombre"}
+              alt={title || "Producto"}
               className="img-product"
               onError={() => setImageError(true)}
             />
@@ -106,13 +122,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <div className="card-title-product">{title}</div>
       </div>
 
-      {price !== undefined && typeof price === "number" && (
-        <div className="card-price">${price}</div>
+      {price !== undefined && (
+        <div className="card-price">
+          ${price.toFixed(2)}
+          {typeOfFractionation === "Pesado" && " / kg"}
+        </div>
       )}
 
       <button
         onClick={(e) => {
-          e.stopPropagation(); // ⛔ evita que se dispare handleCardClick
+          e.stopPropagation();
           handleAddToCart();
         }}
         className="add-to-cart-btn"
