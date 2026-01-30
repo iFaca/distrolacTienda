@@ -22,7 +22,9 @@ const ProductDetail: React.FC = () => {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
+
+  // 👇 ahora soporta decimales
+  const [quantity, setQuantity] = useState<number>(1);
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -39,7 +41,7 @@ const ProductDetail: React.FC = () => {
         if (!res.ok) throw new Error("Error al traer el producto");
         const data = await res.json();
 
-        // ⚠️ IMPORTANTE: aseguramos que price exista
+        // 👉 aseguramos precio (kg)
         const derivedPrice =
           typeof data.price === "number"
             ? data.price
@@ -62,6 +64,14 @@ const ProductDetail: React.FC = () => {
   const handleAddToCart = () => {
     if (!product) return;
 
+    // 🚨 validación clave para pesados
+    if (isPesado && quantity <= 0) {
+      setAlertMessage("Ingresá una cantidad válida");
+      setAlertStatus("error");
+      setShowAlert(true);
+      return;
+    }
+
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
     const existingIndex = cart.findIndex(
@@ -75,7 +85,7 @@ const ProductDetail: React.FC = () => {
         id: product._id,
         title: product.name,
         image: product.images?.[0],
-        quantity, // hormas o unidades
+        quantity, // hormas o unidades (decimal si pesado)
         price: product.price || 0, // PRECIO POR KG SI ES PESADO
         cap: product.cap, // KG POR HORMA
         typeOfFractionation: product.typeOfFractionation,
@@ -84,9 +94,11 @@ const ProductDetail: React.FC = () => {
 
     localStorage.setItem("cart", JSON.stringify(cart));
     setQuantity(1);
+
     setAlertMessage("Producto agregado al carrito");
     setAlertStatus("success");
     setShowAlert(true);
+
     window.dispatchEvent(new Event("storage"));
   };
 
@@ -134,12 +146,35 @@ const ProductDetail: React.FC = () => {
           <div className="productdetail-buttons-container">
             <div>
               <p>Cantidad ({isPesado ? "Hormas" : "Unidades"})</p>
+
               <div className="productdetail-quantityline">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
-                  -
-                </button>
-                <p>{quantity}</p>
-                <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                {isPesado ? (
+                  <input
+                    type="number"
+                    step={0.1}
+                    value={quantity === 0 ? "" : quantity}
+                    className="quantity-input"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const parsed = value === "" ? 0 : Number(value);
+                      if (isNaN(parsed)) return;
+                      setQuantity(parsed);
+                    }}
+                    onBlur={() => {
+                      if (quantity < 0) setQuantity(0);
+                    }}
+                  />
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    >
+                      -
+                    </button>
+                    <p>{quantity}</p>
+                    <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                  </>
+                )}
               </div>
 
               {isPesado && (

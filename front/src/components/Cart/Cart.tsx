@@ -18,7 +18,9 @@ interface CartItem {
 export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const navigate = useNavigate();
-
+  const handleViewDetails = () => {
+    navigate("/detalledepedido");
+  };
   useEffect(() => {
     try {
       const cartData = localStorage.getItem("cart");
@@ -59,17 +61,16 @@ export default function Cart() {
   };
 
   const updateQuantity = (id: string, amount: number) => {
-    const updatedCart = cartItems.map((item) =>
-      item.id === id
-        ? { ...item, quantity: Math.max(1, item.quantity + amount) }
-        : item,
-    );
+    const updatedCart = cartItems.map((item) => {
+      if (item.id !== id) return item;
+
+      const newQuantity = Math.max(1, item.quantity + amount);
+
+      return { ...item, quantity: newQuantity };
+    });
+
     setCartItems(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-  };
-
-  const handleViewDetails = () => {
-    navigate("/detalledepedido");
   };
 
   return (
@@ -164,13 +165,78 @@ export default function Cart() {
                         {/* CANTIDAD */}
                         <div className="quantity-container">
                           <div>
-                            <button onClick={() => updateQuantity(item.id, -1)}>
-                              -
-                            </button>
-                            <span>{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, 1)}>
-                              +
-                            </button>
+                            {isPesado ? (
+                              <input
+                                type="number"
+                                step={0.1}
+                                value={item.quantity === 0 ? "" : item.quantity}
+                                className="quantity-input"
+                                onChange={(e) => {
+                                  const value = e.target.value;
+
+                                  // 👉 permitimos vacío mientras escribe
+                                  const parsed =
+                                    value === "" ? 0 : Number(value);
+
+                                  if (isNaN(parsed)) return;
+
+                                  const updatedCart = cartItems.map(
+                                    (cartItem) =>
+                                      cartItem.id === item.id
+                                        ? { ...cartItem, quantity: parsed }
+                                        : cartItem,
+                                  );
+
+                                  setCartItems(updatedCart);
+                                  localStorage.setItem(
+                                    "cart",
+                                    JSON.stringify(updatedCart),
+                                  );
+                                }}
+                                onBlur={() => {
+                                  // 👉 si queda vacío o negativo, normalizamos a 0
+                                  if (
+                                    item.quantity < 0 ||
+                                    item.quantity === null
+                                  ) {
+                                    const updatedCart = cartItems.map(
+                                      (cartItem) =>
+                                        cartItem.id === item.id
+                                          ? { ...cartItem, quantity: 0 }
+                                          : cartItem,
+                                    );
+
+                                    setCartItems(updatedCart);
+                                    localStorage.setItem(
+                                      "cart",
+                                      JSON.stringify(updatedCart),
+                                    );
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    if (item.quantity - 1 <= 0) {
+                                      removeItem(item.id);
+                                    } else {
+                                      updateQuantity(item.id, -1);
+                                    }
+                                  }}
+                                >
+                                  -
+                                </button>
+
+                                <span>{item.quantity}</span>
+
+                                <button
+                                  onClick={() => updateQuantity(item.id, 1)}
+                                >
+                                  +
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
 

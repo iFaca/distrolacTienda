@@ -34,7 +34,9 @@
 
 .cart-title-container > h3 {
   color: var(--rojodistro, #c04030);
-  font-feature-settings: "liga" off, "clig" off;
+  font-feature-settings:
+    "liga" off,
+    "clig" off;
   font-family: Roboto;
   font-size: 18px;
   font-weight: 400;
@@ -243,6 +245,16 @@
 .detail-button:hover {
   background-color: #c9302c;
 }
+.quantity-input {
+  width: 60px;
+  border: none;
+  outline: none;
+  text-align: center;
+  font-family: Roboto;
+  font-size: 18px;
+  color: #1d252c;
+  background: transparent;
+}
 
 .remove-button {
   width: 60px;
@@ -314,7 +326,7 @@
     padding: 0px;
   }
 
-  .cart-list-headers > span:first-child{
+  .cart-list-headers > span:first-child {
     flex: 1 !important;
   }
 
