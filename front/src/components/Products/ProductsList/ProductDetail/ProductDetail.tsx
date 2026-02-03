@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import "./ProductDetail.css";
 import Alert from "../../../Alert/Alert";
 import Breadcrums from "../../../Breadcrumbs/Breadcrums";
-
+const BACKEND_URI = import.meta.env.VITE_BACK_APP_URI;
 interface Product {
   _id: string;
   name: string;
@@ -37,7 +37,7 @@ const ProductDetail: React.FC = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/products/${id}`);
+        const res = await fetch(`${BACKEND_URI}/products/${id}`);
         if (!res.ok) throw new Error("Error al traer el producto");
         const data = await res.json();
 
