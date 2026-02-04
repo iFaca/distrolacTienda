@@ -19,6 +19,7 @@ import { LoadScript } from "@react-google-maps/api";
 import CardDelivery from "./components/CardDerlivery/CardDelivery";
 import Brands from "./components/Brands/Brands";
 import Offers from "./components/Products/Offers/Offers"; // <--- 1. IMPORTA EL NUEVO COMPONENTE
+import WhatsAppButton from "./components/whatsappButton/WhatsAppButton";
 
 function App() {
   const location = useLocation();
@@ -27,7 +28,13 @@ function App() {
   return (
     <div className="app-container">
       <main className="main-content">
-        {!hideNavAndFooter && <NavBar />}
+        {!hideNavAndFooter && (
+          <>
+            <NavBar />
+            <WhatsAppButton />
+          </>
+        )}
+
         <Routes>
           <Route
             path="/"
@@ -41,7 +48,7 @@ function App() {
               </>
             }
           />
-          {/* ... resto de tus rutas ... */}
+
           <Route path="/productos" element={<ProductsList />} />
           <Route path="/productos/:id" element={<ProductDetail />} />
           <Route path="/sobrenosotros" element={<About />} />
