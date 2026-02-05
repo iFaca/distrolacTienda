@@ -38,6 +38,7 @@ interface Product {
   description?: string;
   priceLists?: PriceList[];
   offer?: boolean;
+  state?: boolean;
 
   // 🔥 CLAVE PARA PESADOS
   typeOfFractionation?: "No" | "Unitario" | "Pesado";
@@ -67,7 +68,10 @@ const ProductList: React.FC = () => {
       try {
         setLoading(true);
         const response = await axios.get(`${BACKEND_URI}/products`);
-        setAllProducts(response.data || []);
+        const filteredProducts: Product[] = response.data.filter(
+          (product: Product) => product.state === true,
+        );
+        setAllProducts(filteredProducts);
       } catch (error) {
         console.error("Error al traer productos:", error);
         setError("No se pudieron cargar los productos.");
@@ -230,29 +234,51 @@ const ProductList: React.FC = () => {
               ))}
 
               {subCategoryItems.length > 0 && (
-                <div className="product-grid-items">
-                  {subCategoryItems.map((product) => {
-                    const salePrice =
-                      product.priceLists?.at(-1)?.salePrice || 0;
-
-                    return (
-                      <ProductCard
-                        key={product._id}
-                        id={product._id}
-                        title={product.name}
-                        price={salePrice}
-                        image={
-                          product.images?.[0] || "/imagen-no-disponible.png"
-                        }
-                        description={product.description || ""}
-                        categoryName={itemSelected || ""}
-                        // 🔥 FIX DEFINITIVO
-                        typeOfFractionation={product.typeOfFractionation}
-                        cap={product.cap}
+                <>
+                  <div className="search-products-subcategory">
+                    <div className="search-bar-products">
+                      <input
+                        type="text"
+                        placeholder="Buscar productos..."
+                        value={inputFilterProduct}
+                        onChange={(e) => setInputFilterProduct(e.target.value)}
+                        className="search-input-products"
                       />
-                    );
-                  })}
-                </div>
+                      <div className="search-icon-container">
+                        <SearchIcon className="search-icon-products" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="product-grid-items">
+                    {subCategoryItems
+                      .filter((product) => {
+                        return product.name
+                          .toLowerCase()
+                          .includes(inputFilterProduct.toLowerCase());
+                      })
+                      .map((product) => {
+                        const salePrice =
+                          product.priceLists?.at(-1)?.salePrice || 0;
+
+                        return (
+                          <ProductCard
+                            key={product._id}
+                            id={product._id}
+                            title={product.name}
+                            price={salePrice}
+                            image={
+                              product.images?.[0] || "/imagen-no-disponible.png"
+                            }
+                            description={product.description || ""}
+                            categoryName={itemSelected || ""}
+                            // 🔥 FIX DEFINITIVO
+                            typeOfFractionation={product.typeOfFractionation}
+                            cap={product.cap}
+                          />
+                        );
+                      })}
+                  </div>
+                </>
               )}
             </div>
           </div>

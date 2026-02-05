@@ -18,6 +18,7 @@ interface Product {
   priceLists?: Array<{
     salePrice: number;
   }>;
+  state?: boolean;
 }
 
 const Offers: React.FC = () => {
@@ -33,7 +34,7 @@ const Offers: React.FC = () => {
         const response = await axios.get(`${BACKEND_URI}/products`);
         const allProducts: Product[] = response.data || [];
         const filteredProducts = allProducts.filter(
-          (product) => product.offer === true
+          (product) => product.offer === true && product.state === true,
         );
         setOfferProducts(filteredProducts);
       } catch (err) {
