@@ -8,6 +8,18 @@ import { setCredentials } from "../slices/authSlice";
 import "./Login.css";
 import BackIcon from "@mui/icons-material/ArrowBack";
 import Logo from "../../assets/logotienda.png";
+
+/* =====================================================
+   🔽 VALIDACIONES NUEVAS (NO EXISTÍAN ANTES)
+===================================================== */
+const usernameRegex = /^(?=.*[a-zA-Z])[a-zA-Z0-9]{4,20}$/;
+const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$/;
+const phoneRegex = /^\d{8,15}$/;
+const dniRegex = /^\d{8}$/;
+/* =====================================================
+   🔼 FIN VALIDACIONES NUEVAS
+===================================================== */
+
 interface LoginFormData {
   email: string;
   password: string;
@@ -27,14 +39,14 @@ interface RegisterFormData {
 }
 
 const Login: React.FC = () => {
-  // Estados Login
-  const [usernameOrEmail, setUsernameOrEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [validated, setValidated] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  // ================= LOGIN =================
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [validated, setValidated] = useState(false);
+  const [error, setError] = useState("");
 
-  // Estados Registro
+  // ================= REGISTER =================
   const [registerData, setRegisterData] = useState<RegisterFormData>({
     username: "",
     firstName: "",
@@ -47,13 +59,13 @@ const Login: React.FC = () => {
     phone: "",
     alias: "",
   });
-  const [showRegisterPassword, setShowRegisterPassword] =
-    useState<boolean>(false);
-  const [registerValidated, setRegisterValidated] = useState<boolean>(false);
-  const [registerError, setRegisterError] = useState<string>("");
 
-  // Estados para mapa
-  const [showMapModal, setShowMapModal] = useState<boolean>(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [registerValidated, setRegisterValidated] = useState(false);
+  const [registerError, setRegisterError] = useState("");
+
+  // ================= MAPA =================
+  const [showMapModal, setShowMapModal] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
   const [autocomplete, setAutocomplete] =
@@ -68,7 +80,7 @@ const Login: React.FC = () => {
     libraries: ["places"],
   });
 
-  // Redux y navegación
+  // ================= REDUX =================
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
@@ -76,6 +88,8 @@ const Login: React.FC = () => {
 
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
+
+  // ================= MAP EFFECT =================
   useEffect(() => {
     if (!isLoaded || !showMapModal || !mapRef.current) return;
 
@@ -95,14 +109,12 @@ const Login: React.FC = () => {
     setMap(mapInstance);
     setMarker(markerInstance);
 
-    // Si ya hay una dirección previa:
     if (registerData.address) {
       const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ address: registerData.address }, (results, status) => {
-        if (status === "OK" && results && results[0]) {
-          const location = results[0].geometry.location;
-          mapInstance.setCenter(location);
-          markerInstance.setPosition(location);
+        if (status === "OK" && results?.[0]) {
+          mapInstance.setCenter(results[0].geometry.location);
+          markerInstance.setPosition(results[0].geometry.location);
         }
       });
     }
@@ -111,15 +123,17 @@ const Login: React.FC = () => {
       const position = markerInstance.getPosition();
       if (!position) return;
 
-      const geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ location: position }, (results, status) => {
-        if (status === "OK" && results && results[0]) {
-          setRegisterData((prev) => ({
-            ...prev,
-            address: results[0].formatted_address,
-          }));
-        }
-      });
+      new google.maps.Geocoder().geocode(
+        { location: position },
+        (results, status) => {
+          if (status === "OK" && results?.[0]) {
+            setRegisterData((prev) => ({
+              ...prev,
+              address: results[0].formatted_address,
+            }));
+          }
+        },
+      );
     });
 
     return () => {
@@ -129,62 +143,126 @@ const Login: React.FC = () => {
     };
   }, [isLoaded, showMapModal]);
 
-  // --- HANDLERS LOGIN ---
+  // ================= LOGIN HANDLER =================
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+
     const form = e.currentTarget;
-    if (form.checkValidity() === false) {
+    if (!form.checkValidity()) {
       e.stopPropagation();
       setValidated(true);
       return;
     }
+
     setValidated(true);
 
     try {
-      const loginData: LoginFormData = { email: usernameOrEmail, password };
-      const res = await login(loginData).unwrap();
+      const res = await login({
+        email: usernameOrEmail,
+        password,
+      }).unwrap();
       dispatch(setCredentials({ ...res }));
       navigate("/");
     } catch (err: any) {
-      setError(err?.data?.message || err?.error || "Error al iniciar sesión.");
+      setError(err?.data?.message || "Error al iniciar sesión.");
     }
   };
 
-  // --- HANDLERS REGISTER ---
+  // ================= REGISTER HANDLER =================
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setRegisterError("");
-    const form = e.currentTarget;
-
-    if (!registerData.address) {
-      setRegisterError("La dirección es requerida");
-      return;
-    }
-    if (!/^\d{8}$/.test(registerData.dni)) {
-      setRegisterError("El DNI debe tener 8 dígitos");
-      return;
-    }
-    if (form.checkValidity() === false) {
-      e.stopPropagation();
-      setRegisterValidated(true);
-      return;
-    }
     setRegisterValidated(true);
 
-    if (registerData.password !== registerData.confirmPassword) {
-      setRegisterError("Las contraseñas no coinciden");
+    /* =====================================================
+   🔽 VALIDACIONES NUEVAS EN SUBMIT
+===================================================== */
+
+    // USERNAME
+    if (!registerData.username.trim()) {
+      setRegisterError("El nombre de usuario es obligatorio.");
       return;
     }
+
+    if (!usernameRegex.test(registerData.username)) {
+      setRegisterError(
+        "El nombre de usuario debe tener entre 4 y 20 caracteres y al menos una letra.",
+      );
+      return;
+    }
+
+    // NOMBRE
+    if (!registerData.firstName.trim()) {
+      setRegisterError("El nombre es obligatorio.");
+      return;
+    }
+
+    if (!nameRegex.test(registerData.firstName)) {
+      setRegisterError("El nombre solo puede contener letras.");
+      return;
+    }
+
+    // APELLIDO
+    if (!registerData.lastName.trim()) {
+      setRegisterError("El apellido es obligatorio.");
+      return;
+    }
+
+    if (!nameRegex.test(registerData.lastName)) {
+      setRegisterError("El apellido solo puede contener letras.");
+      return;
+    }
+
+    // DNI
+    if (!registerData.dni.trim()) {
+      setRegisterError("El DNI es obligatorio.");
+      return;
+    }
+
+    if (!dniRegex.test(registerData.dni)) {
+      setRegisterError("El DNI debe tener exactamente 8 dígitos.");
+      return;
+    }
+
+    // TELÉFONO
+    if (!registerData.phone.trim()) {
+      setRegisterError("El teléfono es obligatorio.");
+      return;
+    }
+
+    if (!phoneRegex.test(registerData.phone)) {
+      setRegisterError("Ingrese un teléfono válido.");
+      return;
+    }
+
+    // DIRECCIÓN
+    if (!registerData.address) {
+      setRegisterError("La dirección es requerida.");
+      return;
+    }
+
+    // CONTRASEÑAS
+    if (!registerData.password || !registerData.confirmPassword) {
+      setRegisterError("Debe completar ambas contraseñas.");
+      return;
+    }
+
+    if (registerData.password !== registerData.confirmPassword) {
+      setRegisterError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    /* =====================================================
+   🔼 FIN VALIDACIONES NUEVAS
+===================================================== */
 
     try {
       const res = await register(registerData).unwrap();
       dispatch(setCredentials({ ...res }));
       navigate("/");
     } catch (err: any) {
-      setRegisterError(
-        err?.data?.message || err?.error || "Error al crear la cuenta."
-      );
+      setRegisterError(err?.data?.message || "Error al crear la cuenta.");
     }
   };
 
@@ -247,15 +325,13 @@ const Login: React.FC = () => {
                     value={registerData.username}
                     onChange={handleRegisterChange}
                     required
+                    pattern="^(?=.*[a-zA-Z])[a-zA-Z0-9]{4,20}$"
                     disabled={isRegisterLoading}
                     aria-describedby="registerUsernameFeedback"
                     className="input-form"
                   />
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerUsernameFeedback"
-                  >
-                    Elija un nombre de usuario.
+                  <Form.Control.Feedback type="invalid">
+                    Debe tener entre 4 y 20 caracteres y al menos una letra.
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
@@ -310,14 +386,17 @@ const Login: React.FC = () => {
                   <Form.Control
                     type={showRegisterPassword ? "text" : "password"}
                     name="confirmPassword"
-                    placeholder="Confirmar contraseña"
                     value={registerData.confirmPassword}
                     onChange={handleRegisterChange}
                     required
                     disabled={isRegisterLoading}
-                    aria-describedby="registerConfirmPasswordFeedback"
+                    isInvalid={
+                      registerValidated &&
+                      registerData.password !== registerData.confirmPassword
+                    }
                     className="input-form"
                   />
+
                   <Form.Control.Feedback
                     type="invalid"
                     id="registerConfirmPasswordFeedback"
@@ -347,6 +426,7 @@ const Login: React.FC = () => {
                         value={registerData.firstName}
                         onChange={handleRegisterChange}
                         required
+                        pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$"
                         disabled={isRegisterLoading}
                         className="input-form"
                       />
@@ -376,6 +456,7 @@ const Login: React.FC = () => {
                       value={registerData.phone}
                       onChange={handleRegisterChange}
                       required
+                      pattern="^\d{8,15}$"
                       disabled={isRegisterLoading}
                       className="input-form"
                     />
@@ -412,7 +493,6 @@ const Login: React.FC = () => {
                           <Form.Control
                             type="text"
                             name="address"
-                            id="address-input"
                             placeholder="Ingresa o busca tu dirección"
                             value={registerData.address}
                             onChange={handleRegisterChange}
