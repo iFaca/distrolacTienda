@@ -321,6 +321,16 @@
   justify-content: center;
   width: 40px;
 }
+
+.search-products-subcategory {
+  display: flex;
+  margin-top: 20px;
+  font-weight: 600;
+  text-align: start;
+  width: 100%;
+  justify-content: flex-end;
+}
+
 @media (max-width: 480px) {
   .card-product {
     width: 100%; /* 1 card por fila */
