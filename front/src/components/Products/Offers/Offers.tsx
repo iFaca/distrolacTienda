@@ -11,14 +11,18 @@ interface Product {
   name: string;
   images?: string[];
   category?: { _id: string; name: string };
-  details?: string;
   description?: string;
   currentStock?: number;
   offer?: boolean;
+  state?: boolean;
+
+  // 🔑 CLAVE PARA EL CARRITO
+  typeOfFractionation?: "No" | "Unitario" | "Pesado";
+  cap?: number;
+
   priceLists?: Array<{
     salePrice: number;
   }>;
-  state?: boolean;
 }
 
 const Offers: React.FC = () => {
@@ -33,9 +37,11 @@ const Offers: React.FC = () => {
       try {
         const response = await axios.get(`${BACKEND_URI}/products`);
         const allProducts: Product[] = response.data || [];
+
         const filteredProducts = allProducts.filter(
           (product) => product.offer === true && product.state === true,
         );
+
         setOfferProducts(filteredProducts);
       } catch (err) {
         console.error("Error al traer los productos en oferta:", err);
@@ -44,16 +50,19 @@ const Offers: React.FC = () => {
         setLoading(false);
       }
     };
+
     fetchOfferProducts();
   }, []);
 
   if (loading) return <Spinner />;
+
   if (error)
     return (
       <div style={{ textAlign: "center", color: "red", margin: "20px" }}>
         {error}
       </div>
     );
+
   if (offerProducts.length === 0) return null;
 
   return (
@@ -78,12 +87,15 @@ const Offers: React.FC = () => {
                 title={product.name}
                 price={
                   product.priceLists && product.priceLists.length > 0
-                    ? product.priceLists.at(-1)?.salePrice // último precio si existe
+                    ? product.priceLists.at(-1)?.salePrice
                     : undefined
                 }
                 image={product.images?.[0] || "/imagen-no-disponible.png"}
                 description={product.description || ""}
                 categoryName={product.category?.name || ""}
+                // 🔑 DATOS QUE FALTABAN
+                typeOfFractionation={product.typeOfFractionation}
+                cap={product.cap}
               />
             ))}
           </div>
