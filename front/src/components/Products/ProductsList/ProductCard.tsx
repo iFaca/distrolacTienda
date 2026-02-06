@@ -70,8 +70,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
         price: price || 0,
 
         // 🔥 CLAVE PARA TODA LA APP
-        typeOfFractionation: typeOfFractionation || "Unitario",
-        cap: typeOfFractionation === "Pesado" ? Number(cap) || 0 : 1,
+        typeOfFractionation,
+        cap: typeOfFractionation === "Pesado" ? Number(cap) || 0 : undefined,
       });
     }
 
