@@ -12,13 +12,13 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   isSelected,
 }) => {
   return (
-    <div
-      className={isSelected ? "card-category-selected" : "card-category"}
+    <button
+      type="button"
       onClick={onClick}
-      data-content={title}
+      className={`category-item ${isSelected ? "active" : ""}`}
     >
-      <div className="card-title">{title}</div>
-    </div>
+      {title}
+    </button>
   );
 };
 

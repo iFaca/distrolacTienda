@@ -403,3 +403,161 @@
     font-size: 14px;
   }
 }
+
+/* =========================
+   NUEVO LAYOUT SIDEBAR
+========================= */
+
+.products-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 32px;
+  width: 100%;
+  align-items: start;
+}
+
+.categories-sidebar {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: fit-content;
+}
+
+.sidebar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+.products-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.empty-state {
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  color: #666;
+  text-align: left;
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 900px) {
+  .back-to-categories-btn {
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .products-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Sidebar en mobile: se vuelve barra horizontal */
+  .categories-sidebar {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+
+  /* Ocultamos el título "SUBCATEGORÍAS" para que no ocupe lugar */
+  .sidebar-title {
+    display: none;
+  }
+
+  /* Los items pasan a "chips" */
+  .category-item {
+    width: auto; /* ya no 100% */
+    white-space: nowrap; /* no se cortan */
+    padding: 8px 12px;
+    border: 1px solid #e7e7e7;
+    background: #fff;
+    border-radius: 999px; /* pill */
+    font-size: 13px;
+    scroll-snap-align: start;
+  }
+
+  .category-item:hover {
+    background: #f5f5f5;
+  }
+
+  .category-item.active {
+    border-color: #bf4a3f;
+    background: #bf4a3f;
+    color: #fff;
+  }
+
+  /* Header: que no se estire raro */
+  .header-products-list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-bar-products {
+    width: 100%;
+  }
+
+  .search-input-products {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+/* =========================
+   CATEGORY ITEM (SIDEBAR)
+========================= */
+
+.category-item {
+  all: unset;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #333;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  width: 100%;
+}
+
+.category-item:hover {
+  background-color: #f0f0f0;
+}
+
+.category-item.active {
+  background-color: #bf4a3f;
+  color: #fff;
+  font-weight: 500;
+}
+.back-to-categories-btn {
+  all: unset;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 14px;
+  font-weight: 500;
+  color: #bf4a3f;
+
+  margin-bottom: 12px;
+}
+
+.back-to-categories-btn:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
