@@ -20,7 +20,7 @@ import CardDelivery from "./components/CardDerlivery/CardDelivery";
 import Brands from "./components/Brands/Brands";
 import Offers from "./components/Products/Offers/Offers"; // <--- 1. IMPORTA EL NUEVO COMPONENTE
 import WhatsAppButton from "./components/whatsappButton/WhatsAppButton";
-
+import HomeSearch from "./components/HomeSearch/HomeSearch";
 function App() {
   const location = useLocation();
   const hideNavAndFooter = location.pathname === "/login";
@@ -41,6 +41,7 @@ function App() {
             element={
               <>
                 <Header />
+                <HomeSearch />
                 <Offers /> {/* <--- 2. AÑADE EL COMPONENTE AQUÍ */}
                 <Categories />
                 <CardDelivery />
