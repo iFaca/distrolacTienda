@@ -24,13 +24,23 @@ interface ShippingData {
   address: string;
   phone: string;
   comments?: string;
-  dni?: string;
-  alias?: string;
+  dni: string;
+  alias: string;
 }
+
+const dniRegex = /^\d{8}$/;
 
 export default function CartDetail() {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    if (!userInfo?.token) {
+      navigate("/login?redirect=detalledepedido&reason=checkout", {
+        replace: true,
+      });
+    }
+  }, [userInfo, navigate]);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [error, setError] = useState("");
@@ -77,11 +87,23 @@ export default function CartDetail() {
 
   const subtotal = calculateSubtotal().toFixed(2);
 
+  // 🔹 Input handler mejorado (genera alias automáticamente)
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setShippingData((prev) => ({ ...prev, [name]: value }));
+
+    setShippingData((prev) => {
+      const next = { ...prev, [name]: value };
+
+      if (name === "dni") {
+        const cleaned = value.replace(/\D/g, "");
+        next.dni = cleaned;
+        next.alias = cleaned ? `${cleaned}.distrolac` : "";
+      }
+
+      return next;
+    });
   };
 
   const validateForm = () => {
@@ -90,16 +112,34 @@ export default function CartDetail() {
       !shippingData.address ||
       !shippingData.firstName ||
       !shippingData.lastName ||
-      !shippingData.phone
+      !shippingData.phone ||
+      !shippingData.dni
     ) {
       setError("Por favor, complete todos los campos obligatorios");
       return false;
     }
+
+    if (!dniRegex.test(shippingData.dni)) {
+      setError("El DNI debe tener exactamente 8 dígitos.");
+      return false;
+    }
+
+    if (!shippingData.alias) {
+      setError("No se pudo generar el alias automáticamente.");
+      return false;
+    }
+
     return true;
   };
 
   const handleGoToShipping = () => {
+    if (!userInfo?.token) {
+      navigate("/login?redirect=detalledepedido");
+      return;
+    }
+
     if (!validateForm()) return;
+
     localStorage.setItem("shippingData", JSON.stringify(shippingData));
     localStorage.setItem("total", subtotal);
     navigate("/editarpedido");
@@ -156,6 +196,20 @@ export default function CartDetail() {
                     onChange={handleInputChange}
                   />
                 </div>
+
+                <input
+                  type="text"
+                  name="dni"
+                  placeholder="DNI (8 dígitos)"
+                  value={shippingData.dni}
+                  onChange={handleInputChange}
+                />
+
+                {shippingData.alias && (
+                  <small style={{ opacity: 0.7 }}>
+                    Alias generado: {shippingData.alias}
+                  </small>
+                )}
 
                 <input
                   type="text"
