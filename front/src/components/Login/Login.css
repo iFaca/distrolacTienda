@@ -56,6 +56,16 @@
   justify-content: flex-start;
   align-items: flex-start;
   flex-wrap: wrap;
+  position: relative;
+}
+.checkout-alert-container {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  max-width: 90%;
+  z-index: 10;
 }
 
 .right-container,

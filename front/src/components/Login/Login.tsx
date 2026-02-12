@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Form, Button, Alert, Modal, InputGroup } from "react-bootstrap";
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
@@ -39,6 +39,16 @@ interface RegisterFormData {
 }
 
 const Login: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const params = new URLSearchParams(location.search);
+  const redirect = params.get("redirect");
+  const reason = params.get("reason");
+
+  const [checkoutMessage, setCheckoutMessage] = useState("");
+
   // ================= LOGIN =================
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,14 +90,20 @@ const Login: React.FC = () => {
     libraries: ["places"],
   });
 
-  // ================= REDUX =================
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [register, { isLoading: isRegisterLoading }] = useRegisterMutation();
 
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
+
+  /* 👇 MENSAJE SI VIENE DEL CHECKOUT */
+  useEffect(() => {
+    if (reason === "checkout") {
+      setCheckoutMessage(
+        "Para continuar con la compra debes iniciar sesión o crear una cuenta.",
+      );
+    }
+  }, [reason]);
 
   // ================= MAP EFFECT =================
   useEffect(() => {
@@ -162,8 +178,14 @@ const Login: React.FC = () => {
         email: usernameOrEmail,
         password,
       }).unwrap();
+
       dispatch(setCredentials({ ...res }));
-      navigate("/");
+
+      if (redirect) {
+        navigate(`/${redirect}`, { replace: true });
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       setError(err?.data?.message || "Error al iniciar sesión.");
     }
@@ -175,76 +197,28 @@ const Login: React.FC = () => {
     setRegisterError("");
     setRegisterValidated(true);
 
-    /* =====================================================
-   🔽 VALIDACIONES NUEVAS EN SUBMIT
-===================================================== */
-
-    // USERNAME
-    if (!registerData.username.trim()) {
-      setRegisterError("El nombre de usuario es obligatorio.");
-      return;
-    }
-
     if (!usernameRegex.test(registerData.username)) {
-      setRegisterError(
-        "El nombre de usuario debe tener entre 4 y 20 caracteres y al menos una letra.",
-      );
-      return;
-    }
-
-    // NOMBRE
-    if (!registerData.firstName.trim()) {
-      setRegisterError("El nombre es obligatorio.");
+      setRegisterError("Nombre de usuario inválido.");
       return;
     }
 
     if (!nameRegex.test(registerData.firstName)) {
-      setRegisterError("El nombre solo puede contener letras.");
-      return;
-    }
-
-    // APELLIDO
-    if (!registerData.lastName.trim()) {
-      setRegisterError("El apellido es obligatorio.");
+      setRegisterError("Nombre inválido.");
       return;
     }
 
     if (!nameRegex.test(registerData.lastName)) {
-      setRegisterError("El apellido solo puede contener letras.");
-      return;
-    }
-
-    // DNI
-    if (!registerData.dni.trim()) {
-      setRegisterError("El DNI es obligatorio.");
+      setRegisterError("Apellido inválido.");
       return;
     }
 
     if (!dniRegex.test(registerData.dni)) {
-      setRegisterError("El DNI debe tener exactamente 8 dígitos.");
-      return;
-    }
-
-    // TELÉFONO
-    if (!registerData.phone.trim()) {
-      setRegisterError("El teléfono es obligatorio.");
+      setRegisterError("DNI inválido.");
       return;
     }
 
     if (!phoneRegex.test(registerData.phone)) {
-      setRegisterError("Ingrese un teléfono válido.");
-      return;
-    }
-
-    // DIRECCIÓN
-    if (!registerData.address) {
-      setRegisterError("La dirección es requerida.");
-      return;
-    }
-
-    // CONTRASEÑAS
-    if (!registerData.password || !registerData.confirmPassword) {
-      setRegisterError("Debe completar ambas contraseñas.");
+      setRegisterError("Teléfono inválido.");
       return;
     }
 
@@ -253,14 +227,15 @@ const Login: React.FC = () => {
       return;
     }
 
-    /* =====================================================
-   🔼 FIN VALIDACIONES NUEVAS
-===================================================== */
-
     try {
       const res = await register(registerData).unwrap();
       dispatch(setCredentials({ ...res }));
-      navigate("/");
+
+      if (redirect) {
+        navigate(`/${redirect}`, { replace: true });
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       setRegisterError(err?.data?.message || "Error al crear la cuenta.");
     }
@@ -276,6 +251,12 @@ const Login: React.FC = () => {
   };
   return (
     <div className="login-page">
+      {checkoutMessage && (
+        <div className="checkout-alert-container">
+          <Alert variant="info">{checkoutMessage}</Alert>
+        </div>
+      )}
+
       <div className={showRegister ? "left-container" : "hidden-register"}>
         <div>
           <div className="logo-container">

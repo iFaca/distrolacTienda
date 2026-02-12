@@ -97,6 +97,7 @@ export default function ShippingDetail() {
       return null;
     }
   };
+
   // Cargar datos del localStorage y userInfo al iniciar
   useEffect(() => {
     const storedShippingData = localStorage.getItem("shippingData");
@@ -213,24 +214,33 @@ export default function ShippingDetail() {
 
   const getStoreVendor = async () => {
     try {
-      // Asegúrate de que la URL base sea correcta
       const baseUrl = import.meta.env.VITE_BACK_APP_URI;
       const url = `${baseUrl}/users/store-vendor`;
 
-      console.log("Calling URL:", url); // Para debugging
+      console.log("Calling URL:", url);
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (userInfo?.token) {
+        headers.Authorization = `Bearer ${userInfo.token}`;
+      }
 
       const response = await fetch(url, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${userInfo?.token}`,
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData: any = null;
+        try {
+          errorData = await response.json();
+        } catch {
+          // noop
+        }
         throw new Error(
-          errorData.message || "Error al obtener el vendedor de tienda",
+          errorData?.message || "Error al obtener el vendedor de tienda",
         );
       }
 
@@ -244,14 +254,17 @@ export default function ShippingDetail() {
 
   const getStorePriceList = async (): Promise<PriceList> => {
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (userInfo?.token) {
+        headers.Authorization = `Bearer ${userInfo.token}`;
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_BACK_APP_URI}/price-lists`,
-        {
-          headers: {
-            Authorization: `Bearer ${userInfo?.token}`,
-            "Content-Type": "application/json",
-          },
-        },
+        { headers },
       );
 
       if (!response.ok) {
@@ -285,6 +298,7 @@ export default function ShippingDetail() {
 
     return item.title && item.quantity && item.price && item.image && item.id;
   };
+
   const handleConfirmOrder = async () => {
     if (isSubmitting) return;
 
@@ -311,12 +325,9 @@ export default function ShippingDetail() {
       let streetNumber = "";
 
       if (shippingData.address) {
-        // Intento básico de extraer calle y número
         const addressParts = shippingData.address.split(" ");
         if (addressParts.length >= 2) {
-          // Asumimos que el último elemento es el número
           streetNumber = addressParts.pop() || "";
-          // El resto es la calle
           street = addressParts.join(" ");
         } else {
           street = shippingData.address;
@@ -325,7 +336,7 @@ export default function ShippingDetail() {
 
       const orderData = {
         storeOrder: {
-          user: userInfo._id,
+          user: userInfo?._id || null,
           customerInfo: {
             firstName: shippingData.firstName,
             lastName: shippingData.lastName,
@@ -380,7 +391,7 @@ export default function ShippingDetail() {
           orderDate: new Date().toISOString(),
           delivery: {
             status: "NO ENTREGADO",
-            address: shippingData.address, // Añadir dirección completa aquí
+            address: shippingData.address,
           },
           notes: shippingData.comments || "",
         },
@@ -388,14 +399,19 @@ export default function ShippingDetail() {
 
       console.log("Enviando datos de orden:", orderData);
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (userInfo?.token) {
+        headers.Authorization = `Bearer ${userInfo.token}`;
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_BACK_APP_URI}/store/orders`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userInfo?.token}`,
-          },
+          headers,
           body: JSON.stringify(orderData),
         },
       );
@@ -404,15 +420,13 @@ export default function ShippingDetail() {
         const errorData = await response.json();
         console.error("Error response:", errorData);
 
-        // Manejar errores específicos
         if (errorData.duplicateFields) {
           handleShowAlert("Ya existe un registro similar", "error");
           throw new Error(
-            `Ya existe un registro similar: ${errorData.duplicateFields.join(
-              ", ",
-            )}`,
+            `Ya existe un registro similar: ${errorData.duplicateFields.join(", ")}`,
           );
         }
+
         handleShowAlert("Error al crear la orden", "error");
         throw new Error(
           `Error al crear la orden: ${errorData.message || response.statusText}`,
@@ -425,7 +439,7 @@ export default function ShippingDetail() {
       const commonTemplateParams = {
         to_name: `${shippingData.firstName} ${shippingData.lastName}`,
         customer_phone: shippingData.phone,
-        customer_address: shippingData.address, // Usar dirección completa
+        customer_address: shippingData.address,
         order_details: formatOrderDetails(cartItems),
         order_subtotal: `$${total.toFixed(2)}`,
         order_shipping: "Gratis",

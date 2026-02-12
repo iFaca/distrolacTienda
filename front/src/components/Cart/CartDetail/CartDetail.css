@@ -286,9 +286,10 @@
 }
 
 @media (max-width: 768px) {
-
-  .cartdetail-container-1{
+  .cartdetail-container-1 {
     align-items: center;
   }
-
+  .cartdetail-container {
+    flex-direction: column;
+  }
 }
