@@ -10,15 +10,11 @@ import BackIcon from "@mui/icons-material/ArrowBack";
 import Logo from "../../assets/logotienda.png";
 
 /* =====================================================
-   🔽 VALIDACIONES NUEVAS (NO EXISTÍAN ANTES)
+   VALIDACIONES
 ===================================================== */
-const usernameRegex = /^(?=.*[a-zA-Z])[a-zA-Z0-9]{4,20}$/;
 const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$/;
 const phoneRegex = /^\d{8,15}$/;
 const dniRegex = /^\d{8}$/;
-/* =====================================================
-   🔼 FIN VALIDACIONES NUEVAS
-===================================================== */
 
 interface LoginFormData {
   email: string;
@@ -26,7 +22,7 @@ interface LoginFormData {
 }
 
 interface RegisterFormData {
-  username: string;
+  username: string; // queda en el state pero ya no se pide en el formulario
   firstName: string;
   lastName: string;
   dni: string;
@@ -58,7 +54,7 @@ const Login: React.FC = () => {
 
   // ================= REGISTER =================
   const [registerData, setRegisterData] = useState<RegisterFormData>({
-    username: "",
+    username: "", // ya no se completa en UI, backend lo genera
     firstName: "",
     lastName: "",
     dni: "",
@@ -96,7 +92,7 @@ const Login: React.FC = () => {
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
 
-  /* 👇 MENSAJE SI VIENE DEL CHECKOUT */
+  /* MENSAJE SI VIENE DEL CHECKOUT */
   useEffect(() => {
     if (reason === "checkout") {
       setCheckoutMessage(
@@ -197,11 +193,6 @@ const Login: React.FC = () => {
     setRegisterError("");
     setRegisterValidated(true);
 
-    if (!usernameRegex.test(registerData.username)) {
-      setRegisterError("Nombre de usuario inválido.");
-      return;
-    }
-
     if (!nameRegex.test(registerData.firstName)) {
       setRegisterError("Nombre inválido.");
       return;
@@ -228,7 +219,10 @@ const Login: React.FC = () => {
     }
 
     try {
-      const res = await register(registerData).unwrap();
+      // No enviamos username: el backend lo genera automáticamente
+      const { username: _username, ...payload } = registerData;
+
+      const res = await register(payload as any).unwrap();
       dispatch(setCredentials({ ...res }));
 
       if (redirect) {
@@ -249,6 +243,7 @@ const Login: React.FC = () => {
       ...(name === "dni" ? { alias: `${value}.distrolac` } : {}),
     }));
   };
+
   return (
     <div className="login-page">
       {checkoutMessage && (
@@ -266,10 +261,12 @@ const Login: React.FC = () => {
               className="distro-logo-login"
             />
           </div>
+
           <div className="div-register-container">
             <h1 className="title-auth">Registrarse</h1>
             <hr className="red-line-login" />
             {registerError && <Alert variant="danger">{registerError}</Alert>}
+
             <Form
               noValidate
               validated={registerValidated}
@@ -278,6 +275,7 @@ const Login: React.FC = () => {
             >
               <div>
                 <Form.Group controlId="registerEmail">
+                  <Form.Label className="auth-label">Email</Form.Label>
                   <Form.Control
                     type="email"
                     name="email"
@@ -297,27 +295,10 @@ const Login: React.FC = () => {
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
-              <div>
-                <Form.Group controlId="registerUsername">
-                  <Form.Control
-                    type="text"
-                    name="username"
-                    placeholder="Nombre de usuario"
-                    value={registerData.username}
-                    onChange={handleRegisterChange}
-                    required
-                    pattern="^(?=.*[a-zA-Z])[a-zA-Z0-9]{4,20}$"
-                    disabled={isRegisterLoading}
-                    aria-describedby="registerUsernameFeedback"
-                    className="input-form"
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Debe tener entre 4 y 20 caracteres y al menos una letra.
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
+
               <div>
                 <Form.Group controlId="registerDNI">
+                  <Form.Label className="auth-label">DNI</Form.Label>
                   <Form.Control
                     type="text"
                     name="dni"
@@ -338,8 +319,10 @@ const Login: React.FC = () => {
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
+
               <div>
                 <Form.Group controlId="registerPassword">
+                  <Form.Label className="auth-label">Contraseña</Form.Label>
                   <Form.Control
                     type={showRegisterPassword ? "text" : "password"}
                     name="password"
@@ -362,11 +345,16 @@ const Login: React.FC = () => {
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
+
               <div>
                 <Form.Group controlId="registerConfirmPassword">
+                  <Form.Label className="auth-label">
+                    Confirmar contraseña
+                  </Form.Label>
                   <Form.Control
                     type={showRegisterPassword ? "text" : "password"}
                     name="confirmPassword"
+                    placeholder="Confirmar contraseña"
                     value={registerData.confirmPassword}
                     onChange={handleRegisterChange}
                     required
@@ -375,6 +363,7 @@ const Login: React.FC = () => {
                       registerValidated &&
                       registerData.password !== registerData.confirmPassword
                     }
+                    aria-describedby="registerConfirmPasswordFeedback"
                     className="input-form"
                   />
 
@@ -386,6 +375,7 @@ const Login: React.FC = () => {
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
+
               <Form.Group controlId="registerShowPassword">
                 <Form.Check
                   type="checkbox"
@@ -395,11 +385,14 @@ const Login: React.FC = () => {
                   disabled={isRegisterLoading}
                 />
               </Form.Group>
+
               <div className="delivery-auth">
                 <h1 className="title-auth">Datos del envío</h1>
+
                 <div className="name-lastname-auth">
                   <div>
                     <Form.Group controlId="registerFirstName">
+                      <Form.Label className="auth-label">Nombre</Form.Label>
                       <Form.Control
                         type="text"
                         name="firstName"
@@ -413,8 +406,10 @@ const Login: React.FC = () => {
                       />
                     </Form.Group>
                   </div>
+
                   <div>
                     <Form.Group controlId="registerLastName">
+                      <Form.Label className="auth-label">Apellido</Form.Label>
                       <Form.Control
                         type="text"
                         name="lastName"
@@ -428,8 +423,10 @@ const Login: React.FC = () => {
                     </Form.Group>
                   </div>
                 </div>
+
                 <div>
                   <Form.Group controlId="registerPhone">
+                    <Form.Label className="auth-label">Teléfono</Form.Label>
                     <Form.Control
                       type="text"
                       name="phone"
@@ -443,8 +440,11 @@ const Login: React.FC = () => {
                     />
                   </Form.Group>
                 </div>
+
                 <div>
                   <Form.Group controlId="registerAddress">
+                    <Form.Label className="auth-label">Dirección</Form.Label>
+
                     <InputGroup className="adress-group">
                       {isLoaded ? (
                         <Autocomplete
@@ -457,6 +457,7 @@ const Login: React.FC = () => {
                                   ...prev,
                                   address: place.formatted_address,
                                 }));
+
                                 if (
                                   map &&
                                   marker &&
@@ -503,6 +504,7 @@ const Login: React.FC = () => {
                   </Form.Group>
                 </div>
               </div>
+
               <div className="buttons-container">
                 <div
                   onClick={() => {
@@ -519,6 +521,7 @@ const Login: React.FC = () => {
                     <BackIcon /> Volver
                   </p>
                 </div>
+
                 <Button
                   variant="primary"
                   type="submit"
@@ -539,6 +542,7 @@ const Login: React.FC = () => {
             <h1 className="title-auth">Acceder</h1>
             <hr className="red-line-login" />
             {error && <Alert variant="danger">{error}</Alert>}
+
             <Form
               noValidate
               validated={validated}
@@ -546,9 +550,10 @@ const Login: React.FC = () => {
               className="login-form "
             >
               <Form.Group controlId="loginEmail">
+                <Form.Label className="auth-label">Email o usuario</Form.Label>
                 <Form.Control
-                  type="email"
-                  placeholder="Email"
+                  type="text"
+                  placeholder="Email o usuario"
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   required
@@ -558,6 +563,7 @@ const Login: React.FC = () => {
               </Form.Group>
 
               <Form.Group controlId="loginPassword">
+                <Form.Label className="auth-label">Contraseña</Form.Label>
                 <Form.Control
                   type={showPassword ? "text" : "password"}
                   placeholder="Contraseña"
@@ -578,6 +584,7 @@ const Login: React.FC = () => {
                   disabled={isLoginLoading}
                 />
               </Form.Group>
+
               <div className="login-button-container">
                 <Button
                   variant="primary"
@@ -588,6 +595,7 @@ const Login: React.FC = () => {
                   {isLoginLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
                 </Button>
               </div>
+
               <div className="button-register-container">
                 <hr className="red-line-login" />
                 <a
@@ -615,6 +623,7 @@ const Login: React.FC = () => {
         <Modal.Header closeButton>
           <Modal.Title>Selecciona tu ubicación</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
           <Autocomplete
             onLoad={(instance) => setModalAutocomplete(instance)}
@@ -633,6 +642,7 @@ const Login: React.FC = () => {
           >
             <Form.Control type="text" placeholder="Buscar dirección..." />
           </Autocomplete>
+
           <div
             ref={mapRef}
             style={{
@@ -642,6 +652,7 @@ const Login: React.FC = () => {
             }}
           />
         </Modal.Body>
+
         <Modal.Footer>
           <Button variant="primary" onClick={() => setShowMapModal(false)}>
             Confirmar Ubicación
