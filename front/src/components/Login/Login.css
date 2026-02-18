@@ -15,7 +15,12 @@
 .pac-container {
   z-index: 2000 !important;
 }
-
+.auth-label {
+  display: block;
+  margin: 10px 0 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
 .login--content {
   display: flex;
   flex-direction: column;
