@@ -89,18 +89,41 @@
   vertical-align: middle;
 }
 
-.detail-button {
-  background-color: #fff;
-  border: 1px solid #c04030;
-  color: #c04030 !important;
-  transition: all 0.3s ease;
+.my-orders-container .detail-button {
+  background-color: #fff !important;
+  border: 1px solid #bf4a3f !important;
+  color: #bf4a3f !important;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+  transition: background-color 0.25s ease, border-color 0.25s ease,
+    transform 0.2s ease, box-shadow 0.25s ease;
 }
 
-.detail-button:hover {
+.my-orders-container .detail-button-icon {
+  font-size: 16px;
+}
+
+.my-orders-container .detail-button:hover {
   background-color: #bf4a3f !important;
-  border-color: #a03528;
+  border-color: #bf4a3f !important;
   color: #fff !important;
   transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(191, 74, 63, 0.2);
+}
+
+.my-orders-container .detail-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(191, 74, 63, 0.16);
 }
 
 .order-detail-modal .modal-content {
@@ -179,12 +202,7 @@
   overflow-y: auto;
 }
 
-.detail-button {
-  background-color: #fff !important;
-  border: 1px solid #bf4a3f !important;
-  color: #bf4a3f;
-  height: 40px;
-}
+
 
 .table-responsive{
   width: 100%;
@@ -233,10 +251,173 @@
   margin-top: 20px;
 }
 
+.history-title {
+  letter-spacing: 0;
+}
+
 @media (max-width: 768px) {
+  .orders-table.table-striped > tbody > tr:nth-of-type(odd) > *,
+  .orders-table.table-striped > tbody > tr:nth-of-type(even) > *,
+  .balances-table.table-striped > tbody > tr:nth-of-type(odd) > *,
+  .balances-table.table-striped > tbody > tr:nth-of-type(even) > * {
+    --bs-table-accent-bg: transparent;
+    background-color: transparent !important;
+  }
+
+  .my-orders-container {
+    padding: 14px;
+  }
+
+  .my-orders-container .red-underline {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .btn-orders {
+    width: 100%;
+    max-width: 340px;
+    font-size: 16px;
+    height: 46px;
+  }
+
+  .orders-table,
+  .balances-table {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .orders-table thead,
+  .balances-table thead {
+    display: none;
+  }
+
+  .orders-table tbody,
+  .balances-table tbody,
+  .orders-table tr,
+  .balances-table tr,
+  .orders-table td,
+  .balances-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .orders-table tr,
+  .balances-table tr {
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    background-color: #f3f3f3;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  }
+
+  .orders-table td,
+  .balances-table td {
+    border: none;
+    border-bottom: 1px dashed #efefef;
+    padding: 8px 0;
+    text-align: left !important;
+    display: block;
+    font-size: 14px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    background-color: transparent !important;
+  }
+
+  .orders-table td:last-child,
+  .balances-table td:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .orders-table td::before,
+  .balances-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: #5c5c5c;
+    font-weight: 600;
+  }
+
+  .orders-table td[data-label="Acciones"],
+  .balances-table td[data-label="Acciones"] {
+    display: flex;
+    justify-content: center;
+    border-bottom: none;
+    padding-top: 10px;
+  }
+
+  .orders-table td[data-label="Acciones"]::before,
+  .balances-table td[data-label="Acciones"]::before {
+    display: none;
+  }
+
+  .orders-table td[data-label="Acciones"] .detail-button,
+  .balances-table td[data-label="Acciones"] .detail-button {
+    width: auto;
+    min-width: 146px;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .my-orders-container .cart-title {
+    white-space: nowrap;
+    font-size: clamp(1.35rem, 5.6vw, 1.9rem);
+    line-height: 1.1;
+    display: block;
+    max-width: 100%;
+  }
+
+  .my-orders-container .history-title {
+    font-size: clamp(1.05rem, 4.6vw, 1.38rem);
+    font-weight: 500;
+  }
+
+  .balances-table td {
+    display: grid;
+    grid-template-columns: 122px 1fr;
+    align-items: start;
+    gap: 8px;
+    padding: 7px 0;
+  }
+
+  .balances-table td::before {
+    margin-bottom: 0;
+  }
+
+  .balances-table td[data-label="Acciones"] {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  .balances-table .movement-amount {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+
+  .balances-table .movement-total {
+    color: #1d252c;
+  }
+
+  .order-detail-modal .modal-body {
+    padding: 12px;
+  }
+
+  .order-detail-modal .table-responsive {
+    overflow-x: auto;
+  }
+
+  .products-table {
+    min-width: 520px;
+  }
+
   .product-info {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
     gap: 8px;
   }
 
@@ -254,6 +435,6 @@
   }
 
   .my-orders-container{
-    align-items: center;
+    align-items: stretch;
   }
 }
