@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
 import "./ProductList.css";
 import ProductCard from "./ProductCard";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Spinner from "../../Spinner/Spinner";
 import SearchIcon from "@mui/icons-material/Search";
@@ -65,6 +65,9 @@ const ProductList: React.FC = () => {
 
   const navigate = useNavigate();
 
+  const location = useLocation();
+  const query = location.state?.query || "";
+
   // =========================
   // FETCH PRODUCTS
   // =========================
@@ -77,6 +80,9 @@ const ProductList: React.FC = () => {
           (product: Product) => product.state === true,
         );
         setAllProducts(filteredProducts);
+        if (query) {
+          setInputFilterProduct(query);
+        }
       } catch (error) {
         setError("No se pudieron cargar los productos.");
       } finally {

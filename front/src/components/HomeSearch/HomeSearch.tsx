@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./HomeSearch.css";
 import SearchIcon from "@mui/icons-material/Search";
@@ -14,6 +14,7 @@ interface Product {
 }
 
 const HomeSearch = () => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -57,6 +58,11 @@ const HomeSearch = () => {
           placeholder="¿Qué estás buscando?"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              navigate(`/productos`, { state: { query } });
+            }
+          }}
         />
       </div>
 
