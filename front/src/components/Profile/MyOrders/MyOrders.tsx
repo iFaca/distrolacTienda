@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Table, Button, Container, Modal } from "react-bootstrap";
+import AddIcon from "@mui/icons-material/Add";
 import { RootState } from "../../types";
 import "./MyOrders.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
@@ -171,7 +172,7 @@ export default function MyOrders() {
               <tbody>
                 {selectedOrder.orderItems.map((item, index) => (
                   <tr key={index}>
-                    <td>
+                    <td data-label="Producto">
                       <div className="product-info">
                         <img
                           src={item.image}
@@ -181,9 +182,11 @@ export default function MyOrders() {
                         <span>{item.title}</span>
                       </div>
                     </td>
-                    <td>{item.quantity}</td>
-                    <td>${item.price.toFixed(2)}</td>
-                    <td>${(item.quantity * item.price).toFixed(2)}</td>
+                    <td data-label="Cantidad">{item.quantity}</td>
+                    <td data-label="Precio Unit.">${item.price.toFixed(2)}</td>
+                    <td data-label="Subtotal">
+                      ${(item.quantity * item.price).toFixed(2)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -337,16 +340,23 @@ export default function MyOrders() {
               <tbody>
                 {orders.map((order) => (
                   <tr key={order._id}>
-                    <td>{new Date(order.orderDate).toLocaleDateString()}</td>
-                    <td>{`${order.customerInfo?.address}` || ""}</td>
-                    <td>${order.total.toFixed(2)}</td>
-                    <td>
+                    <td data-label="Fecha">
+                      {new Date(order.orderDate).toLocaleDateString()}
+                    </td>
+                    <td data-label="Dirección de Entrega">
+                      {`${order.customerInfo?.address}` || ""}
+                    </td>
+                    <td data-label="Total">${order.total.toFixed(2)}</td>
+                    <td data-label="Acciones">
                       <Button
                         size="sm"
                         onClick={() => handleShowDetails(order)}
                         className="detail-button"
+                        aria-label="Ver detalle del pedido"
+                        title="Ver mas"
                       >
-                        Ver Detalle
+                        <AddIcon className="detail-button-icon" fontSize="small" />
+                        <span>Ver mas</span>
                       </Button>
                     </td>
                   </tr>
@@ -358,7 +368,7 @@ export default function MyOrders() {
         )}
         <div className="balances-container">
           <div className="red-underline">
-            <h1 className="cart-title">HISTORIAL DE MOVIMIENTOS</h1>
+            <h1 className="cart-title history-title">HISTORIAL DE MOVIMIENTOS</h1>
           </div>
           {balances?.length === 0 || !balances ? (
             <div className="text-center mt-4">
@@ -385,11 +395,19 @@ export default function MyOrders() {
                 </thead>
                 <tbody>
                   {balances?.map((balance, index) => (
-                    <tr key={index}>
-                      <td>
+                    <tr
+                      key={index}
+                      className={
+                        balance.operation === "payment"
+                          ? "movement-payment"
+                          : "movement-order"
+                      }
+                    >
+                      <td data-label="Fecha">
                         {new Date(balance.createdAt).toLocaleDateString()}
                       </td>
                       <td
+                        data-label="Tipo"
                         className={
                           balance.operation === "payment"
                             ? "text-success"
@@ -398,16 +416,19 @@ export default function MyOrders() {
                       >
                         {balance.operation === "order" ? "Pedido" : "Pago"}
                       </td>
-                      <td>${balance.previousBalance.toFixed(2)}</td>
+                      <td data-label="Saldo anterior" className="movement-amount">
+                        ${balance.previousBalance.toFixed(2)}
+                      </td>
                       <td
-                        className={
-                          balance.amount < 0 ? "text-danger" : "text-success"
-                        }
+                        data-label="Monto"
+                        className={`movement-amount ${balance.amount < 0 ? "text-danger" : "text-success"}`}
                       >
                         ${balance.amount.toFixed(2)}
                       </td>
-                      <td>${balance.resultingBalance.toFixed(2)}</td>
-                      <td>
+                      <td data-label="Saldo Resultante" className="movement-amount movement-total">
+                        ${balance.resultingBalance.toFixed(2)}
+                      </td>
+                      <td data-label="Acciones">
                         <Button
                           size="sm"
                           onClick={() => {
@@ -415,8 +436,11 @@ export default function MyOrders() {
                             setSelectedBalance(balance);
                           }}
                           className="detail-button"
+                          aria-label="Ver detalle del movimiento"
+                          title="Ver mas"
                         >
-                          Ver Detalle
+                          <AddIcon className="detail-button-icon" fontSize="small" />
+                          <span>Ver mas</span>
                         </Button>
                       </td>
                     </tr>
