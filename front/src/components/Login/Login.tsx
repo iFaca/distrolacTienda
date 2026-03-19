@@ -16,10 +16,52 @@ const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$/;
 const phoneRegex = /^\d{8,15}$/;
 const dniRegex = /^\d{8}$/;
 
-interface LoginFormData {
-  email: string;
-  password: string;
-}
+const getRegisterErrorMessage = (err: any): string => {
+  const status = err?.status;
+  const data = err?.data ?? {};
+
+  const duplicateFields = Array.isArray(data?.duplicateFields)
+    ? data.duplicateFields.map((field: unknown) => String(field).toLowerCase())
+    : [];
+
+  const rawMessage = [data?.message, data?.error, err?.message, ...duplicateFields]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  const isDuplicateError =
+    status === 409 ||
+    /duplicate|duplicad|unique|already exists|ya existe|p2002/.test(rawMessage);
+
+  if (duplicateFields.includes("dni") || /\bdni\b/.test(rawMessage)) {
+    return "Ya existe una cuenta con ese DNI. Si ya tenes cuenta, inicia sesion.";
+  }
+
+  if (
+    duplicateFields.includes("email") ||
+    /\bemail\b|correo/.test(rawMessage)
+  ) {
+    return "Ya existe una cuenta con ese email. Proba iniciar sesion o usar otro email.";
+  }
+
+  if (
+    duplicateFields.includes("username") ||
+    duplicateFields.includes("alias") ||
+    /username|usuario|alias/.test(rawMessage)
+  ) {
+    return "Ya existe una cuenta con esos datos. Proba con otros valores.";
+  }
+
+  if (isDuplicateError) {
+    return "Ya existe una cuenta con esos datos. Revisa DNI, email o alias.";
+  }
+
+  if (typeof data?.message === "string" && data.message.trim()) {
+    return data.message;
+  }
+
+  return "No pudimos crear la cuenta. Intenta nuevamente en unos minutos.";
+};
 
 interface RegisterFormData {
   username: string; // queda en el state pero ya no se pide en el formulario
@@ -231,7 +273,7 @@ const Login: React.FC = () => {
         navigate("/");
       }
     } catch (err: any) {
-      setRegisterError(err?.data?.message || "Error al crear la cuenta.");
+      setRegisterError(getRegisterErrorMessage(err));
     }
   };
 
@@ -455,7 +497,7 @@ const Login: React.FC = () => {
                               if (place && place.formatted_address) {
                                 setRegisterData((prev) => ({
                                   ...prev,
-                                  address: place.formatted_address,
+                                  address: place.formatted_address ?? "",
                                 }));
 
                                 if (
