@@ -13,7 +13,7 @@ import Logo from "../../assets/logotienda.png";
    VALIDACIONES
 ===================================================== */
 const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$/;
-const phoneRegex = /^\d{8,15}$/;
+const phoneRegex = /^\d+$/;
 const dniRegex = /^\d{8}$/;
 
 const getRegisterErrorMessage = (err: any): string => {
@@ -28,6 +28,37 @@ const getRegisterErrorMessage = (err: any): string => {
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+
+  const isValidationError =
+    /validation failed|validatorerror|datos inv[aá]lidos|invalid/.test(rawMessage);
+
+  if (isValidationError) {
+    if (typeof data?.message === "string" && data.message.trim()) {
+      return data.message
+        .replace(/^\w+\s+validation failed:\s*/i, "")
+        .trim();
+    }
+
+    if (data?.errors && typeof data.errors === "object") {
+      const messages = Object.values(data.errors)
+        .map((error: any) => error?.message)
+        .filter((msg): msg is string => typeof msg === "string" && msg.trim().length > 0);
+
+      if (messages.length > 0) {
+        return messages.join(" ");
+      }
+    }
+
+    if (/password|contrase[ñn]a/.test(rawMessage)) {
+      return "La contraseña no es válida. Debe tener al menos 6 caracteres.";
+    }
+
+    if (/\bphone\b|tel[eé]fono/.test(rawMessage)) {
+      return "El teléfono no es válido. Ingresá solo números.";
+    }
+
+    return "Algunos datos no son válidos. Revisalos e intentá nuevamente.";
+  }
 
   const isDuplicateError =
     status === 409 ||
@@ -251,7 +282,12 @@ const Login: React.FC = () => {
     }
 
     if (!phoneRegex.test(registerData.phone)) {
-      setRegisterError("Teléfono inválido.");
+      setRegisterError("Teléfono inválido. Ingresá solo números.");
+      return;
+    }
+
+    if (registerData.password.length < 6) {
+      setRegisterError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
 
@@ -279,10 +315,12 @@ const Login: React.FC = () => {
 
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const normalizedValue = name === "phone" ? value.replace(/\D/g, "") : value;
+
     setRegisterData((prev) => ({
       ...prev,
-      [name]: value,
-      ...(name === "dni" ? { alias: `${value}.distrolac` } : {}),
+      [name]: normalizedValue,
+      ...(name === "dni" ? { alias: `${normalizedValue}.distrolac` } : {}),
     }));
   };
 
@@ -374,16 +412,14 @@ const Login: React.FC = () => {
                     required
                     disabled={isRegisterLoading}
                     aria-describedby="registerPasswordFeedback"
-                    minLength={8}
-                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$"
+                    minLength={6}
                     className="input-form"
                   />
                   <Form.Control.Feedback
                     type="invalid"
                     id="registerPasswordFeedback"
                   >
-                    La contraseña debe tener mínimo 8 caracteres, incluir una
-                    mayúscula, una minúscula, un número y un símbolo.
+                    La contraseña debe tener al menos 6 caracteres.
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
@@ -470,13 +506,13 @@ const Login: React.FC = () => {
                   <Form.Group controlId="registerPhone">
                     <Form.Label className="auth-label">Teléfono</Form.Label>
                     <Form.Control
-                      type="text"
+                      type="tel"
                       name="phone"
                       placeholder="Ingrese su teléfono"
                       value={registerData.phone}
                       onChange={handleRegisterChange}
                       required
-                      pattern="^\d{8,15}$"
+                      inputMode="numeric"
                       disabled={isRegisterLoading}
                       className="input-form"
                     />
