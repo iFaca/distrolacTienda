@@ -13,13 +13,71 @@ import Logo from "../../assets/logotienda.png";
    VALIDACIONES
 ===================================================== */
 const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$/;
-const phoneRegex = /^\d{8,15}$/;
+const phoneRegex = /^\d+$/;
 const dniRegex = /^\d{8}$/;
 const GOOGLE_MAPS_LIBRARIES: ("places")[] = ["places"];
+
+const genericRegisterErrorRegex =
+  /error al crear usuario|no pudimos crear la cuenta|internal server error|request failed/i;
+
+const extractValidationMessage = (text: string): string | null => {
+  const normalized = text.replace(/\s+/g, " ").trim();
+
+  const fullMatch = normalized.match(/validation failed:\s*(.+)$/i);
+  if (fullMatch?.[1]) {
+    return fullMatch[1]
+      .replace(/^(password|phone|email|dni)\s*:\s*/i, "")
+      .replace(/^storeuser\s+validation\s+failed:\s*/i, "")
+      .trim();
+  }
+
+  const passwordMatch = normalized.match(/la contrase[ñn]a[^.]*\.?/i);
+  if (passwordMatch?.[0]) return passwordMatch[0].trim();
+
+  const phoneMatch = normalized.match(/(tel[eé]fono|phone)[^.]*\.?/i);
+  if (phoneMatch?.[0]) return phoneMatch[0].trim();
+
+  return null;
+};
 
 const getRegisterErrorMessage = (err: any): string => {
   const status = err?.status;
   const data = err?.data ?? {};
+
+  const candidateTexts = [
+    typeof data === "string" ? data : null,
+    data?.message,
+    data?.error,
+    data?.details,
+    err?.error,
+    err?.message,
+  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+  for (const text of candidateTexts) {
+    const extractedMessage = extractValidationMessage(text);
+    if (extractedMessage) {
+      return extractedMessage;
+    }
+  }
+
+  const nestedErrors = [
+    data?.errors,
+    data?.error?.errors,
+    data?.details?.errors,
+    data?.details,
+  ];
+
+  for (const candidate of nestedErrors) {
+    if (candidate && typeof candidate === "object") {
+      const messages = Object.values(candidate)
+        .map((error: any) => error?.message || error)
+        .filter((msg): msg is string => typeof msg === "string" && msg.trim().length > 0);
+
+      if (messages.length > 0) {
+        return messages.join(" ");
+      }
+    }
+  }
 
   const duplicateFields = Array.isArray(data?.duplicateFields)
     ? data.duplicateFields.map((field: unknown) => String(field).toLowerCase())
@@ -29,6 +87,27 @@ const getRegisterErrorMessage = (err: any): string => {
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+
+  const isValidationError =
+    /validation failed|validatorerror|datos inv[aá]lidos|invalid/.test(rawMessage);
+
+  if (isValidationError) {
+    if (typeof data?.message === "string" && data.message.trim()) {
+      return data.message
+        .replace(/^\w+\s+validation failed:\s*/i, "")
+        .trim();
+    }
+
+    if (/password|contrase[ñn]a/.test(rawMessage)) {
+      return "La contraseña debe contener al menos una letra mayúscula, una minúscula y un número.";
+    }
+
+    if (/\bphone\b|tel[eé]fono/.test(rawMessage)) {
+      return "El teléfono no es válido. Ingresá solo números.";
+    }
+
+    return "Algunos datos no son válidos. Revisalos e intentá nuevamente.";
+  }
 
   const isDuplicateError =
     status === 409 ||
@@ -57,8 +136,19 @@ const getRegisterErrorMessage = (err: any): string => {
     return "Ya existe una cuenta con esos datos. Revisa DNI, email o alias.";
   }
 
-  if (typeof data?.message === "string" && data.message.trim()) {
+  if (
+    typeof data?.message === "string" &&
+    data.message.trim() &&
+    !genericRegisterErrorRegex.test(data.message)
+  ) {
     return data.message;
+  }
+
+  if (typeof err?.error === "string") {
+    const extractedMessage = extractValidationMessage(err.error);
+    if (extractedMessage) {
+      return extractedMessage;
+    }
   }
 
   return "No pudimos crear la cuenta. Intenta nuevamente en unos minutos.";
@@ -112,6 +202,9 @@ const Login: React.FC = () => {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerValidated, setRegisterValidated] = useState(false);
   const [registerError, setRegisterError] = useState("");
+  const [registerErrorType, setRegisterErrorType] = useState<
+    "client" | "server" | null
+  >(null);
 
   // ================= MAPA =================
   const [showMapModal, setShowMapModal] = useState(false);
@@ -234,30 +327,36 @@ const Login: React.FC = () => {
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setRegisterError("");
+    setRegisterErrorType(null);
     setRegisterValidated(true);
 
     if (!nameRegex.test(registerData.firstName)) {
       setRegisterError("Nombre inválido.");
+      setRegisterErrorType("client");
       return;
     }
 
     if (!nameRegex.test(registerData.lastName)) {
       setRegisterError("Apellido inválido.");
+      setRegisterErrorType("client");
       return;
     }
 
     if (!dniRegex.test(registerData.dni)) {
       setRegisterError("DNI inválido.");
+      setRegisterErrorType("client");
       return;
     }
 
     if (!phoneRegex.test(registerData.phone)) {
-      setRegisterError("Teléfono inválido.");
+      setRegisterError("Teléfono inválido. Ingresá solo números.");
+      setRegisterErrorType("client");
       return;
     }
 
     if (registerData.password !== registerData.confirmPassword) {
       setRegisterError("Las contraseñas no coinciden.");
+      setRegisterErrorType("client");
       return;
     }
 
@@ -275,15 +374,18 @@ const Login: React.FC = () => {
       }
     } catch (err: any) {
       setRegisterError(getRegisterErrorMessage(err));
+      setRegisterErrorType("server");
     }
   };
 
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const normalizedValue = name === "phone" ? value.replace(/\D/g, "") : value;
+
     setRegisterData((prev) => ({
       ...prev,
-      [name]: value,
-      ...(name === "dni" ? { alias: `${value}.distrolac` } : {}),
+      [name]: normalizedValue,
+      ...(name === "dni" ? { alias: `${normalizedValue}.distrolac` } : {}),
     }));
   };
 
@@ -308,7 +410,9 @@ const Login: React.FC = () => {
           <div className="div-register-container">
             <h1 className="title-auth">Registrarse</h1>
             <hr className="red-line-login" />
-            {registerError && <Alert variant="danger">{registerError}</Alert>}
+            {registerError && registerErrorType === "server" && (
+              <Alert variant="danger">{registerError}</Alert>
+            )}
 
             <Form
               noValidate
@@ -375,16 +479,14 @@ const Login: React.FC = () => {
                     required
                     disabled={isRegisterLoading}
                     aria-describedby="registerPasswordFeedback"
-                    minLength={8}
-                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$"
                     className="input-form"
                   />
                   <Form.Control.Feedback
                     type="invalid"
                     id="registerPasswordFeedback"
                   >
-                    La contraseña debe tener mínimo 8 caracteres, incluir una
-                    mayúscula, una minúscula, un número y un símbolo.
+                    La contraseña debe tener al menos 6 caracteres e incluir una
+                    letra mayúscula, una minúscula y un número.
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
@@ -471,13 +573,13 @@ const Login: React.FC = () => {
                   <Form.Group controlId="registerPhone">
                     <Form.Label className="auth-label">Teléfono</Form.Label>
                     <Form.Control
-                      type="text"
+                      type="tel"
                       name="phone"
                       placeholder="Ingrese su teléfono"
                       value={registerData.phone}
                       onChange={handleRegisterChange}
                       required
-                      pattern="^\d{8,15}$"
+                      inputMode="numeric"
                       disabled={isRegisterLoading}
                       className="input-form"
                     />
