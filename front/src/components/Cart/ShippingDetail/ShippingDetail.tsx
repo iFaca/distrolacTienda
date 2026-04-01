@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { replace, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import emailjs from "@emailjs/browser";
 import { RootState } from "../../types";
@@ -7,6 +7,7 @@ import "./ShippingDetail.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Alert from "../../Alert/Alert";
 import Spinner from "../../Spinner/Spinner";
+import { normalizeCapToKg } from "../../../utils/weight";
 
 const EMAIL_SERVICE_ID = "service_szd7tra";
 const EMAIL_TEMPLATE_CLIENT_ID = "template_9afqj0i";
@@ -24,8 +25,6 @@ interface ShippingData {
   dni?: string; // Asegurarse de que dni esté presente
   alias?: string; // Asegurarse de que alias esté presente
   comments?: string;
-  dni?: string;
-  alias?: string;
 }
 
 interface CartItem {
@@ -36,6 +35,8 @@ interface CartItem {
   image: string;
   quantity: number;
   priceListId?: string;
+  typeOfFractionation?: "No" | "Unitario" | "Pesado";
+  cap?: number;
 }
 
 interface PriceList {
@@ -67,7 +68,6 @@ export default function ShippingDetail() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [error, setError] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -76,6 +76,21 @@ export default function ShippingDetail() {
   const [alertEvent, setAlertEvent] = useState<boolean>(false);
 
   const [loading, setLoading] = useState<boolean>(false);
+
+  const getOrderQuantity = (item: CartItem) => {
+    const isPesado = item.typeOfFractionation === "Pesado";
+    const capKg = normalizeCapToKg(item.cap);
+
+    if (isPesado && capKg > 0) {
+      return Number((item.quantity * capKg).toFixed(3));
+    }
+
+    return Number(item.quantity);
+  };
+
+  const getOrderLineTotal = (item: CartItem) => {
+    return Number((item.price * getOrderQuantity(item)).toFixed(2));
+  };
 
   // Función para obtener directamente el perfil del usuario
   const fetchUserProfile = async (token: string) => {
@@ -200,14 +215,24 @@ export default function ShippingDetail() {
   const formatOrderDetails = (items: CartItem[]) => {
     return items
       .map(
-        (item) => `
+        (item) => {
+          const isPesado = item.typeOfFractionation === "Pesado";
+          const quantityToSend = getOrderQuantity(item);
+          const unitLabel = isPesado ? "kg" : "un";
+          const weightedInfo =
+            isPesado && normalizeCapToKg(item.cap) > 0
+              ? ` (~${item.quantity} horma${item.quantity > 1 ? "s" : ""})`
+              : "";
+
+          return `
       Producto: ${item.title}
       ${item.sku ? `SKU: ${item.sku}` : ""}
-      Cantidad: ${item.quantity}
+      Cantidad: ${quantityToSend} ${unitLabel}${weightedInfo}
       Precio unitario: $${Number(item.price).toFixed(2)}
-      Subtotal: $${(item.quantity * item.price).toFixed(2)}
+      Subtotal: $${getOrderLineTotal(item).toFixed(2)}
       ------------------------
-    `,
+    `;
+        },
       )
       .join("\n");
   };
@@ -233,7 +258,7 @@ export default function ShippingDetail() {
       });
 
       if (!response.ok) {
-        let errorData: any = null;
+        let errorData: { message?: string } | null = null;
         try {
           errorData = await response.json();
         } catch {
@@ -296,6 +321,11 @@ export default function ShippingDetail() {
     if (!item.image) console.error("Falta image en item:", item);
     if (!item.id) console.error("Falta id en item:", item);
 
+    if (item.typeOfFractionation === "Pesado" && normalizeCapToKg(item.cap) <= 0) {
+      console.error("Producto pesado sin cap válido:", item);
+      return false;
+    }
+
     return item.title && item.quantity && item.price && item.image && item.id;
   };
 
@@ -318,6 +348,9 @@ export default function ShippingDetail() {
 
       const priceList = await getStorePriceList();
       const storeVendorId = await getStoreVendor();
+      const payloadTotal = Number(
+        cartItems.reduce((acc, item) => acc + getOrderLineTotal(item), 0).toFixed(2),
+      );
 
       // Extraer información de la dirección completa para compatibilidad
       // En caso de que el backend aún espere street y streetNumber
@@ -348,19 +381,17 @@ export default function ShippingDetail() {
             street: street, // Para compatibilidad
             streetNumber: streetNumber, // Para compatibilidad
             fullName: `${shippingData.firstName} ${shippingData.lastName}`,
-            dni: shippingData.dni || "",
-            alias: shippingData.alias || "",
           },
           orderItems: cartItems.map((item) => ({
             title: item.title,
-            quantity: item.quantity,
+            quantity: getOrderQuantity(item),
             price: item.price,
             image: item.image,
             systemProductId: item.id,
           })),
-          subtotal: total,
+          subtotal: payloadTotal,
           shippingCost: 0,
-          total: total,
+          total: payloadTotal,
           status: "pendiente",
         },
         systemOrder: {
@@ -374,19 +405,17 @@ export default function ShippingDetail() {
             dni: shippingData.dni,
             alias: shippingData.alias,
             fullName: `${shippingData.firstName} ${shippingData.lastName}`,
-            dni: shippingData.dni || "",
-            alias: shippingData.alias || "",
             isStoreClient: true,
           },
           seller: storeVendorId,
           products: cartItems.map((item) => ({
             product: item.id,
-            quantity: item.quantity,
+            quantity: getOrderQuantity(item),
             price: item.price,
             selectedPriceList: priceList._id,
-            totalPrice: item.price * item.quantity,
+            totalPrice: getOrderLineTotal(item),
           })),
-          totalAmount: total,
+          totalAmount: payloadTotal,
           orderStatus: "pending",
           orderDate: new Date().toISOString(),
           delivery: {
@@ -441,9 +470,9 @@ export default function ShippingDetail() {
         customer_phone: shippingData.phone,
         customer_address: shippingData.address,
         order_details: formatOrderDetails(cartItems),
-        order_subtotal: `$${total.toFixed(2)}`,
+        order_subtotal: `$${payloadTotal.toFixed(2)}`,
         order_shipping: "Gratis",
-        order_total: `$${total.toFixed(2)}`,
+        order_total: `$${payloadTotal.toFixed(2)}`,
         order_date: new Date().toLocaleDateString(),
         comments: shippingData.comments || "Sin comentarios",
       };

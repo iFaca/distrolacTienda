@@ -5,6 +5,7 @@ import { RootState } from "../../types";
 import { Alert } from "react-bootstrap";
 import "./CartDetail.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
+import { normalizeCapToKg } from "../../../utils/weight";
 
 interface CartItem {
   id: string;
@@ -78,8 +79,10 @@ export default function CartDetail() {
 
   const calculateSubtotal = () => {
     return cartItems.reduce((acc, item) => {
-      if (item.typeOfFractionation === "Pesado" && item.cap) {
-        return acc + item.price * item.cap * item.quantity;
+      const capKg = normalizeCapToKg(item.cap);
+
+      if (item.typeOfFractionation === "Pesado" && capKg > 0) {
+        return acc + item.price * capKg * item.quantity;
       }
       return acc + item.price * item.quantity;
     }, 0);
@@ -243,8 +246,9 @@ export default function CartDetail() {
               <ul className="cartdetail-items">
                 {cartItems.map((item) => {
                   const isPesado = item.typeOfFractionation === "Pesado";
+                  const capKg = normalizeCapToKg(item.cap);
                   const kgTotales =
-                    isPesado && item.cap ? item.cap * item.quantity : null;
+                    isPesado && capKg > 0 ? capKg * item.quantity : null;
 
                   const subtotalProducto =
                     isPesado && kgTotales

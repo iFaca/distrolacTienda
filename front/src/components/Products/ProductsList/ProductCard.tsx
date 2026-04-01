@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import AddToCartIcon from "@mui/icons-material/AddShoppingCart";
 import { useState } from "react";
 import Alert from "../../Alert/Alert";
+import { normalizeCapToKg } from "../../../utils/weight";
 
 interface ProductCardProps {
   id: string;
@@ -15,6 +16,16 @@ interface ProductCardProps {
   cap?: number;
 
   categoryName: string;
+}
+
+interface CartStorageItem {
+  id: string;
+  title: string;
+  image: string;
+  quantity: number;
+  price: number;
+  typeOfFractionation?: "No" | "Unitario" | "Pesado";
+  cap?: number;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -53,10 +64,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleAddToCart = () => {
     const cart = localStorage.getItem("cart");
-    const cartItems = cart ? JSON.parse(cart) : [];
+    const cartItems: CartStorageItem[] = cart ? JSON.parse(cart) : [];
 
     const existingItemIndex = cartItems.findIndex(
-      (item: any) => item.id === id,
+      (item) => item.id === id,
     );
 
     if (existingItemIndex !== -1) {
@@ -71,7 +82,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         // 🔥 CLAVE PARA TODA LA APP
         typeOfFractionation,
-        cap: typeOfFractionation === "Pesado" ? Number(cap) || 0 : undefined,
+        cap:
+          typeOfFractionation === "Pesado"
+            ? normalizeCapToKg(cap)
+            : undefined,
       });
     }
 
