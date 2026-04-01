@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import CartEmpty from "@mui/icons-material/AddShoppingCart";
 import CartLogo from "@mui/icons-material/ShoppingCart";
 import Breadcrums from "../Breadcrumbs/Breadcrums";
+import { normalizeCapToKg } from "../../utils/weight";
 
 interface CartItem {
   id: string;
@@ -39,10 +40,10 @@ export default function Cart() {
   // 👉 TOTAL POR ITEM (LOGICA CORRECTA)
   const getItemTotal = (item: CartItem) => {
     const isPesado = item.typeOfFractionation === "Pesado";
-    const cap = Number(item.cap) || 0;
+    const capKg = normalizeCapToKg(item.cap);
 
     return isPesado
-      ? item.price * item.quantity * cap
+      ? item.price * item.quantity * capKg
       : item.price * item.quantity;
   };
 
@@ -120,9 +121,9 @@ export default function Cart() {
                 <ul>
                   {cartItems.map((item) => {
                     const isPesado = item.typeOfFractionation === "Pesado";
-                    const cap = Number(item.cap) || 0;
+                    const capKg = normalizeCapToKg(item.cap);
                     const realKg = isPesado
-                      ? item.quantity * cap
+                      ? item.quantity * capKg
                       : item.quantity;
 
                     return (
@@ -142,7 +143,7 @@ export default function Cart() {
                             {/* 👇 ACA MOSTRAMOS HORMAS / KG SIN ROMPER CSS */}
                             <p style={{ fontSize: 13, opacity: 0.8 }}>
                               {item.quantity} {isPesado ? "Hormas" : "Unidades"}
-                              {isPesado && cap > 0 && (
+                              {isPesado && capKg > 0 && (
                                 <> (≈ {realKg.toFixed(2)} kg)</>
                               )}
                             </p>

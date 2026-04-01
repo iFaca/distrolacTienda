@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import "./ProductDetail.css";
 import Alert from "../../../Alert/Alert";
 import Breadcrums from "../../../Breadcrumbs/Breadcrums";
+import { formatCapWeight, normalizeCapToKg } from "../../../../utils/weight";
 const BACKEND_URI = import.meta.env.VITE_BACK_APP_URI;
 interface Product {
   _id: string;
@@ -15,6 +16,16 @@ interface Product {
   };
   typeOfFractionation?: "No" | "Unitario" | "Pesado";
   cap?: number; // KG POR HORMA
+}
+
+interface CartStorageItem {
+  id: string;
+  quantity: number;
+  title?: string;
+  image?: string;
+  price?: number;
+  cap?: number;
+  typeOfFractionation?: "No" | "Unitario" | "Pesado";
 }
 
 const ProductDetail: React.FC = () => {
@@ -30,9 +41,8 @@ const ProductDetail: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertStatus, setAlertStatus] = useState("");
 
-  const isPesado =
-    product?.typeOfFractionation === "Pesado" &&
-    typeof product.cap === "number";
+  const capKg = normalizeCapToKg(product?.cap);
+  const isPesado = product?.typeOfFractionation === "Pesado" && capKg > 0;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -72,10 +82,12 @@ const ProductDetail: React.FC = () => {
       return;
     }
 
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const cart: CartStorageItem[] = JSON.parse(
+      localStorage.getItem("cart") || "[]",
+    );
 
     const existingIndex = cart.findIndex(
-      (item: any) => item.id === product._id,
+      (item) => item.id === product._id,
     );
 
     if (existingIndex >= 0) {
@@ -87,7 +99,7 @@ const ProductDetail: React.FC = () => {
         image: product.images?.[0],
         quantity, // hormas o unidades (decimal si pesado)
         price: product.price || 0, // PRECIO POR KG SI ES PESADO
-        cap: product.cap, // KG POR HORMA
+        cap: capKg, // KG POR HORMA NORMALIZADO
         typeOfFractionation: product.typeOfFractionation,
       });
     }
@@ -139,7 +151,7 @@ const ProductDetail: React.FC = () => {
 
           {isPesado && (
             <p style={{ fontSize: 14, opacity: 0.8 }}>
-              Cada horma pesa aprox. {product.cap} kg
+              Cada horma pesa aprox. {formatCapWeight(product.cap)}
             </p>
           )}
 
@@ -179,7 +191,7 @@ const ProductDetail: React.FC = () => {
 
               {isPesado && (
                 <p style={{ fontSize: 13 }}>
-                  Total aprox: {(quantity * product.cap!).toFixed(2)} kg
+                  Total aprox: {(quantity * capKg).toFixed(2)} kg
                 </p>
               )}
             </div>
