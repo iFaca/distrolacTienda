@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Form, Button, Alert, Modal, InputGroup } from "react-bootstrap";
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
-import { useLoginMutation, useRegisterMutation } from "../slices/usersApiSlice";
+import { useLoginMutation, useRegisterMutation, useForgotPasswordMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import "./Login.css";
 import BackIcon from "@mui/icons-material/ArrowBack";
@@ -201,9 +201,8 @@ const Login: React.FC = () => {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerValidated, setRegisterValidated] = useState(false);
   const [registerError, setRegisterError] = useState("");
-  const [registerErrorType, setRegisterErrorType] = useState<
-    "client" | "server" | null
-  >(null);
+  const [dniServerError, setDniServerError] = useState(false);
+  const [emailServerError, setEmailServerError] = useState(false);
 
   // ================= MAPA =================
   const [showMapModal, setShowMapModal] = useState(false);
@@ -223,9 +222,18 @@ const Login: React.FC = () => {
 
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [register, { isLoading: isRegisterLoading }] = useRegisterMutation();
+  const [forgotPassword, { isLoading: isForgotLoading }] = useForgotPasswordMutation();
 
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
+
+  // ================= FORGOT PASSWORD =================
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState("");
+  const [forgotEmailValid, setForgotEmailValid] = useState(true);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   /* MENSAJE SI VIENE DEL CHECKOUT */
   useEffect(() => {
@@ -328,6 +336,9 @@ const Login: React.FC = () => {
     setRegisterError("");
     setRegisterErrorType(null);
     setRegisterValidated(true);
+    // Limpiar errores del servidor al intentar registrar nuevamente
+    setDniServerError(false);
+    setEmailServerError(false);
 
     if (!nameRegex.test(registerData.firstName)) {
       setRegisterError("Nombre inválido.");
@@ -342,14 +353,21 @@ const Login: React.FC = () => {
     }
 
     if (!dniRegex.test(registerData.dni)) {
-      setRegisterError("DNI inválido.");
-      setRegisterErrorType("client");
+      setRegisterError("DNI inválido. Debe tener exactamente 8 dígitos.");
       return;
     }
 
     if (!phoneRegex.test(registerData.phone)) {
-      setRegisterError("Teléfono inválido. Ingresá solo números.");
-      setRegisterErrorType("client");
+      setRegisterError("Teléfono inválido. Debe tener entre 8 y 15 dígitos.");
+      return;
+    }
+
+    // Validar contraseña con regex (min 8 chars, lowercase, uppercase, number, symbol)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-]).{8,}$/;
+    if (!passwordRegex.test(registerData.password)) {
+      setRegisterError(
+        "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un símbolo."
+      );
       return;
     }
 
@@ -372,8 +390,19 @@ const Login: React.FC = () => {
         navigate("/");
       }
     } catch (err: any) {
-      setRegisterError(getRegisterErrorMessage(err));
-      setRegisterErrorType("server");
+      // Mostrar mensaje de error específico del backend
+      const errorMessage = err?.data?.message || "Error al crear la cuenta.";
+      setRegisterError(errorMessage);
+
+      // Si el error es sobre DNI, marcar el campo como inválido
+      if (errorMessage.toLowerCase().includes("dni")) {
+        setDniServerError(true);
+      }
+
+      // Si el error es sobre usuario ya registrado, marcar email como inválido
+      if (errorMessage.toLowerCase().includes("usuario ya registrado")) {
+        setEmailServerError(true);
+      }
     }
   };
 
@@ -386,6 +415,48 @@ const Login: React.FC = () => {
       [name]: normalizedValue,
       ...(name === "dni" ? { alias: `${normalizedValue}.distrolac` } : {}),
     }));
+    // Limpiar errores del servidor cuando el usuario modifica los campos
+    if (name === "dni") {
+      setDniServerError(false);
+    }
+    if (name === "email") {
+      setEmailServerError(false);
+    }
+  };
+
+  // ================= FORGOT PASSWORD HANDLER =================
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const handleForgotEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setForgotEmail(value);
+    setForgotEmailValid(emailRegex.test(value) || value === "");
+    setForgotError("");
+    setForgotSuccess("");
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError("");
+    setForgotSuccess("");
+
+    if (!forgotEmail) {
+      setForgotError("El email es requerido");
+      return;
+    }
+
+    if (!emailRegex.test(forgotEmail)) {
+      setForgotError("Ingrese un email válido");
+      return;
+    }
+
+    try {
+      await forgotPassword(forgotEmail).unwrap();
+      setForgotSuccess("Se ha enviado un correo con instrucciones para restablecer tu contraseña");
+      setForgotEmail("");
+    } catch (err: any) {
+      setForgotError(err?.data?.message || "Error al enviar el correo");
+    }
   };
 
   return (
@@ -430,6 +501,7 @@ const Login: React.FC = () => {
                     onChange={handleRegisterChange}
                     required
                     disabled={isRegisterLoading}
+                    isInvalid={emailServerError}
                     aria-describedby="registerEmailFeedback"
                     className="input-form"
                   />
@@ -437,7 +509,7 @@ const Login: React.FC = () => {
                     type="invalid"
                     id="registerEmailFeedback"
                   >
-                    Ingrese un email válido.
+                    {emailServerError ? "Este email ya está registrado" : "Ingrese un email válido."}
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
@@ -453,6 +525,7 @@ const Login: React.FC = () => {
                     onChange={handleRegisterChange}
                     required
                     disabled={isRegisterLoading}
+                    isInvalid={dniServerError}
                     aria-describedby="registerDNIFeedback"
                     className="input-form"
                     minLength={8}
@@ -461,7 +534,7 @@ const Login: React.FC = () => {
                     type="invalid"
                     id="registerDNIFeedback"
                   >
-                    Ingrese un DNI válido.
+                    {dniServerError ? "El DNI ya está registrado. Por favor usa otro." : "Ingrese un DNI válido."}
                   </Form.Control.Feedback>
                 </Form.Group>
               </div>
@@ -729,6 +802,21 @@ const Login: React.FC = () => {
                 />
               </Form.Group>
 
+              <div className="forgot-password-container">
+                <a
+                  onClick={() => {
+                    setShowForgotModal(true);
+                    setForgotEmail("");
+                    setForgotError("");
+                    setForgotSuccess("");
+                    setForgotEmailValid(true);
+                  }}
+                  className="forgot-password-link"
+                >
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </div>
+
               <div className="login-button-container">
                 <Button
                   variant="primary"
@@ -756,6 +844,67 @@ const Login: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ================= FORGOT PASSWORD MODAL ================= */}
+      <Modal
+        show={showForgotModal}
+        onHide={() => setShowForgotModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Recuperar Contraseña</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <p className="forgot-modal-text">
+            Ingresa tu email y te enviaremos instrucciones para restablecer tu contraseña.
+          </p>
+
+          {forgotError && (
+            <Alert variant="danger">{forgotError}</Alert>
+          )}
+          {forgotSuccess && (
+            <Alert variant="success">{forgotSuccess}</Alert>
+          )}
+
+          <Form onSubmit={handleForgotPassword}>
+            <Form.Group controlId="forgotEmail">
+              <Form.Label className="auth-label">Email</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Ingresa tu email"
+                value={forgotEmail}
+                onChange={handleForgotEmailChange}
+                isInvalid={!forgotEmailValid && forgotEmail !== ""}
+                disabled={isForgotLoading || !!forgotSuccess}
+                className="input-form"
+                autoFocus
+              />
+              <Form.Control.Feedback type="invalid">
+                Ingrese un email válido.
+              </Form.Control.Feedback>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowForgotModal(false)}
+            disabled={isForgotLoading}
+          >
+            Cerrar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleForgotPassword}
+            disabled={isForgotLoading || !!forgotSuccess}
+            className="auth-btn"
+          >
+            {isForgotLoading ? "Enviando..." : "Enviar"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <Modal
         show={showMapModal}
