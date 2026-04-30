@@ -9,6 +9,7 @@ import HowToBuy from "./components/HowToBuy/HowToBuy";
 import Work from "./components/Work/Work";
 import Cart from "./components/Cart/Cart";
 import Login from "./components/Login/Login";
+import ResetPassword from "./components/ResetPassword/ResetPassword";
 import ProductDetail from "./components/Products/ProductsList/ProductDetail/ProductDetail";
 import CartDetail from "./components/Cart/CartDetail/CartDetail";
 import ShippingDetail from "./components/Cart/ShippingDetail/ShippingDetail";
@@ -56,6 +57,7 @@ function App() {
           <Route path="/comocomprar" element={<HowToBuy />} />
           <Route path="/trabaja" element={<Work />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/carrito" element={<Cart />} />
           <Route path="/detalledepedido" element={<CartDetail />} />
           <Route path="/editarpedido" element={<ShippingDetail />} />

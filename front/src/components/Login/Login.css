@@ -346,6 +346,29 @@
   }
 }
 
+.forgot-password-container {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.forgot-password-link {
+  color: #bf3939;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+  color: #8e1c1c;
+}
+
+.forgot-modal-text {
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
 /* tablet */
 @media only screen and (min-width: 768px) {
   .logo {
