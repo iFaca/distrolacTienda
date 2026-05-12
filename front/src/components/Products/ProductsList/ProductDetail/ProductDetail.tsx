@@ -40,6 +40,7 @@ const ProductDetail: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertStatus, setAlertStatus] = useState("");
+  const [alertEvent, setAlertEvent] = useState(false);
 
   const capKg = normalizeCapToKg(product?.cap);
   const isPesado = product?.typeOfFractionation === "Pesado" && capKg > 0;
@@ -47,19 +48,11 @@ const ProductDetail: React.FC = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`${BACKEND_URI}/products/${id}`);
+        const res = await fetch(`${BACKEND_URI}/store/products/${id}`);
         if (!res.ok) throw new Error("Error al traer el producto");
         const data = await res.json();
 
-        // 👉 aseguramos precio (kg)
-        const derivedPrice =
-          typeof data.price === "number"
-            ? data.price
-            : typeof data.priceLists?.[0]?.salePrice === "number"
-              ? data.priceLists[0].salePrice
-              : 0;
-
-        setProduct({ ...data, price: derivedPrice });
+        setProduct(data);
       } catch (error) {
         console.error(error);
         setProduct(null);
@@ -79,6 +72,7 @@ const ProductDetail: React.FC = () => {
       setAlertMessage("Ingresá una cantidad válida");
       setAlertStatus("error");
       setShowAlert(true);
+      setAlertEvent((prev) => !prev);
       return;
     }
 
@@ -110,6 +104,7 @@ const ProductDetail: React.FC = () => {
     setAlertMessage("Producto agregado al carrito");
     setAlertStatus("success");
     setShowAlert(true);
+    setAlertEvent((prev) => !prev);
 
     window.dispatchEvent(new Event("storage"));
   };
@@ -124,6 +119,7 @@ const ProductDetail: React.FC = () => {
         status={alertStatus}
         show={showAlert}
         onClose={() => setShowAlert(false)}
+        event={() => setAlertEvent(!alertEvent)}
       />
 
       <div className="productdetail-details">

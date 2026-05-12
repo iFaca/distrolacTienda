@@ -3,16 +3,12 @@ import React, { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
 import "./ProductList.css";
 import ProductCard from "./ProductCard";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Spinner from "../../Spinner/Spinner";
 import SearchIcon from "@mui/icons-material/Search";
 
 const BACKEND_URI = import.meta.env.VITE_BACK_APP_URI;
-
-interface PriceList {
-  salePrice: number;
-}
 
 interface SubCategoryItem {
   _id: string;
@@ -36,7 +32,7 @@ interface Product {
   images?: string[];
   category?: { _id: string; name: string };
   description?: string;
-  priceLists?: PriceList[];
+  price: number;
   offer?: boolean;
   state?: boolean;
 
@@ -63,8 +59,6 @@ const ProductList: React.FC = () => {
   const [inputFilterProduct, setInputFilterProduct] = useState("");
   const [allProducts, setAllProducts] = useState<Product[]>([]);
 
-  const navigate = useNavigate();
-
   const location = useLocation();
   const query = location.state?.query || "";
 
@@ -75,7 +69,7 @@ const ProductList: React.FC = () => {
     const fetchAllProducts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BACKEND_URI}/products`);
+        const response = await axios.get(`${BACKEND_URI}/store/products`);
         const filteredProducts: Product[] = response.data.filter(
           (product: Product) => product.state === true,
         );
@@ -237,26 +231,19 @@ const ProductList: React.FC = () => {
                         .toLowerCase()
                         .includes(inputFilterProduct.toLowerCase()),
                     )
-                    .map((product) => {
-                      const salePrice =
-                        product.priceLists?.at(-1)?.salePrice || 0;
-
-                      return (
-                        <ProductCard
-                          key={product._id}
-                          id={product._id}
-                          title={product.name}
-                          price={salePrice}
-                          image={
-                            product.images?.[0] || "/imagen-no-disponible.png"
-                          }
-                          description={product.description || ""}
-                          categoryName={itemSelected || ""}
-                          typeOfFractionation={product.typeOfFractionation}
-                          cap={product.cap}
-                        />
-                      );
-                    })}
+                    .map((product) => (
+                      <ProductCard
+                        key={product._id}
+                        id={product._id}
+                        title={product.name}
+                        price={product.price}
+                        image={product.images?.[0] || "/imagen-no-disponible.png"}
+                        description={product.description || ""}
+                        categoryName={itemSelected || ""}
+                        typeOfFractionation={product.typeOfFractionation}
+                        cap={product.cap}
+                      />
+                    ))}
                 </div>
               )}
             </section>
@@ -306,26 +293,19 @@ const ProductList: React.FC = () => {
                       .toLowerCase()
                       .includes(inputFilterProduct.toLowerCase()),
                   )
-                  .map((product) => {
-                    const salePrice =
-                      product.priceLists?.at(-1)?.salePrice || 0;
-
-                    return (
-                      <ProductCard
-                        key={product._id}
-                        id={product._id}
-                        title={product.name}
-                        price={salePrice}
-                        image={
-                          product.images?.[0] || "/imagen-no-disponible.png"
-                        }
-                        description={product.description || ""}
-                        categoryName={itemSelected || ""}
-                        typeOfFractionation={product.typeOfFractionation}
-                        cap={product.cap}
-                      />
-                    );
-                  })}
+                  .map((product) => (
+                    <ProductCard
+                      key={product._id}
+                      id={product._id}
+                      title={product.name}
+                      price={product.price}
+                      image={product.images?.[0] || "/imagen-no-disponible.png"}
+                      description={product.description || ""}
+                      categoryName={itemSelected || ""}
+                      typeOfFractionation={product.typeOfFractionation}
+                      cap={product.cap}
+                    />
+                  ))}
               </div>
             </section>
           </div>

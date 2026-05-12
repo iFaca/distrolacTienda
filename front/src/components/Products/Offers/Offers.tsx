@@ -15,14 +15,11 @@ interface Product {
   currentStock?: number;
   offer?: boolean;
   state?: boolean;
+  price: number;
 
   // 🔑 CLAVE PARA EL CARRITO
   typeOfFractionation?: "No" | "Unitario" | "Pesado";
   cap?: number;
-
-  priceLists?: Array<{
-    salePrice: number;
-  }>;
 }
 
 const Offers: React.FC = () => {
@@ -35,7 +32,7 @@ const Offers: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${BACKEND_URI}/products`);
+        const response = await axios.get(`${BACKEND_URI}/store/products`);
         const allProducts: Product[] = response.data || [];
 
         const filteredProducts = allProducts.filter(
@@ -85,11 +82,7 @@ const Offers: React.FC = () => {
                 key={product._id}
                 id={product._id}
                 title={product.name}
-                price={
-                  product.priceLists && product.priceLists.length > 0
-                    ? product.priceLists.at(-1)?.salePrice
-                    : undefined
-                }
+                price={product.price}
                 image={product.images?.[0] || "/imagen-no-disponible.png"}
                 description={product.description || ""}
                 categoryName={product.category?.name || ""}
