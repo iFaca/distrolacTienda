@@ -10,7 +10,7 @@ interface Product {
   _id: string;
   name: string;
   images?: string[];
-  priceLists?: { salePrice: number }[];
+  price: number;
 }
 
 const HomeSearch = () => {
@@ -28,7 +28,7 @@ const HomeSearch = () => {
     const timeout = setTimeout(async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${BACKEND_URI}/products`);
+        const res = await axios.get(`${BACKEND_URI}/store/products`);
 
         const filtered = res.data
           .filter((p: Product) =>
@@ -79,9 +79,9 @@ const HomeSearch = () => {
             >
               <span>{p.name}</span>
 
-              {p.priceLists?.length ? (
+              {typeof p.price === "number" ? (
                 <span className="search-price">
-                  ${p.priceLists.at(-1)?.salePrice}
+                  ${p.price}
                 </span>
               ) : null}
             </Link>
