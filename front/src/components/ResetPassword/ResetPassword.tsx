@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Form, Button, Alert, InputGroup, Spinner } from "react-bootstrap";
+import { Form, Button, Alert, Spinner } from "react-bootstrap";
 import { useResetPasswordMutation } from "../slices/usersApiSlice";
 import "./ResetPassword.css";
 import Logo from "../../assets/logotienda.png";

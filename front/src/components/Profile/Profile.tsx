@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../types";
 import {
@@ -9,20 +9,18 @@ import { setCredentials } from "../slices/authSlice";
 import {
   Form,
   Button,
-  Container,
-  Row,
   Col,
   Spinner,
   Modal,
   ModalBody,
   ModalHeader,
   ModalFooter,
+  Alert as BootstrapAlert,
 } from "react-bootstrap";
 import "./Profile.css";
-import { useNavigate } from "react-router-dom";
 import Lock from "@mui/icons-material/LockReset";
 import Breadcrums from "../Breadcrumbs/Breadcrums";
-import Alert from "../Alert/Alert";
+import AppAlert from "../Alert/Alert";
 
 // Función auxiliar para obtener el perfil completo
 const fetchUserProfile = async (token: string) => {
@@ -50,7 +48,6 @@ const fetchUserProfile = async (token: string) => {
 export default function Profile() {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state: RootState) => state.auth);
-  const navigate = useNavigate();
 
   const [showPassModal, setShowPassModal] = useState(false);
 
@@ -185,7 +182,7 @@ export default function Profile() {
   }, [userInfo]);
 
   // Manejar cambios en los inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -221,7 +218,7 @@ export default function Profile() {
   };
 
   // Manejar el envío del formulario
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -265,7 +262,7 @@ export default function Profile() {
   };
 
   // Manejar cambio de contraseña
-  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handlePasswordSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmNewPassword) {
       setError("Las contraseñas no coinciden");
@@ -298,7 +295,7 @@ export default function Profile() {
 
   return (
     <div className="profile-full-container">
-      <Alert
+      <AppAlert
         message={alertMessage}
         status={alertStatus}
         onClose={() => setShowAlert(false)}
@@ -315,10 +312,10 @@ export default function Profile() {
           </div>
           <hr className="red-line-login" />
           {isLoadingProfile && (
-            <Alert variant="info">
+            <BootstrapAlert variant="info">
               <Spinner animation="border" size="sm" className="me-2" />
               Cargando datos de perfil...
-            </Alert>
+            </BootstrapAlert>
           )}
 
           <Form onSubmit={handleSubmit}>
@@ -425,8 +422,8 @@ export default function Profile() {
             </div>
           </Form>
         </Col>
-        {error && <Alert variant="danger">{error}</Alert>}
-        {success && <Alert variant="success">{success}</Alert>}
+        {error && <BootstrapAlert variant="danger">{error}</BootstrapAlert>}
+        {success && <BootstrapAlert variant="success">{success}</BootstrapAlert>}
       </div>
 
       <Modal
@@ -440,7 +437,7 @@ export default function Profile() {
         </ModalHeader>
         <ModalBody>
           <div className="data-profile-pass">
-            <Form>
+            <Form id="change-password-form" onSubmit={handlePasswordSubmit}>
               <Form.Group className="mb-3">
                 <Form.Label>Contraseña Actual</Form.Label>
                 <Form.Control
@@ -490,7 +487,8 @@ export default function Profile() {
         </ModalBody>
         <ModalFooter>
           <Button
-            onClick={(e) => handlePasswordSubmit(e)}
+            type="submit"
+            form="change-password-form"
             className="btn-save-profile"
             disabled={isChangingPassword}
           >

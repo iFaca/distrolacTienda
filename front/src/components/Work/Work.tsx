@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import "./Work.css"; // Asegúrate de tener un archivo CSS para los estilos
 import axios from "axios";
 import Alert from "../Alert/Alert";
@@ -25,7 +26,7 @@ export default function Work() {
   const [loading, setLoading] = useState<boolean>(false);
 
   // Función para manejar el cambio en los inputs
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -41,7 +42,7 @@ export default function Work() {
   };
 
   // Función para manejar el envío del formulario
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Datos del formulario:", formData);
     try {

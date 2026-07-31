@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "./Breadcrumbs.css";
 import Arrow from "@mui/icons-material/NavigateNext";
 import Home from "@mui/icons-material/Home";
@@ -8,9 +8,6 @@ interface BreadcrumsProps {
 }
 
 const Breadcrums: React.FC<BreadcrumsProps> = ({ items }) => {
-  const location = useLocation();
-  const pathnames = location.pathname.split("/").filter((x) => x);
-
   return (
     <>
       <nav className="nav-links">
