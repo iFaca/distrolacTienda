@@ -13,8 +13,9 @@ import Logo from "../../assets/logotienda.png";
    VALIDACIONES
 ===================================================== */
 const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$/;
-const phoneRegex = /^\d+$/;
+const phoneRegex = /^\d{8,15}$/;
 const dniRegex = /^\d{8}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
 
 const genericRegisterErrorRegex =
   /error al crear usuario|no pudimos crear la cuenta|internal server error|request failed/i;
@@ -166,6 +167,8 @@ interface RegisterFormData {
   alias: string;
 }
 
+type RegisterErrorType = "client" | "server" | null;
+
 const Login: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -201,6 +204,8 @@ const Login: React.FC = () => {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerValidated, setRegisterValidated] = useState(false);
   const [registerError, setRegisterError] = useState("");
+  const [registerErrorType, setRegisterErrorType] =
+    useState<RegisterErrorType>(null);
   const [dniServerError, setDniServerError] = useState(false);
   const [emailServerError, setEmailServerError] = useState(false);
 
@@ -233,7 +238,6 @@ const Login: React.FC = () => {
   const [forgotError, setForgotError] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState("");
   const [forgotEmailValid, setForgotEmailValid] = useState(true);
-  const [forgotLoading, setForgotLoading] = useState(false);
 
   /* MENSAJE SI VIENE DEL CHECKOUT */
   useEffect(() => {
@@ -314,7 +318,7 @@ const Login: React.FC = () => {
 
     try {
       const res = await login({
-        email: usernameOrEmail,
+        email: usernameOrEmail.trim(),
         password,
       }).unwrap();
 
@@ -340,6 +344,14 @@ const Login: React.FC = () => {
     setDniServerError(false);
     setEmailServerError(false);
 
+    const form = e.currentTarget;
+    if (!form.checkValidity()) {
+      e.stopPropagation();
+      setRegisterError("Completá correctamente todos los campos requeridos.");
+      setRegisterErrorType("client");
+      return;
+    }
+
     if (!nameRegex.test(registerData.firstName)) {
       setRegisterError("Nombre inválido.");
       setRegisterErrorType("client");
@@ -354,20 +366,21 @@ const Login: React.FC = () => {
 
     if (!dniRegex.test(registerData.dni)) {
       setRegisterError("DNI inválido. Debe tener exactamente 8 dígitos.");
+      setRegisterErrorType("client");
       return;
     }
 
     if (!phoneRegex.test(registerData.phone)) {
       setRegisterError("Teléfono inválido. Debe tener entre 8 y 15 dígitos.");
+      setRegisterErrorType("client");
       return;
     }
 
-    // Validar contraseña con regex (min 8 chars, lowercase, uppercase, number, symbol)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-]).{8,}$/;
     if (!passwordRegex.test(registerData.password)) {
       setRegisterError(
-        "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un símbolo."
+        "La contraseña debe tener al menos 6 caracteres, incluir una mayúscula, una minúscula y un número."
       );
+      setRegisterErrorType("client");
       return;
     }
 
@@ -379,7 +392,16 @@ const Login: React.FC = () => {
 
     try {
       // No enviamos username: el backend lo genera automáticamente
-      const { username: _username, ...payload } = registerData;
+      const { username: _username, ...payload } = {
+        ...registerData,
+        firstName: registerData.firstName.trim(),
+        lastName: registerData.lastName.trim(),
+        dni: registerData.dni.trim(),
+        email: registerData.email.trim(),
+        address: registerData.address.trim(),
+        phone: registerData.phone.trim(),
+        alias: registerData.alias.trim(),
+      };
 
       const res = await register(payload as any).unwrap();
       dispatch(setCredentials({ ...res }));
@@ -391,8 +413,9 @@ const Login: React.FC = () => {
       }
     } catch (err: any) {
       // Mostrar mensaje de error específico del backend
-      const errorMessage = err?.data?.message || "Error al crear la cuenta.";
+      const errorMessage = getRegisterErrorMessage(err);
       setRegisterError(errorMessage);
+      setRegisterErrorType("server");
 
       // Si el error es sobre DNI, marcar el campo como inválido
       if (errorMessage.toLowerCase().includes("dni")) {
@@ -400,7 +423,11 @@ const Login: React.FC = () => {
       }
 
       // Si el error es sobre usuario ya registrado, marcar email como inválido
-      if (errorMessage.toLowerCase().includes("usuario ya registrado")) {
+      if (
+        errorMessage.toLowerCase().includes("usuario ya registrado") ||
+        errorMessage.toLowerCase().includes("email") ||
+        errorMessage.toLowerCase().includes("correo")
+      ) {
         setEmailServerError(true);
       }
     }
@@ -480,8 +507,12 @@ const Login: React.FC = () => {
           <div className="div-register-container">
             <h1 className="title-auth">Registrarse</h1>
             <hr className="red-line-login" />
-            {registerError && registerErrorType === "server" && (
-              <Alert variant="danger">{registerError}</Alert>
+            {registerError && (
+              <Alert
+                variant={registerErrorType === "server" ? "danger" : "warning"}
+              >
+                {registerError}
+              </Alert>
             )}
 
             <Form

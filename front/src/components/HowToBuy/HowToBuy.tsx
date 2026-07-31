@@ -1,4 +1,3 @@
-import React from "react";
 import HeaderImg from "../../assets/sliderwork.png";
 import Hands from "../../assets/manoswork.png";
 import Box from "../../assets/boxes 1work.png";

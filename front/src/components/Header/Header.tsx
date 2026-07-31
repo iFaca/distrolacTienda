@@ -8,9 +8,9 @@ import { Navigation, Autoplay } from "swiper/modules";
 
 export default function Header() {
   // El estado 'images' ahora guardará un array de strings (las URLs)
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -37,8 +37,8 @@ export default function Header() {
           throw new Error("La estructura de datos recibida no es la esperada.");
         }
 
-      } catch (err) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Error desconocido");
         console.error("Error al obtener las imágenes del slider:", err);
       } finally {
         setLoading(false);

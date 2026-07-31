@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import emailjs from "@emailjs/browser";
-import { RootState } from "../../types";
+import { RootState } from "../../../types";
 import "./ShippingDetail.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Alert from "../../Alert/Alert";

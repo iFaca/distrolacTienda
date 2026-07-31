@@ -1,10 +1,10 @@
 // src/components/MyOrders/MyOrders.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Table, Button, Container, Modal } from "react-bootstrap";
 import AddIcon from "@mui/icons-material/Add";
-import { RootState } from "../../types";
+import { RootState } from "../../../types";
 import "./MyOrders.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Spinner from "../../Spinner/Spinner";

@@ -16,7 +16,6 @@ import ShippingDetail from "./components/Cart/ShippingDetail/ShippingDetail";
 import Footer from "./components/Footer/Footer";
 import Profile from "./components/Profile/Profile";
 import Orders from "./components/Profile/MyOrders/MyOrders";
-import { LoadScript } from "@react-google-maps/api";
 import CardDelivery from "./components/CardDerlivery/CardDelivery";
 import Brands from "./components/Brands/Brands";
 import Offers from "./components/Products/Offers/Offers"; // <--- 1. IMPORTA EL NUEVO COMPONENTE
